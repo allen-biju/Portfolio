@@ -102,6 +102,22 @@ export default function SkillDetailPage({ skill, onBack }) {
   // Play whoosh on page enter
   useEffect(() => { playPageWipe(); }, []);
 
+  const WHATSAPP_NUMBER = "918590707880"; // REPLACE WITH YOUR ACTUAL NUMBER (e.g., 919876543210)
+
+  const getWhatsAppLink = () => {
+    const messages = {
+      'Full Stack Dev': "Hi Allen, I'm interested in your Full Stack Development services. I saw your portfolio and would like to discuss a potential project.",
+      'Frontend Dev': "Hi Allen, I loved your cinematic WebGL portfolio! I'm interested in hiring you for a Frontend Development role.",
+      'Logo Creator': "Hi Allen, I need a new brand identity. Can you help me with a Logo/Branding project?",
+      'Video Editing': "Hi Allen, I saw your video editing work. I have some footage I'd like you to edit.",
+      'Transcription': "Hi Allen, I have content that needs accurate transcription. Are you available for a project?",
+      'AI Artist': "Hi Allen,I'm interested in your AI generated art. I'd like to collaborate or commission some AI art pieces."
+    };
+
+    const text = messages[skill.name] || `Hi Allen, I'm interested in your ${skill.name} services.`;
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+  };
+
 
   return (
     <motion.div
@@ -166,7 +182,7 @@ export default function SkillDetailPage({ skill, onBack }) {
       />
 
       {/* ── Scrollable content ── */}
-      <div style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
+      <div data-lenis-prevent style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 'clamp(2rem, 5vw, 4rem) clamp(1.5rem, 5vw, 4rem)' }}>
 
           {/* Back button */}
@@ -367,24 +383,49 @@ export default function SkillDetailPage({ skill, onBack }) {
             </motion.div>
           </div>
 
-          {/* Bottom back button */}
-          <motion.button
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-            onClick={() => { playBack(); onBack(); }}
-            whileHover={{ scale: 1.03, borderColor: skill.color }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-              marginTop: '3rem', background: 'transparent',
-              border: `1px solid ${skill.color}40`,
-              color: skill.color, padding: '14px 28px',
-              fontFamily: 'var(--font-heading)', fontSize: '0.78rem',
-              letterSpacing: '0.18em', textTransform: 'uppercase',
-              cursor: 'none', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '0.6rem',
-              transition: 'border-color 0.3s',
-            }}
-          >
-            ← BACK TO ARSENAL
-          </motion.button>
+          {/* Bottom Actions */}
+          <div style={{ display: 'flex', gap: '1.5rem', marginTop: '3rem', flexWrap: 'wrap' }}>
+            <motion.button
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
+              onClick={() => { playBack(); onBack(); }}
+              whileHover={{ scale: 1.03, borderColor: skill.color }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                background: 'transparent',
+                border: `1px solid ${skill.color}40`,
+                color: skill.color, padding: '14px 28px',
+                fontFamily: 'var(--font-heading)', fontSize: '0.78rem',
+                letterSpacing: '0.18em', textTransform: 'uppercase',
+                cursor: 'none', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '0.6rem',
+                transition: 'border-color 0.3s',
+              }}
+            >
+              ← BACK TO ARSENAL
+            </motion.button>
+
+            <motion.a
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.1 }}
+              href={getWhatsAppLink()}
+              target="_blank"
+              onClick={() => playPageWipe()}
+              whileHover={{ scale: 1.03, backgroundColor: skill.color, color: '#000' }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                background: `${skill.color}15`,
+                border: `1px solid ${skill.color}`,
+                color: skill.color, padding: '14px 28px',
+                fontFamily: 'var(--font-heading)', fontSize: '0.78rem',
+                letterSpacing: '0.18em', textTransform: 'uppercase',
+                cursor: 'none', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '0.8rem',
+                transition: 'all 0.3s',
+              }}
+            >
+              INITIATE COMMUNICATION
+              <span style={{ fontSize: '1.1rem' }}>▶</span>
+            </motion.a>
+          </div>
 
         </div>
       </div>

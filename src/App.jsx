@@ -106,9 +106,11 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
               href={proj.link}
               target="_blank"
               className="visit-btn-modern"
-              whileHover={{ x: 10 }}
+              whileHover={{ x: 5, scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
               onMouseEnter={() => cursorHandlers.hover('LAUNCH')()}
               onMouseLeave={() => cursorHandlers.hover('VIEW PROJECT')()}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               ACCESS CORE
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -137,14 +139,15 @@ function App() {
   const cursorTextRef = useRef(null);
 
   const { scrollYProgress } = useScroll();
+  const lenisRef = useRef(null);
   
   // Infinite Horizontal Loop Logic
   const marqueeX = useMotionValue(0);
   const marqueeSpeed = useRef(-0.8);
   const isMarqueeHovered = useRef(false);
   const PROJECTS_COUNT = 3;
-  const CARD_WIDTH = 450;
-  const CARD_GAP = 80;
+  const CARD_WIDTH = 400; /* Re-aligned with CSS clamp */
+  const CARD_GAP = 60;
   const SET_WIDTH = (CARD_WIDTH + CARD_GAP) * PROJECTS_COUNT;
 
   useAnimationFrame((t, delta) => {
@@ -174,14 +177,28 @@ function App() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Clean cinematic curve
     });
 
+    lenisRef.current = lenis;
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
 
     requestAnimationFrame(raf);
-    return () => lenis.destroy();
+    return () => {
+      lenis.destroy();
+      lenisRef.current = null;
+    };
   }, []);
+
+  // Scroll Orchestration: Pause main scroll when detail overlay is active
+  useEffect(() => {
+    if (selectedSkill) {
+      lenisRef.current?.stop();
+    } else {
+      lenisRef.current?.start();
+    }
+  }, [selectedSkill]);
 
   // Stabilized Scene Transitions (Locked Dwell Zones)
   useEffect(() => {
@@ -269,6 +286,22 @@ function App() {
   };
   const handleCursorLeave = () => setCursorText("");
 
+  const NAV_LINKS = [
+    { name: 'ABOUT', progress: 0.05, scene: 0 },
+    { name: 'SKILLS', progress: 0.40, scene: 1 },
+    { name: 'WORKS', progress: 0.75, scene: 2 },
+    { name: 'CONTACT', progress: 0.98, scene: 3 }
+  ];
+
+  const scrollToSection = (progress) => {
+    if (!lenisRef.current) return;
+    const target = window.innerHeight * 5 * progress;
+    lenisRef.current.scrollTo(target, {
+      duration: 2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+    });
+  };
+
   return (
     <div className="main-content-wrapper">
       {/* Cinematic Intro Overlay */}
@@ -291,11 +324,22 @@ function App() {
           {cursorText}
         </div>
 
-        <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference' }}>
+        <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
           <div className="nav-content">
-            <div className="logo magnetic" onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
+            <div className="logo magnetic" onClick={() => scrollToSection(0)} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
             <div className="nav-links">
-              <span style={{ color: 'var(--color-accent)' }}>FRAME {activeScene + 1}/{TOTAL_SCENES}</span>
+              {NAV_LINKS.map((link) => (
+                <button
+                  key={link.name}
+                  className={`nav-link-item ${activeScene === link.scene ? 'active' : ''}`}
+                  onClick={() => { playClick(); scrollToSection(link.progress); }}
+                  onMouseEnter={handleCursorHover(`JUMP TO ${link.name}`)}
+                  onMouseLeave={handleCursorLeave}
+                >
+                  {link.name}
+                </button>
+              ))}
+              <span className="scene-counter" style={{ color: 'var(--color-accent)', marginLeft: '1rem' }}>FRAME {activeScene + 1}/{TOTAL_SCENES}</span>
             </div>
           </div>
         </nav>

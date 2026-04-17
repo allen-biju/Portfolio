@@ -129,6 +129,65 @@ a {
   font-weight: 700;
   font-size: 1.5rem;
   letter-spacing: 2px;
+  cursor: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.nav-link-item {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: none;
+  position: relative;
+  transition: color 0.3s ease;
+  padding: 0.5rem 0;
+}
+
+.nav-link-item:hover {
+  color: var(--color-accent);
+}
+
+.nav-link-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s var(--transition-smooth);
+}
+
+.nav-link-item:hover::after,
+.nav-link-item.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.nav-link-item.active {
+  color: var(--color-accent);
+  text-shadow: 0 0 10px rgba(232, 160, 32, 0.3);
+}
+
+.scene-counter {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  opacity: 0.8;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Frame Containers */
@@ -301,23 +360,40 @@ a {
 .gallery-wrapper {
   width: 100%;
   overflow: hidden;
-  padding-bottom: 5vh;
-  min-height: 80vh;
+  padding-bottom: 12vh; /* Increased to push cards above footer */
+  min-height: 85vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
+  position: relative;
+}
+
+/* Background HUD Structure for Works */
+.gallery-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(90deg, rgba(232, 160, 32, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(232, 160, 32, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(circle at center, black, transparent 80%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .gallery-track {
   display: flex;
-  gap: 80px;
+  gap: 60px; /* Reduced gap for tighter structure */
   padding-left: 10vw;
-  padding-right: 50vw; /* Significant room for marquee slide */
+  padding-right: 50vw;
   width: max-content;
   cursor: grab;
   pointer-events: auto;
   transform-style: preserve-3d;
   perspective: 2000px;
+  position: relative;
+  z-index: 1;
 }
 
 .gallery-track:active {
@@ -325,9 +401,9 @@ a {
 }
 
 .gallery-card {
-  width: 450px;
+  width: clamp(380px, 28vw, 420px); 
   flex-shrink: 0;
-  height: 600px;
+  height: clamp(480px, 60vh, 520px); /* Further height reduction */
   border-radius: 20px;
   overflow: hidden;
   position: relative;
@@ -468,7 +544,7 @@ a {
   padding: 10px 20px;
   border-radius: 4px;
   letter-spacing: 0.15em;
-  transition: all 0.4s var(--transition-smooth);
+  transition: background 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.2s;
   pointer-events: auto;
 }
 
@@ -491,9 +567,9 @@ a {
 }
 
 .project-name-display {
-  font-size: 2.2rem;
+  font-size: clamp(1.8rem, 2.5vw, 2.2rem);
   font-weight: 700;
-  margin-bottom: 0.8rem !important;
+  margin-bottom: 0.6rem !important;
   color: #fff;
 }
 
