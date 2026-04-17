@@ -61,9 +61,8 @@ const ConstellationDust = ({ activeScene }) => {
         duration: 1.5,
         ease: "power2.inOut"
       });
-      // Particles vanish on scroll away from Intro, re-summon on hover (Only in Scenes 0, 1, 2)
-      const isHome = activeScene < 3;
-      const isVisible = isHome && (activeScene === 0 || activeZoneIndex !== -1);
+      // Particles vanish on scroll away from Intro (Scene 0)
+      const isVisible = activeScene === 0;
 
       gsap.to(groupRef.current.scale, {
         x: isVisible ? 1 : 0,
@@ -88,8 +87,8 @@ const ConstellationDust = ({ activeScene }) => {
 
     // 1. Frame-perfect Zone Detection via Projection
     let foundIndex = -1;
-    // Word assembly only allowed in Home frames (0, 1, 2)
-    if (activeScene < 3 && activeScene !== -1 && groupRef.current) {
+    // Word assembly only allowed in Home frame (Scene 0)
+    if (activeScene === 0 && groupRef.current) {
       const tempVec = new THREE.Vector3();
       groupRef.current.updateMatrixWorld();
 

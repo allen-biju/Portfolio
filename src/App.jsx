@@ -36,10 +36,11 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
       className="gallery-card"
       style={{
         rotateX, rotateY, rotateZ, scale, opacity, z,
-        x: autoDriftX
+        x: autoDriftX,
+        transformStyle: 'preserve-3d'
       }}
-      whileHover={{ y: -15, rotateY: 5, scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      whileHover={{ y: -20, z: 20 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 25 }}
     >
       <div className="project-number">0{i + 1}</div>
       <div className="project-image-wrapper">

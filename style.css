@@ -310,9 +310,11 @@ a {
   display: flex;
   gap: 80px;
   padding-left: 10vw;
-  padding-right: 10vw;
+  padding-right: 15vw; /* Extra room for perspective swing */
   cursor: grab;
   pointer-events: auto;
+  transform-style: preserve-3d;
+  perspective: 2000px;
 }
 
 .gallery-track:active {
@@ -352,8 +354,8 @@ a {
 }
 
 .gallery-card:hover img {
-  transform: scale(1.1);
-  filter: grayscale(40%) brightness(0.9);
+  transform: scale(1.05) translateZ(10px);
+  filter: grayscale(20%) brightness(1);
 }
 
 .project-number {
