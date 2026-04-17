@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Loader } from '@react-three/drei';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
 import Lenis from 'lenis';
 import HeroScene from './components/HeroScene';
@@ -12,61 +12,114 @@ import { playHover, playClick, preloadSounds, playUILong, playShard } from './ho
 const TOTAL_SCENES = 4;
 
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
-  // Accelerated Assembly: Map scroll progress (0.60 to 0.76) to 3D states
+  const cardRef = useRef(null);
+  
+  // Accelerated Assembly
   const start = 0.50 + (i * 0.04);
   const end = 0.65 + (i * 0.04);
 
-  const rotateX = useTransform(scrollProgress, [start, end], [180, 0]);
-  const rotateY = useTransform(scrollProgress, [start, end], [130, 0]);
-  const rotateZ = useTransform(scrollProgress, [start, end], [25, 0]);
+  const assemblyRotateX = useTransform(scrollProgress, [start, end], [180, 0]);
+  const assemblyRotateY = useTransform(scrollProgress, [start, end], [130, 0]);
+  const assemblyRotateZ = useTransform(scrollProgress, [start, end], [25, 0]);
   const scale = useTransform(scrollProgress, [start, end], [0.5, 1]);
   const opacity = useTransform(scrollProgress, [start, end], [0, 1]);
   const z = useTransform(scrollProgress, [start, end], [-400, 0]);
 
-  // Subtle auto-drift once on screen
-  const autoDriftX = useMotionValue(0);
-  useAnimationFrame((t) => {
-    if (scrollProgress.get() > 0.7) {
-      autoDriftX.set(Math.sin(t / 2500 + i) * 12);
-    }
-  });
+  // Interactive Tilt Logic (Replaces autoDrift for better stability)
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  
+  const springTiltX = useSpring(tiltX, { stiffness: 150, damping: 20 });
+  const springTiltY = useSpring(tiltY, { stiffness: 150, damping: 20 });
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const centerX = rect.x + rect.width / 2;
+    const centerY = rect.y + rect.height / 2;
+    
+    // Tilt degree logic (-15 to 15 degrees)
+    tiltX.set((e.clientY - centerY) / (rect.height / 2) * -15);
+    tiltY.set((e.clientX - centerX) / (rect.width / 2) * 15);
+  };
+
+  const handleMouseLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+    cursorHandlers.leave();
+  };
+
+  // Combine assembly rotation and tilt rotation
+  const finalRotateX = useTransform([assemblyRotateX, springTiltX], ([a, t]) => a + t);
+  const finalRotateY = useTransform([assemblyRotateY, springTiltY], ([a, t]) => a + t);
 
   return (
     <motion.div
+      ref={cardRef}
       className="gallery-card"
       style={{
-        rotateX, rotateY, rotateZ, scale, opacity, z,
-        x: autoDriftX,
+        rotateX: finalRotateX,
+        rotateY: finalRotateY,
+        rotateZ: assemblyRotateZ,
+        scale,
+        opacity,
+        z,
         transformStyle: 'preserve-3d'
       }}
-      whileHover={{ y: -20, z: 20 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => cursorHandlers.hover('VIEW PROJECT')()}
       transition={{ type: 'spring', stiffness: 200, damping: 25 }}
     >
-      <div className="project-number">0{i + 1}</div>
+      {/* HUD Accents */}
+      <div className="card-hud-brackets">
+        <div className="bracket tl" />
+        <div className="bracket tr" />
+        <div className="bracket bl" />
+        <div className="bracket br" />
+      </div>
+
+      <div className="project-number">
+        <span className="scanning-dot" />
+        PROJ_0{i + 1}
+      </div>
+      
       <div className="project-image-wrapper">
         <img src={proj.img} alt={proj.name} />
+        <div className="image-overlay-glitch" />
       </div>
+
       <div className="card-info">
         <div className="project-tags">
-          {proj.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
+          {proj.tags.map(tag => (
+            <span key={tag} className="tag-hud">
+              {tag}
+            </span>
+          ))}
         </div>
-        <h3 className="title-font">{proj.name}</h3>
-        <p>{proj.desc}</p>
-        <div style={{ display: 'flex', gap: '2rem' }}>
+        <h3 className="title-font project-name-display">{proj.name}</h3>
+        <p className="project-desc-display">{proj.desc}</p>
+        
+        <div className="card-action-row">
           {proj.link ? (
             <motion.a
               href={proj.link}
               target="_blank"
-              className="visit-btn"
-              onMouseEnter={() => cursorHandlers.hover('EXPLORE')()}
-              onMouseLeave={cursorHandlers.leave}
+              className="visit-btn-modern"
+              whileHover={{ x: 10 }}
+              onMouseEnter={() => cursorHandlers.hover('LAUNCH')()}
+              onMouseLeave={() => cursorHandlers.hover('VIEW PROJECT')()}
             >
-              LAUNCH PROJECT
+              ACCESS CORE
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M7 17L17 7M17 7H7M17 7V17" />
+              </svg>
             </motion.a>
           ) : (
-            <span className="visit-btn" style={{ opacity: 0.5, borderBottomColor: 'rgba(255,255,255,0.2)' }}>
-              CASE STUDY COMING SOON
-            </span>
+            <div className="visit-btn-disabled">
+              <span>ENCRYPTED_FILES</span>
+              <div className="lock-icon" />
+            </div>
           )}
         </div>
       </div>
@@ -84,7 +137,33 @@ function App() {
   const cursorTextRef = useRef(null);
 
   const { scrollYProgress } = useScroll();
-  const trackX = useTransform(scrollYProgress, [0.76, 0.92], [0, -1200]);
+  
+  // Infinite Horizontal Loop Logic
+  const marqueeX = useMotionValue(0);
+  const marqueeSpeed = useRef(-0.8);
+  const isMarqueeHovered = useRef(false);
+  const PROJECTS_COUNT = 3;
+  const CARD_WIDTH = 450;
+  const CARD_GAP = 80;
+  const SET_WIDTH = (CARD_WIDTH + CARD_GAP) * PROJECTS_COUNT;
+
+  useAnimationFrame((t, delta) => {
+    // Only move if we are in the Works section and entry animation is complete
+    if (activeScene >= 2 && activeScene < 3 && scrollYProgress.get() > 0.65) {
+      const targetSpeed = isMarqueeHovered.current ? 0 : -0.8;
+      // Fluid deceleration/acceleration (Lerp)
+      marqueeSpeed.current += (targetSpeed - marqueeSpeed.current) * 0.08;
+      
+      const currentX = marqueeX.get();
+      let newX = currentX + marqueeSpeed.current;
+      
+      // Reset for seamless loop
+      if (newX <= -SET_WIDTH) {
+        newX = 0;
+      }
+      marqueeX.set(newX);
+    }
+  });
 
   // Initialize Lenis
   useEffect(() => {
@@ -582,7 +661,12 @@ function App() {
                   />
                 </div>
 
-                <motion.div className="gallery-track" style={{ x: trackX }}>
+                <motion.div 
+                  className="gallery-track" 
+                  style={{ x: marqueeX }}
+                  onMouseEnter={() => { isMarqueeHovered.current = true; }}
+                  onMouseLeave={() => { isMarqueeHovered.current = false; }}
+                >
                   {[
                     {
                       name: "CEV Connect",
@@ -603,11 +687,31 @@ function App() {
                       tags: ["Figma", "Stable Diffusion", "Brand"],
                       img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
                     }
-                  ].map((proj, i) => (
+                  ].concat([ // Repeat list for seamless loop
+                    {
+                      name: "CEV Connect",
+                      desc: "A centralized digital ecosystem bridging the gap between campus commerce and housing data.",
+                      link: "https://cev-connect.vercel.app",
+                      tags: ["React", "FastAPI", "Postgres"],
+                      img: "https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1200&auto=format&fit=crop"
+                    },
+                    {
+                      name: "Cinematic Reels",
+                      desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
+                      tags: ["Premiere", "After Effects", "AI"],
+                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop"
+                    },
+                    {
+                      name: "Neural Identity",
+                      desc: "Synthesizing traditional design principles with generative AI neural networks.",
+                      tags: ["Figma", "Stable Diffusion", "Brand"],
+                      img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
+                    }
+                  ]).map((proj, i) => (
                     <ProjectCard3D
-                      key={i}
+                      key={`${proj.name}-${i}`}
                       proj={proj}
-                      i={i}
+                      i={i % 3} // Use modulo to keep entry animation synced for both sets
                       scrollProgress={scrollYProgress}
                       cursorHandlers={{ hover: handleCursorHover, leave: handleCursorLeave }}
                     />
