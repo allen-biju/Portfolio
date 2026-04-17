@@ -721,45 +721,123 @@ function App() {
             </motion.div>
           )}
 
-          {/* Frame 3: Contact Form */}
+          {/* Frame 3: Contact Form - Terminal Overhaul */}
           {activeScene === 3 && (
             <motion.div key="scene3" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="frame-container centered">
-              <div className="contact-wrapper">
-                <h2 className="title-font section-heading" style={{ textAlign: 'center' }}>INITIATE TRANSMISSION</h2>
-                <form className="modern-form" onSubmit={(e) => e.preventDefault()}>
-                  <motion.div className="form-group" whileFocus={{ scale: 1.02 }}>
-                    <input type="text" required placeholder=" " onMouseEnter={handleCursorHover('TYPE')} onMouseLeave={handleCursorLeave} />
-                    <label>Identification (Name)</label>
-                    <div className="form-line"></div>
-                  </motion.div>
+              <div className="terminal-wrapper">
+                {/* HUD Brackets */}
+                <div className="card-hud-brackets">
+                  <div className="bracket tl" />
+                  <div className="bracket tr" />
+                  <div className="bracket bl" />
+                  <div className="bracket br" />
+                </div>
 
-                  <motion.div className="form-group" whileFocus={{ scale: 1.02 }}>
-                    <input type="email" required placeholder=" " onMouseEnter={handleCursorHover('TYPE')} onMouseLeave={handleCursorLeave} />
-                    <label>Signal Node (Email)</label>
-                    <div className="form-line"></div>
-                  </motion.div>
+                <div className="terminal-header">
+                  <div className="terminal-status-light pulse" />
+                  <span className="terminal-title">RECV_NODE: ALPHA-7 // UPLINK_READY</span>
+                </div>
 
-                  <motion.div className="form-group" whileFocus={{ scale: 1.02 }}>
-                    <textarea required placeholder=" " rows="3" onMouseEnter={handleCursorHover('TYPE')} onMouseLeave={handleCursorLeave}></textarea>
-                    <label>Encrypted Payload (Message)</label>
-                    <div className="form-line"></div>
-                  </motion.div>
+                <div className="terminal-content">
+                  <div className="terminal-form-side">
+                    <h2 className="title-font section-heading-modern">INITIATE TRANSMISSION</h2>
+                    <form className="modern-form-terminal" onSubmit={(e) => e.preventDefault()}>
+                      <div className="form-group-glass">
+                        <input type="text" required placeholder=" " onMouseEnter={handleCursorHover('IDENTIFY')} onMouseLeave={handleCursorLeave} />
+                        <label>OPERATOR_ID (NAME)</label>
+                        <div className="input-glow" />
+                      </div>
 
-                  <motion.button
-                    type="submit"
-                    className="submit-btn"
-                    onMouseEnter={handleCursorHover('SEND')}
-                    onMouseLeave={handleCursorLeave}
-                    whileHover={{ scale: 1.05, backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-primary)' }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    DECRYPT & SEND
-                  </motion.button>
-                </form>
+                      <div className="form-group-glass">
+                        <input type="email" required placeholder=" " onMouseEnter={handleCursorHover('SIGNAL')} onMouseLeave={handleCursorLeave} />
+                        <label>SIGNAL_NODE (EMAIL)</label>
+                        <div className="input-glow" />
+                      </div>
+
+                      <div className="form-group-glass">
+                        <textarea required placeholder=" " rows="3" onMouseEnter={handleCursorHover('MESSAGE')} onMouseLeave={handleCursorLeave}></textarea>
+                        <label>ENCRYPTED_PAYLOAD (MESSAGE)</label>
+                        <div className="input-glow" />
+                      </div>
+
+                      <motion.button
+                        type="submit"
+                        className="terminal-submit-btn"
+                        onMouseEnter={() => { handleCursorHover('ESTABLISH CONNECTION')(); playUILong(); }}
+                        onMouseLeave={handleCursorLeave}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span className="btn-text">ESTABLISH_UPLINK</span>
+                        <div className="btn-glitch-layer" />
+                      </motion.button>
+                    </form>
+                  </div>
+
+                  <div className="terminal-log-side">
+                    <div className="log-header">SESSION_LOG</div>
+                      <div className="log-entries">
+                        <div className="log-entry">&gt; HANDSHAKE INITIALIZED...</div>
+                        <div className="log-entry">&gt; SECURE_TUNNEL_ESTABLISHED: 256-BIT</div>
+                        <div className="log-entry">&gt; WAITING_FOR_OPERATOR_INPUT...</div>
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ repeat: Infinity, duration: 1 }}
+                        className="log-entry cursor"
+                      >_</motion.div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Global Social Footer */}
+        <motion.footer 
+          className="global-footer"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ 
+            opacity: introComplete ? (activeScene >= 3 ? 1 : 0.4) : 0,
+            y: introComplete ? 0 : 50 
+          }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="footer-content">
+            <div className="footer-left">
+              <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
+            </div>
+            <div className="footer-center">
+              <div className="social-links-hud">
+                {[
+                  { name: 'INSTAGRAM', url: 'https://instagram.com/allen_biju', color: '#E1306C' },
+                  { name: 'FIVERR', url: 'https://fiverr.com/allenbiju', color: '#1DBF73' },
+                  { name: 'GITHUB', url: 'https://github.com/allen-biju', color: '#FFF' },
+                  { name: 'LINKEDIN', url: 'https://linkedin.com/in/allen-biju', color: '#0077B5' }
+                ].map((link) => (
+                  <motion.a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    className="social-hover-link"
+                    onMouseEnter={handleCursorHover(`ACCESS ${link.name}`)}
+                    onMouseLeave={handleCursorLeave}
+                    whileHover={{ y: -5, color: 'var(--color-accent)' }}
+                  >
+                    {link.name}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+            <div className="footer-right">
+              <div className="status-readout">
+                <span className="latency">LATENCY: 14MS</span>
+                <span className="uptime">UPTIME: 99.9%</span>
+              </div>
+            </div>
+          </div>
+        </motion.footer>
 
         <div style={{ position: 'fixed', bottom: '40px', right: '40px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[0, 1, 2, 3].map((scene) => (
