@@ -13,8 +13,8 @@ const TOTAL_SCENES = 4;
 
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
   // Accelerated Assembly: Map scroll progress (0.60 to 0.76) to 3D states
-  const start = 0.60 + (i * 0.02);
-  const end = 0.72 + (i * 0.02);
+  const start = 0.50 + (i * 0.04);
+  const end = 0.65 + (i * 0.04);
 
   const rotateX = useTransform(scrollProgress, [start, end], [180, 0]);
   const rotateY = useTransform(scrollProgress, [start, end], [130, 0]);
@@ -109,20 +109,32 @@ function App() {
     return scrollYProgress.onChange((v) => {
       let newScene = activeScene;
 
-      // Scene 0 (Intro): 0.0 - 0.25 (Expanded dwell)
+      // Scene 0 (Intro): 0.0 - 0.25
       if (v <= 0.25) newScene = 0;
       // Scene 1 (Arsenal): 0.26 - 0.55
-      else if (v > 0.26 && v <= 0.55) newScene = 1;
+      else if (v > 0.25 && v <= 0.55) newScene = 1;
       // Scene 2 (Works): 0.56 - 0.92
-      else if (v > 0.56 && v <= 0.92) newScene = 2;
+      else if (v > 0.55 && v <= 0.92) newScene = 2;
       // Scene 3 (Contact): 0.93+
-      else if (v > 0.93) newScene = 3;
+      else if (v > 0.92) newScene = 3;
 
       if (newScene !== activeScene) {
         setActiveScene(newScene);
       }
     });
   }, [scrollYProgress, activeScene]);
+
+  // Transform values for Scene 1 (Arsenal) Entry/Exit
+  const arsenalOpacity = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [0, 1, 1, 0]);
+  const arsenalZ = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [-1000, 0, 0, -2500]);
+  const arsenalScale = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [0.4, 1, 1, 0.2]);
+  const arsenalBlur = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
+
+  // Transform values for Scene 2 (Works) Entry/Exit
+  const worksOpacity = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0, 1, 1, 0]);
+  const worksZ = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [-1000, 0, 0, -1000]);
+  const worksScale = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0.4, 1, 1, 0.4]);
+  const worksBlur = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(15px)"]);
 
   // Sound preloading
   useEffect(() => {
@@ -229,6 +241,7 @@ function App() {
               variants={pageVariants}
               transition={pageTransition}
               className="frame-container padded-left"
+              style={{ pointerEvents: activeScene === 0 ? 'auto' : 'none' }}
             >
               <div className="intro-text-content">
                 <motion.div
@@ -279,9 +292,24 @@ function App() {
           )}
 
           {/* Frame 1: Skills HUD — Game-like */}
-          {activeScene === 1 && (
-            <motion.div key="scene1" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}
-              style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5vw', pointerEvents: 'none' }}
+          {activeScene > 0 && activeScene < 2 && scrollYProgress.get() > 0.25 && scrollYProgress.get() < 0.58 && (
+            <motion.div 
+              key="scene1" 
+              style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                padding: '0 5vw', 
+                pointerEvents: activeScene === 1 ? 'auto' : 'none',
+                opacity: arsenalOpacity,
+                z: arsenalZ,
+                scale: arsenalScale,
+                filter: arsenalBlur,
+                transformStyle: 'preserve-3d',
+                zIndex: activeScene === 1 ? 10 : 5
+              }}
             >
               {/* Scanline overlay */}
               <div style={{
@@ -523,8 +551,20 @@ function App() {
 
 
           {/* Frame 2: Stabilized 3D Project Showcase */}
-          {activeScene === 2 && (
-            <motion.div key="scene2" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="frame-container centered">
+          {activeScene > 1 && activeScene < 3 && scrollYProgress.get() > 0.50 && scrollYProgress.get() < 0.95 && (
+            <motion.div 
+              key="scene2" 
+              style={{
+                opacity: worksOpacity,
+                z: worksZ,
+                scale: worksScale,
+                filter: worksBlur,
+                transformStyle: 'preserve-3d',
+                pointerEvents: activeScene === 2 ? 'auto' : 'none',
+                zIndex: activeScene === 2 ? 10 : 5
+              }}
+              className="frame-container centered"
+            >
               <div className="gallery-wrapper">
                 <div style={{ textAlign: 'center', marginBottom: '8vh' }}>
                   <motion.h2
