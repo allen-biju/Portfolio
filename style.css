@@ -310,7 +310,8 @@ a {
   display: flex;
   gap: 80px;
   padding-left: 10vw;
-  padding-right: 15vw; /* Extra room for perspective swing */
+  padding-right: 50vw; /* Significant room for marquee slide */
+  width: max-content;
   cursor: grab;
   pointer-events: auto;
   transform-style: preserve-3d;
@@ -322,7 +323,8 @@ a {
 }
 
 .gallery-card {
-  min-width: 450px;
+  width: 450px;
+  flex-shrink: 0;
   height: 600px;
   border-radius: 20px;
   overflow: hidden;

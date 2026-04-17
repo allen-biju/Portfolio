@@ -12,9 +12,9 @@ import { playHover, playClick, preloadSounds, playUILong, playShard } from './ho
 const TOTAL_SCENES = 4;
 
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
-  // Stabilized Assembly: Map scroll progress (0.65 to 0.82) to 3D states
-  const start = 0.65 + (i * 0.03);
-  const end = 0.78 + (i * 0.03);
+  // Accelerated Assembly: Map scroll progress (0.60 to 0.76) to 3D states
+  const start = 0.60 + (i * 0.02);
+  const end = 0.72 + (i * 0.02);
 
   const rotateX = useTransform(scrollProgress, [start, end], [180, 0]);
   const rotateY = useTransform(scrollProgress, [start, end], [130, 0]);
@@ -84,6 +84,7 @@ function App() {
   const cursorTextRef = useRef(null);
 
   const { scrollYProgress } = useScroll();
+  const trackX = useTransform(scrollYProgress, [0.76, 0.92], [0, -1200]);
 
   // Initialize Lenis
   useEffect(() => {
@@ -108,14 +109,14 @@ function App() {
     return scrollYProgress.onChange((v) => {
       let newScene = activeScene;
 
-      // Scene 0 (Intro): 0.0 - 0.22 (Extended dwell)
-      if (v <= 0.22) newScene = 0;
-      // Scene 1 (Arsenal): 0.32 - 0.52
-      else if (v > 0.32 && v <= 0.52) newScene = 1;
-      // Scene 2 (Works): 0.62 - 0.88
-      else if (v > 0.62 && v <= 0.88) newScene = 2;
-      // Scene 3 (Contact): 0.95+
-      else if (v > 0.95) newScene = 3;
+      // Scene 0 (Intro): 0.0 - 0.25 (Expanded dwell)
+      if (v <= 0.25) newScene = 0;
+      // Scene 1 (Arsenal): 0.26 - 0.55
+      else if (v > 0.26 && v <= 0.55) newScene = 1;
+      // Scene 2 (Works): 0.56 - 0.92
+      else if (v > 0.56 && v <= 0.92) newScene = 2;
+      // Scene 3 (Contact): 0.93+
+      else if (v > 0.93) newScene = 3;
 
       if (newScene !== activeScene) {
         setActiveScene(newScene);
@@ -541,7 +542,7 @@ function App() {
                   />
                 </div>
 
-                <div className="gallery-track">
+                <motion.div className="gallery-track" style={{ x: trackX }}>
                   {[
                     {
                       name: "CEV Connect",
@@ -571,7 +572,7 @@ function App() {
                       cursorHandlers={{ hover: handleCursorHover, leave: handleCursorLeave }}
                     />
                   ))}
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           )}
