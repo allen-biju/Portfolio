@@ -1,71 +1,129 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Loader } from '@react-three/drei';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
 import Lenis from 'lenis';
 import HeroScene from './components/HeroScene';
 import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
-import { playHover, playClick, preloadSounds, playUILong, playShard } from './hooks/useSounds';
+import ResumeModal from './components/ResumeModal';
+import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
+import emailjs from '@emailjs/browser';
 
 const TOTAL_SCENES = 4;
 
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
-  // Stabilized Assembly: Map scroll progress (0.65 to 0.82) to 3D states
-  const start = 0.65 + (i * 0.03);
-  const end = 0.78 + (i * 0.03);
+  const cardRef = useRef(null);
 
-  const rotateX = useTransform(scrollProgress, [start, end], [180, 0]);
-  const rotateY = useTransform(scrollProgress, [start, end], [130, 0]);
-  const rotateZ = useTransform(scrollProgress, [start, end], [25, 0]);
+  // Accelerated Assembly
+  const start = 0.50 + (i * 0.04);
+  const end = 0.65 + (i * 0.04);
+
+  const assemblyRotateX = useTransform(scrollProgress, [start, end], [180, 0]);
+  const assemblyRotateY = useTransform(scrollProgress, [start, end], [130, 0]);
+  const assemblyRotateZ = useTransform(scrollProgress, [start, end], [25, 0]);
   const scale = useTransform(scrollProgress, [start, end], [0.5, 1]);
   const opacity = useTransform(scrollProgress, [start, end], [0, 1]);
   const z = useTransform(scrollProgress, [start, end], [-400, 0]);
 
-  // Subtle auto-drift once on screen
-  const autoDriftX = useMotionValue(0);
-  useAnimationFrame((t) => {
-    if (scrollProgress.get() > 0.7) {
-      autoDriftX.set(Math.sin(t / 2500 + i) * 12);
-    }
-  });
+  // Interactive Tilt Logic (Replaces autoDrift for better stability)
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+
+  const springTiltX = useSpring(tiltX, { stiffness: 150, damping: 20 });
+  const springTiltY = useSpring(tiltY, { stiffness: 150, damping: 20 });
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const centerX = rect.x + rect.width / 2;
+    const centerY = rect.y + rect.height / 2;
+
+    // Tilt degree logic (-15 to 15 degrees)
+    tiltX.set((e.clientY - centerY) / (rect.height / 2) * -15);
+    tiltY.set((e.clientX - centerX) / (rect.width / 2) * 15);
+  };
+
+  const handleMouseLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+    cursorHandlers.leave();
+  };
+
+  // Combine assembly rotation and tilt rotation
+  const finalRotateX = useTransform([assemblyRotateX, springTiltX], ([a, t]) => a + t);
+  const finalRotateY = useTransform([assemblyRotateY, springTiltY], ([a, t]) => a + t);
 
   return (
     <motion.div
+      ref={cardRef}
       className="gallery-card"
       style={{
-        rotateX, rotateY, rotateZ, scale, opacity, z,
-        x: autoDriftX
+        rotateX: finalRotateX,
+        rotateY: finalRotateY,
+        rotateZ: assemblyRotateZ,
+        scale,
+        opacity,
+        z,
+        transformStyle: 'preserve-3d'
       }}
-      whileHover={{ y: -15, rotateY: 5, scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => cursorHandlers.hover('VIEW PROJECT')()}
+      transition={{ type: 'spring', stiffness: 200, damping: 25 }}
     >
-      <div className="project-number">0{i + 1}</div>
+      {/* HUD Accents */}
+      <div className="card-hud-brackets">
+        <div className="bracket tl" />
+        <div className="bracket tr" />
+        <div className="bracket bl" />
+        <div className="bracket br" />
+      </div>
+
+      <div className="project-number">
+        <span className="scanning-dot" />
+        PROJ_0{i + 1}
+      </div>
+
       <div className="project-image-wrapper">
         <img src={proj.img} alt={proj.name} />
+        <div className="image-overlay-glitch" />
       </div>
+
       <div className="card-info">
         <div className="project-tags">
-          {proj.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
+          {proj.tags.map(tag => (
+            <span key={tag} className="tag-hud">
+              {tag}
+            </span>
+          ))}
         </div>
-        <h3 className="title-font">{proj.name}</h3>
-        <p>{proj.desc}</p>
-        <div style={{ display: 'flex', gap: '2rem' }}>
+        <h3 className="title-font project-name-display">{proj.name}</h3>
+        <p className="project-desc-display">{proj.desc}</p>
+
+        <div className="card-action-row">
           {proj.link ? (
             <motion.a
               href={proj.link}
               target="_blank"
-              className="visit-btn"
-              onMouseEnter={() => cursorHandlers.hover('EXPLORE')()}
-              onMouseLeave={cursorHandlers.leave}
+              className="visit-btn-modern"
+              whileHover={{ x: 5, scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onMouseEnter={() => cursorHandlers.hover('LAUNCH')()}
+              onMouseLeave={() => cursorHandlers.hover('VIEW PROJECT')()}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
-              LAUNCH PROJECT
+              ACCESS CORE
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M7 17L17 7M17 7H7M17 7V17" />
+              </svg>
             </motion.a>
           ) : (
-            <span className="visit-btn" style={{ opacity: 0.5, borderBottomColor: 'rgba(255,255,255,0.2)' }}>
-              CASE STUDY COMING SOON
-            </span>
+            <div className="visit-btn-disabled">
+              <span>ENCRYPTED_FILES</span>
+              <div className="lock-icon" />
+            </div>
           )}
         </div>
       </div>
@@ -76,13 +134,208 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
 function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
+  const [portraitPhase, setPortraitPhase] = useState('hidden'); // hidden -> sketch -> solid
+
+  useEffect(() => {
+    if (introComplete) {
+      // 1. Start Sketch immediately after intro
+      const sketchTimer = setTimeout(() => setPortraitPhase('sketch'), 200);
+      // 2. High-energy Glitch Burst
+      const glitchTimer = setTimeout(() => setPortraitPhase('glitch'), 5200);
+      // 3. Final physical materialization
+      const solidTimer = setTimeout(() => setPortraitPhase('solid'), 5500);
+
+      return () => {
+        clearTimeout(sketchTimer);
+        clearTimeout(glitchTimer);
+        clearTimeout(solidTimer);
+      };
+    }
+  }, [introComplete]);
+
   const [selectedSkill, setSelectedSkill] = useState(null);
+  const [showEntryFlash, setShowEntryFlash] = useState(false);
+  const [showResume, setShowResume] = useState(false);
+  const [muted, setMuted] = useState(getIsMuted());
+
+  const handleToggleMute = () => {
+    const newState = toggleMute();
+    setMuted(newState);
+    playClick(); // Play click sound before it totally mutes or if unmuting
+  };
   const [cursorText, setCursorText] = useState("");
   const cursorDot = useRef(null);
   const cursorOutline = useRef(null);
   const cursorTextRef = useRef(null);
 
+  // Transmission Form States
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [terminalLogs, setTerminalLogs] = useState([
+    "HANDSHAKE INITIALIZED...",
+    "SECURE_TUNNEL_ESTABLISHED: 256-BIT",
+    "WAITING_FOR_OPERATOR_INPUT..."
+  ]);
+  const [isSending, setIsSending] = useState(false);
+  const logEndRef = useRef(null);
+
+  // Handshake Logic States
+  const [verificationStep, setVerificationStep] = useState('IDENTIFY'); // IDENTIFY | CHALLENGE | UPLINK
+  const [handshakeCode, setHandshakeCode] = useState('');
+  const [userInputCode, setUserInputCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+
+  const EMAILJS_CONFIG = {
+    SERVICE_ID: "service_6xea9sf",
+    VERIFY_TEMPLATE_ID: "template_uls1fe8",
+    MESSAGE_TEMPLATE_ID: "template_4ja7r45",
+    PUBLIC_KEY: "uDVlBCVL6kwOWrl5i"
+  };
+
+  const addLog = (msg) => {
+    setTerminalLogs(prev => [...prev, msg]);
+  };
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [terminalLogs]);
+
+  const startHandshake = async () => {
+    if (!formData.name || !formData.email) {
+      addLog("ERROR: MISSING OPERATOR_ID OR SIGNAL_NODE.");
+      return;
+    }
+    setIsSending(true);
+    addLog(`INITIATING HANDSHAKE FOR ${formData.email.toUpperCase()}...`);
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setHandshakeCode(code);
+
+    try {
+      if (EMAILJS_CONFIG.PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+        // Fallback for simulation if keys aren't set yet
+        console.log("SIMULATION MODE: HANDSHAKE CODE IS", code);
+        await new Promise(r => setTimeout(r, 1500));
+        addLog("CHALLENGE_CODE DISPATCHED (SIMULATED). CHECK CONSOLE.");
+      } else {
+        await emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.VERIFY_TEMPLATE_ID,
+          {
+            name: formData.name,
+            to_name: formData.name,
+            email: formData.email,
+            passcode: code,
+            challenge_code: code,
+            time: new Date().toLocaleTimeString()
+          },
+          EMAILJS_CONFIG.PUBLIC_KEY
+        );
+        addLog("CHALLENGE_CODE DISPATCHED. CHECK YOUR INBOX.");
+      }
+      setVerificationStep('CHALLENGE');
+    } catch (error) {
+      addLog("HANDSHAKE FAILED. SIGNAL INTERFERENCE DETECTED.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const verifyHandshake = () => {
+    if (!userInputCode) return;
+    setIsSending(true);
+    addLog("VALIDATING CHALLENGE_CODE...");
+
+    setTimeout(() => {
+      if (userInputCode === handshakeCode) {
+        setIsVerified(true);
+        addLog("HANDSHAKE ACCEPTED. ENCRYPTION KEY SYNCED.");
+        addLog("SIGNAL VERIFIED. UPLINK UNLOCKED.");
+        setVerificationStep('UPLINK');
+      } else {
+        addLog("ACCESS DENIED. INVALID CHALLENGE_CODE.");
+      }
+      setIsSending(false);
+    }, 1500);
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (verificationStep === 'IDENTIFY') startHandshake();
+    else if (verificationStep === 'CHALLENGE') verifyHandshake();
+    else if (verificationStep === 'UPLINK') finalizeTransmission(e);
+  };
+
+  const finalizeTransmission = async (e) => {
+    if (!isVerified || isSending) return;
+
+    setIsSending(true);
+    addLog("EXECUTING FINAL UPLINK...");
+
+    try {
+      if (EMAILJS_CONFIG.PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+        await new Promise(r => setTimeout(r, 2000));
+      } else {
+        await emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.MESSAGE_TEMPLATE_ID,
+          {
+            from_name: formData.name,
+            from_email: formData.email,
+            message: formData.message
+          },
+          EMAILJS_CONFIG.PUBLIC_KEY
+        );
+      }
+
+      addLog("TRANSMISSION SUCCESSFUL. DATA PACKETS RECEIVED.");
+      addLog("TERMINATING SESSION...");
+
+      setTimeout(() => {
+        setFormData({ name: '', email: '', message: '' });
+        setVerificationStep('IDENTIFY');
+        setIsVerified(false);
+        setHandshakeCode('');
+        setUserInputCode('');
+        setIsSending(false);
+        addLog("SESSION RE-INITIALIZED. STANDBY.");
+      }, 3000);
+    } catch (error) {
+      addLog("UPLINK FAILURE. PERSISTENT TRANSMISSION ERROR.");
+      setIsSending(false);
+    }
+  };
+
   const { scrollYProgress } = useScroll();
+  const lenisRef = useRef(null);
+
+  // Infinite Horizontal Loop Logic
+  const marqueeX = useMotionValue(0);
+  const marqueeSpeed = useRef(-0.8);
+  const isMarqueeHovered = useRef(false);
+  const PROJECTS_COUNT = 3;
+  const CARD_WIDTH = 400; /* Re-aligned with CSS clamp */
+  const CARD_GAP = 60;
+  const SET_WIDTH = (CARD_WIDTH + CARD_GAP) * PROJECTS_COUNT;
+
+  useAnimationFrame((t, delta) => {
+    // Only move if we are in the Works section and entry animation is complete
+    if (activeScene >= 2 && activeScene < 3 && scrollYProgress.get() > 0.65) {
+      const targetSpeed = isMarqueeHovered.current ? 0 : -0.8;
+      // Fluid deceleration/acceleration (Lerp)
+      marqueeSpeed.current += (targetSpeed - marqueeSpeed.current) * 0.08;
+
+      const currentX = marqueeX.get();
+      let newX = currentX + marqueeSpeed.current;
+
+      // Reset for seamless loop
+      if (newX <= -SET_WIDTH) {
+        newX = 0;
+      }
+      marqueeX.set(newX);
+    }
+  });
 
   // Initialize Lenis
   useEffect(() => {
@@ -93,34 +346,60 @@ function App() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Clean cinematic curve
     });
 
+    lenisRef.current = lenis;
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
 
     requestAnimationFrame(raf);
-    return () => lenis.destroy();
+    return () => {
+      lenis.destroy();
+      lenisRef.current = null;
+    };
   }, []);
+
+  // Scroll Orchestration: Pause main scroll when detail overlay or resume is active
+  useEffect(() => {
+    if (selectedSkill || showResume) {
+      lenisRef.current?.stop();
+    } else {
+      lenisRef.current?.start();
+    }
+  }, [selectedSkill, showResume]);
 
   // Stabilized Scene Transitions (Locked Dwell Zones)
   useEffect(() => {
     return scrollYProgress.onChange((v) => {
       let newScene = activeScene;
 
-      // Scene 0 (Intro): 0.0 - 0.22 (Extended dwell)
-      if (v <= 0.22) newScene = 0;
-      // Scene 1 (Arsenal): 0.32 - 0.52
-      else if (v > 0.32 && v <= 0.52) newScene = 1;
-      // Scene 2 (Works): 0.62 - 0.88
-      else if (v > 0.62 && v <= 0.88) newScene = 2;
-      // Scene 3 (Contact): 0.95+
-      else if (v > 0.95) newScene = 3;
+      // Scene 0 (Intro): 0.0 - 0.25
+      if (v <= 0.25) newScene = 0;
+      // Scene 1 (Arsenal): 0.26 - 0.55
+      else if (v > 0.25 && v <= 0.55) newScene = 1;
+      // Scene 2 (Works): 0.56 - 0.92
+      else if (v > 0.55 && v <= 0.92) newScene = 2;
+      // Scene 3 (Contact): 0.93+
+      else if (v > 0.92) newScene = 3;
 
       if (newScene !== activeScene) {
         setActiveScene(newScene);
       }
     });
   }, [scrollYProgress, activeScene]);
+
+  // Transform values for Scene 1 (Arsenal) Entry/Exit
+  const arsenalOpacity = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [0, 1, 1, 0]);
+  const arsenalZ = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [-1000, 0, 0, -2500]);
+  const arsenalScale = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [0.4, 1, 1, 0.2]);
+  const arsenalBlur = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
+
+  // Transform values for Scene 2 (Works) Entry/Exit
+  const worksOpacity = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0, 1, 1, 0]);
+  const worksZ = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [-1000, 0, 0, -1000]);
+  const worksScale = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0.4, 1, 1, 0.4]);
+  const worksBlur = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(15px)"]);
 
   // Sound preloading
   useEffect(() => {
@@ -176,8 +455,25 @@ function App() {
   };
   const handleCursorLeave = () => setCursorText("");
 
+  const NAV_LINKS = [
+    { name: 'ABOUT', progress: 0.05, scene: 0 },
+    { name: 'SKILLS', progress: 0.40, scene: 1 },
+    { name: 'WORKS', progress: 0.75, scene: 2 },
+    { name: 'CONTACT', progress: 0.98, scene: 3 }
+  ];
+
+  const scrollToSection = (progress) => {
+    if (!lenisRef.current) return;
+    const target = window.innerHeight * 5 * progress;
+    lenisRef.current.scrollTo(target, {
+      duration: 2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+    });
+  };
+
   return (
     <div className="main-content-wrapper">
+      {/* Portraits and Handshake Handled below in intro-split-layout */}
       {/* Cinematic Intro Overlay */}
       <IntroOverlay onComplete={() => setIntroComplete(true)} />
 
@@ -191,6 +487,30 @@ function App() {
           dataStyles={{ fontFamily: 'clash-display', color: '#64FFDA', fontSize: '1.5rem', letterSpacing: '2px' }}
         />
 
+        {/* Neural Edge Detection Filter Definitions */}
+        <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
+          <filter id="neural-edge-detect">
+            <feColorMatrix type="saturate" values="0" />
+            <feConvolveMatrix
+              order="3"
+              kernelMatrix="-1 -1 -1 
+                            -1  8 -1 
+                            -1 -1 -1"
+              preserveAlpha="true"
+            />
+            {/* Map Gray intensity to Neon Green (#39FF14) */}
+            <feColorMatrix type="matrix" values="0.22 0 0 0 0 
+                                                 1.00 0 0 0 0 
+                                                 0.08 0 0 0 0 
+                                                 0    0 0 1 0" />
+            <feComponentTransfer>
+              <feFuncR type="gamma" exponent="0.5" amplitude="0.7" />
+              <feFuncG type="gamma" exponent="0.5" amplitude="0.7" />
+              <feFuncB type="gamma" exponent="0.5" amplitude="0.7" />
+            </feComponentTransfer>
+          </filter>
+        </svg>
+
         {/* Context-Aware Custom Cursor */}
         <div className={`cursor-dot ${cursorText ? 'hidden' : ''}`} ref={cursorDot}></div>
         <div className={`cursor-outline ${cursorText ? 'expanded' : ''}`} ref={cursorOutline}></div>
@@ -198,11 +518,22 @@ function App() {
           {cursorText}
         </div>
 
-        <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference' }}>
+        <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
           <div className="nav-content">
-            <div className="logo magnetic" onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
+            <div className="logo magnetic" onClick={() => scrollToSection(0)} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
             <div className="nav-links">
-              <span style={{ color: 'var(--color-accent)' }}>FRAME {activeScene + 1}/{TOTAL_SCENES}</span>
+              {NAV_LINKS.map((link) => (
+                <button
+                  key={link.name}
+                  className={`nav-link-item ${activeScene === link.scene ? 'active' : ''}`}
+                  onClick={() => { playClick(); scrollToSection(link.progress); }}
+                  onMouseEnter={handleCursorHover(`JUMP TO ${link.name}`)}
+                  onMouseLeave={handleCursorLeave}
+                >
+                  {link.name}
+                </button>
+              ))}
+              <span className="scene-counter" style={{ color: 'var(--color-accent)', marginLeft: '1rem' }}>FRAME {activeScene + 1}/{TOTAL_SCENES}</span>
             </div>
           </div>
         </nav>
@@ -227,59 +558,120 @@ function App() {
               variants={pageVariants}
               transition={pageTransition}
               className="frame-container padded-left"
+              style={{ pointerEvents: activeScene === 0 ? 'auto' : 'none' }}
             >
-              <div className="intro-text-content">
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.8 }}
-                >
-                  <h1
-                    className="intro-name"
-                    onMouseEnter={handleCursorHover('SAY HI')}
-                    onMouseLeave={handleCursorLeave}
+              <div className="intro-split-layout">
+                <div className="intro-text-content">
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.8 }}
                   >
-                    ALLEN BIJU.
-                  </h1>
-                </motion.div>
+                    <h1
+                      className="intro-name"
+                      onMouseEnter={handleCursorHover('SAY HI')}
+                      onMouseLeave={handleCursorLeave}
+                    >
+                      ALLEN BIJU.
+                    </h1>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.8 }}
+                    className="intro-role-wrapper"
+                  >
+                    <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
+                    <button 
+                      className="intro-resume-btn"
+                      onClick={() => { playClick(); setShowResume(true); }}
+                      onMouseEnter={handleCursorHover('VIEW_RESUME')}
+                      onMouseLeave={handleCursorLeave}
+                    >
+                      <span className="btn-tag">[SYSTEM_RECORD]</span>
+                      <span className="btn-label">VIEW_RESUME</span>
+                    </button>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6, duration: 0.8 }}
+                  >
+                    <p className="intro-bio">
+                      I craft seamless digital ecosystems. From high-performance full-stack applications
+                      and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
+                      the gap between complex engineering and creative storytelling.
+                    </p>
+                  </motion.div>
+
+                  <motion.div
+                    className="scroll-hint"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 0.5 }}
+                  >
+                    <div className="scroll-line"></div>
+                    <span>SCROLL TO EXPLORE</span>
+                  </motion.div>
+                </div>
 
                 <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="hero-image-container"
+                  initial={{ opacity: 0, scale: 0.9, x: 40 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ delay: 0.8, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ zIndex: 100, position: 'relative' }}
                 >
-                  <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
-                </motion.div>
+                  <div className={`glitch-portrait-wrapper phase-${portraitPhase}`}>
+                    {/* Phase 1: Neural Outline Sketch */}
+                    <img
+                      src="./assets/hero-portrait.jpg"
+                      className="portrait-layer portrait-outline"
+                      alt="Neural Outline"
+                    />
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.8 }}
-                >
-                  <p className="intro-bio">
-                    I craft seamless digital ecosystems. From high-performance full-stack applications
-                    and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
-                    the gap between complex engineering and creative storytelling.
-                  </p>
-                </motion.div>
+                    {/* Glitch RGB Layers (Hidden by default, active in phase-solid) */}
+                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer red" alt="" aria-hidden="true" />
+                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer blue" alt="" aria-hidden="true" />
 
-                <motion.div
-                  className="scroll-hint"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                >
-                  <div className="scroll-line"></div>
-                  <span>SCROLL TO EXPLORE</span>
+                    {/* Phase 2: Solid Physical Reveal */}
+                    <img
+                      src="./assets/hero-portrait.jpg"
+                      className="portrait-layer portrait-main"
+                      alt="Allen Biju Portrait"
+                      onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                      onMouseLeave={handleCursorLeave}
+                    />
+
+                    <div className="portrait-scanline" />
+                    <div className="input-glow" style={{ opacity: 0.3 }} />
+                  </div>
                 </motion.div>
               </div>
             </motion.div>
           )}
 
           {/* Frame 1: Skills HUD — Game-like */}
-          {activeScene === 1 && (
-            <motion.div key="scene1" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}
-              style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5vw', pointerEvents: 'none' }}
+          {activeScene > 0 && activeScene < 2 && scrollYProgress.get() > 0.25 && scrollYProgress.get() < 0.58 && (
+            <motion.div
+              key="scene1"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 5vw',
+                pointerEvents: activeScene === 1 ? 'auto' : 'none',
+                opacity: arsenalOpacity,
+                z: arsenalZ,
+                scale: arsenalScale,
+                filter: arsenalBlur,
+                transformStyle: 'preserve-3d',
+                zIndex: activeScene === 1 ? 10 : 5
+              }}
             >
               {/* Scanline overlay */}
               <div style={{
@@ -521,15 +913,27 @@ function App() {
 
 
           {/* Frame 2: Stabilized 3D Project Showcase */}
-          {activeScene === 2 && (
-            <motion.div key="scene2" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="frame-container centered">
+          {activeScene > 1 && activeScene < 3 && scrollYProgress.get() > 0.50 && scrollYProgress.get() < 0.95 && (
+            <motion.div
+              key="scene2"
+              style={{
+                opacity: worksOpacity,
+                z: worksZ,
+                scale: worksScale,
+                filter: worksBlur,
+                transformStyle: 'preserve-3d',
+                pointerEvents: activeScene === 2 ? 'auto' : 'none',
+                zIndex: activeScene === 2 ? 10 : 5
+              }}
+              className="frame-container centered"
+            >
               <div className="gallery-wrapper">
                 <div style={{ textAlign: 'center', marginBottom: '8vh' }}>
                   <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="title-font"
-                    style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', color: '#fff', letterSpacing: '-0.03em', marginBottom: '1rem' }}
+                    style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: '#fff', letterSpacing: '0.1em', marginBottom: '1.2rem' }}
                   >
                     SELECTED WORKS
                   </motion.h2>
@@ -540,7 +944,12 @@ function App() {
                   />
                 </div>
 
-                <div className="gallery-track">
+                <motion.div
+                  className="gallery-track"
+                  style={{ x: marqueeX }}
+                  onMouseEnter={() => { isMarqueeHovered.current = true; }}
+                  onMouseLeave={() => { isMarqueeHovered.current = false; }}
+                >
                   {[
                     {
                       name: "CEV Connect",
@@ -561,59 +970,265 @@ function App() {
                       tags: ["Figma", "Stable Diffusion", "Brand"],
                       img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
                     }
-                  ].map((proj, i) => (
+                  ].concat([ // Repeat list for seamless loop
+                    {
+                      name: "CEV Connect",
+                      desc: "A centralized digital ecosystem bridging the gap between campus commerce and housing data.",
+                      link: "https://cev-connect.vercel.app",
+                      tags: ["React", "FastAPI", "Postgres"],
+                      img: "https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1200&auto=format&fit=crop"
+                    },
+                    {
+                      name: "Cinematic Reels",
+                      desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
+                      tags: ["Premiere", "After Effects", "AI"],
+                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop"
+                    },
+                    {
+                      name: "Neural Identity",
+                      desc: "Synthesizing traditional design principles with generative AI neural networks.",
+                      tags: ["Figma", "Stable Diffusion", "Brand"],
+                      img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
+                    }
+                  ]).map((proj, i) => (
                     <ProjectCard3D
-                      key={i}
+                      key={`${proj.name}-${i}`}
                       proj={proj}
-                      i={i}
+                      i={i % 3} // Use modulo to keep entry animation synced for both sets
                       scrollProgress={scrollYProgress}
                       cursorHandlers={{ hover: handleCursorHover, leave: handleCursorLeave }}
                     />
                   ))}
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Frame 3: Contact Form - Terminal Overhaul */}
+          {activeScene === 3 && (
+            <motion.div key="scene3" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="frame-container centered">
+              <div className="terminal-wrapper">
+                {/* HUD Brackets */}
+                <div className="card-hud-brackets">
+                  <div className="bracket tl" />
+                  <div className="bracket tr" />
+                  <div className="bracket bl" />
+                  <div className="bracket br" />
+                </div>
+
+                <div className="terminal-header">
+                  <div className="terminal-status-light pulse" />
+                  <span className="terminal-title">RECV_NODE: ALPHA-7 // UPLINK_READY</span>
+                </div>
+
+                <div className="terminal-content">
+                  <div className="terminal-form-side">
+                    <h2 className="title-font section-heading-modern">INITIATE TRANSMISSION</h2>
+                    <form className="modern-form-terminal" onSubmit={handleFormSubmit}>
+                      {verificationStep === 'IDENTIFY' && (
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                          <div className="form-group-glass">
+                            <input
+                              type="text"
+                              required
+                              placeholder=" "
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              onMouseEnter={handleCursorHover('IDENTIFY')}
+                              onMouseLeave={handleCursorLeave}
+                            />
+                            <label>OPERATOR_ID (NAME)</label>
+                            <div className="input-glow" />
+                          </div>
+
+                          <div className="form-group-glass" style={{ marginTop: '1.5rem' }}>
+                            <input
+                              type="email"
+                              required
+                              placeholder=" "
+                              value={formData.email}
+                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                              onMouseEnter={handleCursorHover('SIGNAL')}
+                              onMouseLeave={handleCursorLeave}
+                            />
+                            <label>SIGNAL_NODE (EMAIL)</label>
+                            <div className="input-glow" />
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {verificationStep === 'CHALLENGE' && (
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                          <div className="form-group-glass">
+                            <input
+                              type="text"
+                              required
+                              maxLength="6"
+                              placeholder=" "
+                              value={userInputCode}
+                              onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ''))}
+                              onMouseEnter={handleCursorHover('INPUT CODE')}
+                              onMouseLeave={handleCursorLeave}
+                            />
+                            <label>ENCRYPTED_CHALLENGE_CODE</label>
+                            <div className="input-glow" />
+                          </div>
+                          <p style={{ fontSize: '0.65rem', color: 'var(--color-accent)', marginTop: '1rem', opacity: 0.8 }}>
+                            &gt; A 6-DIGIT VERIFICATION KEY HAS BEEN DISPATCHED TO YOUR SIGNAL_NODE.
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {verificationStep === 'UPLINK' && (
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                          <div className="form-group-glass">
+                            <textarea
+                              required
+                              placeholder=" "
+                              rows="4"
+                              value={formData.message}
+                              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                              onMouseEnter={handleCursorHover('MESSAGE')}
+                              onMouseLeave={handleCursorLeave}
+                            ></textarea>
+                            <label>ENCRYPTED_PAYLOAD (MESSAGE)</label>
+                            <div className="input-glow" />
+                          </div>
+                        </motion.div>
+                      )}
+
+                      <motion.button
+                        type="submit"
+                        className={`terminal-submit-btn ${isSending ? 'disabled' : ''}`}
+                        disabled={isSending}
+                        onMouseEnter={() => { !isSending && handleCursorHover(verificationStep === 'IDENTIFY' ? 'INITIATE HANDSHAKE' : verificationStep === 'CHALLENGE' ? 'SUBMIT CODE' : 'EXECUTE UPLINK')(); !isSending && playUILong(); }}
+                        onMouseLeave={handleCursorLeave}
+                        whileHover={!isSending ? { scale: 1.02 } : {}}
+                        whileTap={!isSending ? { scale: 0.98 } : {}}
+                        style={{ marginTop: '2rem' }}
+                      >
+                        <span className="btn-text">
+                          {isSending ? 'PROCESSING...' :
+                            verificationStep === 'IDENTIFY' ? 'INITIATE_HANDSHAKE' :
+                              verificationStep === 'CHALLENGE' ? 'VALIDATE_HANDSHAKE' :
+                                'EXECUTE_UPLINK'}
+                        </span>
+                        <div className="btn-glitch-layer" />
+                      </motion.button>
+
+                      {verificationStep !== 'IDENTIFY' && !isSending && (
+                        <button
+                          type="button"
+                          onClick={() => { setVerificationStep('IDENTIFY'); setIsVerified(false); }}
+                          style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.6rem', marginTop: '1rem', cursor: 'none', letterSpacing: '0.1em' }}
+                          onMouseEnter={handleCursorHover('RESTART')}
+                          onMouseLeave={handleCursorLeave}
+                        >
+                          [ ABORT_AND_RESTART ]
+                        </button>
+                      )}
+                    </form>
+                  </div>
+
+                  <div className="terminal-log-side">
+                    <div className="log-header">SESSION_LOG</div>
+                    <div className="log-entries">
+                      {terminalLogs.map((log, i) => (
+                        <div key={i} className="log-entry">&gt; {log}</div>
+                      ))}
+                      <div ref={logEndRef} />
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ repeat: Infinity, duration: 1 }}
+                        className="log-entry cursor"
+                      >_</motion.div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
-
-          {/* Frame 3: Contact Form */}
-          {activeScene === 3 && (
-            <motion.div key="scene3" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="frame-container centered">
-              <div className="contact-wrapper">
-                <h2 className="title-font section-heading" style={{ textAlign: 'center' }}>INITIATE TRANSMISSION</h2>
-                <form className="modern-form" onSubmit={(e) => e.preventDefault()}>
-                  <motion.div className="form-group" whileFocus={{ scale: 1.02 }}>
-                    <input type="text" required placeholder=" " onMouseEnter={handleCursorHover('TYPE')} onMouseLeave={handleCursorLeave} />
-                    <label>Identification (Name)</label>
-                    <div className="form-line"></div>
-                  </motion.div>
-
-                  <motion.div className="form-group" whileFocus={{ scale: 1.02 }}>
-                    <input type="email" required placeholder=" " onMouseEnter={handleCursorHover('TYPE')} onMouseLeave={handleCursorLeave} />
-                    <label>Signal Node (Email)</label>
-                    <div className="form-line"></div>
-                  </motion.div>
-
-                  <motion.div className="form-group" whileFocus={{ scale: 1.02 }}>
-                    <textarea required placeholder=" " rows="3" onMouseEnter={handleCursorHover('TYPE')} onMouseLeave={handleCursorLeave}></textarea>
-                    <label>Encrypted Payload (Message)</label>
-                    <div className="form-line"></div>
-                  </motion.div>
-
-                  <motion.button
-                    type="submit"
-                    className="submit-btn"
-                    onMouseEnter={handleCursorHover('SEND')}
-                    onMouseLeave={handleCursorLeave}
-                    whileHover={{ scale: 1.05, backgroundColor: 'var(--color-accent)', color: 'var(--color-bg-primary)' }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    DECRYPT & SEND
-                  </motion.button>
-                </form>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
+
+        <ResumeModal
+          isOpen={showResume}
+          onClose={() => setShowResume(false)}
+          handleCursorHover={handleCursorHover}
+          handleCursorLeave={handleCursorLeave}
+          playClick={playClick}
+        />
+
+        {/* Global Social Footer */}
+        <motion.footer
+          className="global-footer"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{
+            opacity: introComplete ? (activeScene >= 3 ? 1 : 0.4) : 0,
+            y: introComplete ? 0 : 50
+          }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="footer-content">
+            <div className="footer-left">
+              <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
+              
+              <motion.button
+                className="sound-toggle-btn"
+                onClick={handleToggleMute}
+                onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
+                onMouseLeave={handleCursorLeave}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <div className="sound-icon-wrapper">
+                  {muted ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                      <line x1="23" y1="9" x2="17" y2="15" />
+                      <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                      <path d="M19.07 4.93C20.9461 6.80654 21.9989 9.3512 21.9989 12C21.9989 14.6488 20.9461 17.1935 19.07 19.07" />
+                      <path d="M15.54 8.46C16.4774 9.39764 17.0031 10.6692 17.0031 12C17.0031 13.3308 16.4774 14.6024 15.54 15.54" />
+                    </svg>
+                  )}
+                </div>
+                <span className="sound-status-label">{muted ? 'OFF' : 'ON'}</span>
+              </motion.button>
+            </div>
+            <div className="footer-center">
+              <div className="social-links-hud">
+                {[
+                  { name: 'INSTAGRAM', url: 'https://instagram.com/allen_biju', color: '#E1306C' },
+                  { name: 'FIVERR', url: 'https://fiverr.com/allenbiju', color: '#1DBF73' },
+                  { name: 'GITHUB', url: 'https://github.com/allen-biju', color: '#FFF' },
+                  { name: 'LINKEDIN', url: 'https://linkedin.com/in/allen-biju', color: '#0077B5' }
+                ].map((link) => (
+                  <motion.a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    className="social-hover-link"
+                    onMouseEnter={handleCursorHover(`ACCESS ${link.name}`)}
+                    onMouseLeave={handleCursorLeave}
+                    whileHover={{ y: -5, color: 'var(--color-accent)' }}
+                  >
+                    {link.name}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+            <div className="footer-right">
+              <div className="status-readout">
+                <span className="latency">LATENCY: 14MS</span>
+                <span className="uptime">UPTIME: 99.9%</span>
+              </div>
+            </div>
+          </div>
+        </motion.footer>
 
         <div style={{ position: 'fixed', bottom: '40px', right: '40px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[0, 1, 2, 3].map((scene) => (
