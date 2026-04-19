@@ -15,6 +15,13 @@ import woosh from '../assets/sounds/woosh.mp3';
 let audioCtx = null;
 const buffers = {};
 let noiseBuffer = null;
+let isMuted = false;
+
+export const getIsMuted = () => isMuted;
+export const toggleMute = () => {
+  isMuted = !isMuted;
+  return isMuted;
+};
 
 const getNoiseBuffer = (ctx) => {
   if (noiseBuffer) return noiseBuffer;
@@ -57,6 +64,7 @@ export const preloadSounds = async () => {
 };
 
 const play = (bufferName, volume = 0.4, pitch = 1.0) => {
+  if (isMuted) return;
   const ctx = getCtx();
   const buffer = buffers[bufferName];
   if (!buffer) return;
@@ -87,6 +95,7 @@ export const playParticles = () => play('particles', 0.3);
 export const playWordAssembled = () => play('enterProject', 0.4, 0.95);
 
 export const startWordWoosh = () => {
+  if (isMuted) return { source: null, stop: () => {} };
   const ctx = getCtx();
   const buffer = buffers['woosh'];
   
@@ -119,6 +128,7 @@ export const startWordWoosh = () => {
 };
 
 export const scheduleTypewriterTicks = async (len, speed, delay) => {
+  if (isMuted) return { startTime: 0, stop: () => {} };
   const ctx = getCtx();
   const startTime = ctx.currentTime + (delay / 1000);
   const beepNames = ['beeps', 'beeps2', 'beeps3'];

@@ -7,13 +7,15 @@ import Lenis from 'lenis';
 import HeroScene from './components/HeroScene';
 import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
-import { playHover, playClick, preloadSounds, playUILong, playShard } from './hooks/useSounds';
+import ResumeModal from './components/ResumeModal';
+import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
+import emailjs from '@emailjs/browser';
 
 const TOTAL_SCENES = 4;
 
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
   const cardRef = useRef(null);
-  
+
   // Accelerated Assembly
   const start = 0.50 + (i * 0.04);
   const end = 0.65 + (i * 0.04);
@@ -28,7 +30,7 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
   // Interactive Tilt Logic (Replaces autoDrift for better stability)
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
-  
+
   const springTiltX = useSpring(tiltX, { stiffness: 150, damping: 20 });
   const springTiltY = useSpring(tiltY, { stiffness: 150, damping: 20 });
 
@@ -37,7 +39,7 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
     const rect = cardRef.current.getBoundingClientRect();
     const centerX = rect.x + rect.width / 2;
     const centerY = rect.y + rect.height / 2;
-    
+
     // Tilt degree logic (-15 to 15 degrees)
     tiltX.set((e.clientY - centerY) / (rect.height / 2) * -15);
     tiltY.set((e.clientX - centerX) / (rect.width / 2) * 15);
@@ -83,7 +85,7 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
         <span className="scanning-dot" />
         PROJ_0{i + 1}
       </div>
-      
+
       <div className="project-image-wrapper">
         <img src={proj.img} alt={proj.name} />
         <div className="image-overlay-glitch" />
@@ -99,7 +101,7 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
         </div>
         <h3 className="title-font project-name-display">{proj.name}</h3>
         <p className="project-desc-display">{proj.desc}</p>
-        
+
         <div className="card-action-row">
           {proj.link ? (
             <motion.a
@@ -132,15 +134,182 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
 function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
+  const [portraitPhase, setPortraitPhase] = useState('hidden'); // hidden -> sketch -> solid
+
+  useEffect(() => {
+    if (introComplete) {
+      // 1. Start Sketch immediately after intro
+      const sketchTimer = setTimeout(() => setPortraitPhase('sketch'), 200);
+      // 2. High-energy Glitch Burst
+      const glitchTimer = setTimeout(() => setPortraitPhase('glitch'), 5200);
+      // 3. Final physical materialization
+      const solidTimer = setTimeout(() => setPortraitPhase('solid'), 5500);
+
+      return () => {
+        clearTimeout(sketchTimer);
+        clearTimeout(glitchTimer);
+        clearTimeout(solidTimer);
+      };
+    }
+  }, [introComplete]);
+
   const [selectedSkill, setSelectedSkill] = useState(null);
+  const [showEntryFlash, setShowEntryFlash] = useState(false);
+  const [showResume, setShowResume] = useState(false);
+  const [muted, setMuted] = useState(getIsMuted());
+
+  const handleToggleMute = () => {
+    const newState = toggleMute();
+    setMuted(newState);
+    playClick(); // Play click sound before it totally mutes or if unmuting
+  };
   const [cursorText, setCursorText] = useState("");
   const cursorDot = useRef(null);
   const cursorOutline = useRef(null);
   const cursorTextRef = useRef(null);
 
+  // Transmission Form States
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [terminalLogs, setTerminalLogs] = useState([
+    "HANDSHAKE INITIALIZED...",
+    "SECURE_TUNNEL_ESTABLISHED: 256-BIT",
+    "WAITING_FOR_OPERATOR_INPUT..."
+  ]);
+  const [isSending, setIsSending] = useState(false);
+  const logEndRef = useRef(null);
+
+  // Handshake Logic States
+  const [verificationStep, setVerificationStep] = useState('IDENTIFY'); // IDENTIFY | CHALLENGE | UPLINK
+  const [handshakeCode, setHandshakeCode] = useState('');
+  const [userInputCode, setUserInputCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+
+  const EMAILJS_CONFIG = {
+    SERVICE_ID: "service_6xea9sf",
+    VERIFY_TEMPLATE_ID: "template_uls1fe8",
+    MESSAGE_TEMPLATE_ID: "template_4ja7r45",
+    PUBLIC_KEY: "uDVlBCVL6kwOWrl5i"
+  };
+
+  const addLog = (msg) => {
+    setTerminalLogs(prev => [...prev, msg]);
+  };
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [terminalLogs]);
+
+  const startHandshake = async () => {
+    if (!formData.name || !formData.email) {
+      addLog("ERROR: MISSING OPERATOR_ID OR SIGNAL_NODE.");
+      return;
+    }
+    setIsSending(true);
+    addLog(`INITIATING HANDSHAKE FOR ${formData.email.toUpperCase()}...`);
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setHandshakeCode(code);
+
+    try {
+      if (EMAILJS_CONFIG.PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+        // Fallback for simulation if keys aren't set yet
+        console.log("SIMULATION MODE: HANDSHAKE CODE IS", code);
+        await new Promise(r => setTimeout(r, 1500));
+        addLog("CHALLENGE_CODE DISPATCHED (SIMULATED). CHECK CONSOLE.");
+      } else {
+        await emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.VERIFY_TEMPLATE_ID,
+          {
+            name: formData.name,
+            to_name: formData.name,
+            email: formData.email,
+            passcode: code,
+            challenge_code: code,
+            time: new Date().toLocaleTimeString()
+          },
+          EMAILJS_CONFIG.PUBLIC_KEY
+        );
+        addLog("CHALLENGE_CODE DISPATCHED. CHECK YOUR INBOX.");
+      }
+      setVerificationStep('CHALLENGE');
+    } catch (error) {
+      addLog("HANDSHAKE FAILED. SIGNAL INTERFERENCE DETECTED.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const verifyHandshake = () => {
+    if (!userInputCode) return;
+    setIsSending(true);
+    addLog("VALIDATING CHALLENGE_CODE...");
+
+    setTimeout(() => {
+      if (userInputCode === handshakeCode) {
+        setIsVerified(true);
+        addLog("HANDSHAKE ACCEPTED. ENCRYPTION KEY SYNCED.");
+        addLog("SIGNAL VERIFIED. UPLINK UNLOCKED.");
+        setVerificationStep('UPLINK');
+      } else {
+        addLog("ACCESS DENIED. INVALID CHALLENGE_CODE.");
+      }
+      setIsSending(false);
+    }, 1500);
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (verificationStep === 'IDENTIFY') startHandshake();
+    else if (verificationStep === 'CHALLENGE') verifyHandshake();
+    else if (verificationStep === 'UPLINK') finalizeTransmission(e);
+  };
+
+  const finalizeTransmission = async (e) => {
+    if (!isVerified || isSending) return;
+
+    setIsSending(true);
+    addLog("EXECUTING FINAL UPLINK...");
+
+    try {
+      if (EMAILJS_CONFIG.PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+        await new Promise(r => setTimeout(r, 2000));
+      } else {
+        await emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.MESSAGE_TEMPLATE_ID,
+          {
+            from_name: formData.name,
+            from_email: formData.email,
+            message: formData.message
+          },
+          EMAILJS_CONFIG.PUBLIC_KEY
+        );
+      }
+
+      addLog("TRANSMISSION SUCCESSFUL. DATA PACKETS RECEIVED.");
+      addLog("TERMINATING SESSION...");
+
+      setTimeout(() => {
+        setFormData({ name: '', email: '', message: '' });
+        setVerificationStep('IDENTIFY');
+        setIsVerified(false);
+        setHandshakeCode('');
+        setUserInputCode('');
+        setIsSending(false);
+        addLog("SESSION RE-INITIALIZED. STANDBY.");
+      }, 3000);
+    } catch (error) {
+      addLog("UPLINK FAILURE. PERSISTENT TRANSMISSION ERROR.");
+      setIsSending(false);
+    }
+  };
+
   const { scrollYProgress } = useScroll();
   const lenisRef = useRef(null);
-  
+
   // Infinite Horizontal Loop Logic
   const marqueeX = useMotionValue(0);
   const marqueeSpeed = useRef(-0.8);
@@ -156,10 +325,10 @@ function App() {
       const targetSpeed = isMarqueeHovered.current ? 0 : -0.8;
       // Fluid deceleration/acceleration (Lerp)
       marqueeSpeed.current += (targetSpeed - marqueeSpeed.current) * 0.08;
-      
+
       const currentX = marqueeX.get();
       let newX = currentX + marqueeSpeed.current;
-      
+
       // Reset for seamless loop
       if (newX <= -SET_WIDTH) {
         newX = 0;
@@ -191,14 +360,14 @@ function App() {
     };
   }, []);
 
-  // Scroll Orchestration: Pause main scroll when detail overlay is active
+  // Scroll Orchestration: Pause main scroll when detail overlay or resume is active
   useEffect(() => {
-    if (selectedSkill) {
+    if (selectedSkill || showResume) {
       lenisRef.current?.stop();
     } else {
       lenisRef.current?.start();
     }
-  }, [selectedSkill]);
+  }, [selectedSkill, showResume]);
 
   // Stabilized Scene Transitions (Locked Dwell Zones)
   useEffect(() => {
@@ -304,6 +473,7 @@ function App() {
 
   return (
     <div className="main-content-wrapper">
+      {/* Portraits and Handshake Handled below in intro-split-layout */}
       {/* Cinematic Intro Overlay */}
       <IntroOverlay onComplete={() => setIntroComplete(true)} />
 
@@ -316,6 +486,30 @@ function App() {
           dataInterpolation={(p) => `INITIALIZING WEBGL CORE ${p.toFixed(0)}%`}
           dataStyles={{ fontFamily: 'clash-display', color: '#64FFDA', fontSize: '1.5rem', letterSpacing: '2px' }}
         />
+
+        {/* Neural Edge Detection Filter Definitions */}
+        <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
+          <filter id="neural-edge-detect">
+            <feColorMatrix type="saturate" values="0" />
+            <feConvolveMatrix
+              order="3"
+              kernelMatrix="-1 -1 -1 
+                            -1  8 -1 
+                            -1 -1 -1"
+              preserveAlpha="true"
+            />
+            {/* Map Gray intensity to Neon Green (#39FF14) */}
+            <feColorMatrix type="matrix" values="0.22 0 0 0 0 
+                                                 1.00 0 0 0 0 
+                                                 0.08 0 0 0 0 
+                                                 0    0 0 1 0" />
+            <feComponentTransfer>
+              <feFuncR type="gamma" exponent="0.5" amplitude="0.7" />
+              <feFuncG type="gamma" exponent="0.5" amplitude="0.7" />
+              <feFuncB type="gamma" exponent="0.5" amplitude="0.7" />
+            </feComponentTransfer>
+          </filter>
+        </svg>
 
         {/* Context-Aware Custom Cursor */}
         <div className={`cursor-dot ${cursorText ? 'hidden' : ''}`} ref={cursorDot}></div>
@@ -366,49 +560,94 @@ function App() {
               className="frame-container padded-left"
               style={{ pointerEvents: activeScene === 0 ? 'auto' : 'none' }}
             >
-              <div className="intro-text-content">
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.8 }}
-                >
-                  <h1
-                    className="intro-name"
-                    onMouseEnter={handleCursorHover('SAY HI')}
-                    onMouseLeave={handleCursorLeave}
+              <div className="intro-split-layout">
+                <div className="intro-text-content">
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.8 }}
                   >
-                    ALLEN BIJU.
-                  </h1>
-                </motion.div>
+                    <h1
+                      className="intro-name"
+                      onMouseEnter={handleCursorHover('SAY HI')}
+                      onMouseLeave={handleCursorLeave}
+                    >
+                      ALLEN BIJU.
+                    </h1>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.8 }}
+                    className="intro-role-wrapper"
+                  >
+                    <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
+                    <button 
+                      className="intro-resume-btn"
+                      onClick={() => { playClick(); setShowResume(true); }}
+                      onMouseEnter={handleCursorHover('VIEW_RESUME')}
+                      onMouseLeave={handleCursorLeave}
+                    >
+                      <span className="btn-tag">[SYSTEM_RECORD]</span>
+                      <span className="btn-label">VIEW_RESUME</span>
+                    </button>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6, duration: 0.8 }}
+                  >
+                    <p className="intro-bio">
+                      I craft seamless digital ecosystems. From high-performance full-stack applications
+                      and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
+                      the gap between complex engineering and creative storytelling.
+                    </p>
+                  </motion.div>
+
+                  <motion.div
+                    className="scroll-hint"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 0.5 }}
+                  >
+                    <div className="scroll-line"></div>
+                    <span>SCROLL TO EXPLORE</span>
+                  </motion.div>
+                </div>
 
                 <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="hero-image-container"
+                  initial={{ opacity: 0, scale: 0.9, x: 40 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ delay: 0.8, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ zIndex: 100, position: 'relative' }}
                 >
-                  <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
-                </motion.div>
+                  <div className={`glitch-portrait-wrapper phase-${portraitPhase}`}>
+                    {/* Phase 1: Neural Outline Sketch */}
+                    <img
+                      src="./assets/hero-portrait.jpg"
+                      className="portrait-layer portrait-outline"
+                      alt="Neural Outline"
+                    />
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.8 }}
-                >
-                  <p className="intro-bio">
-                    I craft seamless digital ecosystems. From high-performance full-stack applications
-                    and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
-                    the gap between complex engineering and creative storytelling.
-                  </p>
-                </motion.div>
+                    {/* Glitch RGB Layers (Hidden by default, active in phase-solid) */}
+                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer red" alt="" aria-hidden="true" />
+                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer blue" alt="" aria-hidden="true" />
 
-                <motion.div
-                  className="scroll-hint"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                >
-                  <div className="scroll-line"></div>
-                  <span>SCROLL TO EXPLORE</span>
+                    {/* Phase 2: Solid Physical Reveal */}
+                    <img
+                      src="./assets/hero-portrait.jpg"
+                      className="portrait-layer portrait-main"
+                      alt="Allen Biju Portrait"
+                      onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                      onMouseLeave={handleCursorLeave}
+                    />
+
+                    <div className="portrait-scanline" />
+                    <div className="input-glow" style={{ opacity: 0.3 }} />
+                  </div>
                 </motion.div>
               </div>
             </motion.div>
@@ -416,15 +655,15 @@ function App() {
 
           {/* Frame 1: Skills HUD — Game-like */}
           {activeScene > 0 && activeScene < 2 && scrollYProgress.get() > 0.25 && scrollYProgress.get() < 0.58 && (
-            <motion.div 
-              key="scene1" 
-              style={{ 
-                position: 'absolute', 
-                inset: 0, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                padding: '0 5vw', 
+            <motion.div
+              key="scene1"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 5vw',
                 pointerEvents: activeScene === 1 ? 'auto' : 'none',
                 opacity: arsenalOpacity,
                 z: arsenalZ,
@@ -675,8 +914,8 @@ function App() {
 
           {/* Frame 2: Stabilized 3D Project Showcase */}
           {activeScene > 1 && activeScene < 3 && scrollYProgress.get() > 0.50 && scrollYProgress.get() < 0.95 && (
-            <motion.div 
-              key="scene2" 
+            <motion.div
+              key="scene2"
               style={{
                 opacity: worksOpacity,
                 z: worksZ,
@@ -694,7 +933,7 @@ function App() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="title-font"
-                    style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', color: '#fff', letterSpacing: '-0.03em', marginBottom: '1rem' }}
+                    style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: '#fff', letterSpacing: '0.1em', marginBottom: '1.2rem' }}
                   >
                     SELECTED WORKS
                   </motion.h2>
@@ -705,8 +944,8 @@ function App() {
                   />
                 </div>
 
-                <motion.div 
-                  className="gallery-track" 
+                <motion.div
+                  className="gallery-track"
                   style={{ x: marqueeX }}
                   onMouseEnter={() => { isMarqueeHovered.current = true; }}
                   onMouseLeave={() => { isMarqueeHovered.current = false; }}
@@ -785,46 +1024,120 @@ function App() {
                 <div className="terminal-content">
                   <div className="terminal-form-side">
                     <h2 className="title-font section-heading-modern">INITIATE TRANSMISSION</h2>
-                    <form className="modern-form-terminal" onSubmit={(e) => e.preventDefault()}>
-                      <div className="form-group-glass">
-                        <input type="text" required placeholder=" " onMouseEnter={handleCursorHover('IDENTIFY')} onMouseLeave={handleCursorLeave} />
-                        <label>OPERATOR_ID (NAME)</label>
-                        <div className="input-glow" />
-                      </div>
+                    <form className="modern-form-terminal" onSubmit={handleFormSubmit}>
+                      {verificationStep === 'IDENTIFY' && (
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                          <div className="form-group-glass">
+                            <input
+                              type="text"
+                              required
+                              placeholder=" "
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              onMouseEnter={handleCursorHover('IDENTIFY')}
+                              onMouseLeave={handleCursorLeave}
+                            />
+                            <label>OPERATOR_ID (NAME)</label>
+                            <div className="input-glow" />
+                          </div>
 
-                      <div className="form-group-glass">
-                        <input type="email" required placeholder=" " onMouseEnter={handleCursorHover('SIGNAL')} onMouseLeave={handleCursorLeave} />
-                        <label>SIGNAL_NODE (EMAIL)</label>
-                        <div className="input-glow" />
-                      </div>
+                          <div className="form-group-glass" style={{ marginTop: '1.5rem' }}>
+                            <input
+                              type="email"
+                              required
+                              placeholder=" "
+                              value={formData.email}
+                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                              onMouseEnter={handleCursorHover('SIGNAL')}
+                              onMouseLeave={handleCursorLeave}
+                            />
+                            <label>SIGNAL_NODE (EMAIL)</label>
+                            <div className="input-glow" />
+                          </div>
+                        </motion.div>
+                      )}
 
-                      <div className="form-group-glass">
-                        <textarea required placeholder=" " rows="3" onMouseEnter={handleCursorHover('MESSAGE')} onMouseLeave={handleCursorLeave}></textarea>
-                        <label>ENCRYPTED_PAYLOAD (MESSAGE)</label>
-                        <div className="input-glow" />
-                      </div>
+                      {verificationStep === 'CHALLENGE' && (
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                          <div className="form-group-glass">
+                            <input
+                              type="text"
+                              required
+                              maxLength="6"
+                              placeholder=" "
+                              value={userInputCode}
+                              onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ''))}
+                              onMouseEnter={handleCursorHover('INPUT CODE')}
+                              onMouseLeave={handleCursorLeave}
+                            />
+                            <label>ENCRYPTED_CHALLENGE_CODE</label>
+                            <div className="input-glow" />
+                          </div>
+                          <p style={{ fontSize: '0.65rem', color: 'var(--color-accent)', marginTop: '1rem', opacity: 0.8 }}>
+                            &gt; A 6-DIGIT VERIFICATION KEY HAS BEEN DISPATCHED TO YOUR SIGNAL_NODE.
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {verificationStep === 'UPLINK' && (
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                          <div className="form-group-glass">
+                            <textarea
+                              required
+                              placeholder=" "
+                              rows="4"
+                              value={formData.message}
+                              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                              onMouseEnter={handleCursorHover('MESSAGE')}
+                              onMouseLeave={handleCursorLeave}
+                            ></textarea>
+                            <label>ENCRYPTED_PAYLOAD (MESSAGE)</label>
+                            <div className="input-glow" />
+                          </div>
+                        </motion.div>
+                      )}
 
                       <motion.button
                         type="submit"
-                        className="terminal-submit-btn"
-                        onMouseEnter={() => { handleCursorHover('ESTABLISH CONNECTION')(); playUILong(); }}
+                        className={`terminal-submit-btn ${isSending ? 'disabled' : ''}`}
+                        disabled={isSending}
+                        onMouseEnter={() => { !isSending && handleCursorHover(verificationStep === 'IDENTIFY' ? 'INITIATE HANDSHAKE' : verificationStep === 'CHALLENGE' ? 'SUBMIT CODE' : 'EXECUTE UPLINK')(); !isSending && playUILong(); }}
                         onMouseLeave={handleCursorLeave}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={!isSending ? { scale: 1.02 } : {}}
+                        whileTap={!isSending ? { scale: 0.98 } : {}}
+                        style={{ marginTop: '2rem' }}
                       >
-                        <span className="btn-text">ESTABLISH_UPLINK</span>
+                        <span className="btn-text">
+                          {isSending ? 'PROCESSING...' :
+                            verificationStep === 'IDENTIFY' ? 'INITIATE_HANDSHAKE' :
+                              verificationStep === 'CHALLENGE' ? 'VALIDATE_HANDSHAKE' :
+                                'EXECUTE_UPLINK'}
+                        </span>
                         <div className="btn-glitch-layer" />
                       </motion.button>
+
+                      {verificationStep !== 'IDENTIFY' && !isSending && (
+                        <button
+                          type="button"
+                          onClick={() => { setVerificationStep('IDENTIFY'); setIsVerified(false); }}
+                          style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.6rem', marginTop: '1rem', cursor: 'none', letterSpacing: '0.1em' }}
+                          onMouseEnter={handleCursorHover('RESTART')}
+                          onMouseLeave={handleCursorLeave}
+                        >
+                          [ ABORT_AND_RESTART ]
+                        </button>
+                      )}
                     </form>
                   </div>
 
                   <div className="terminal-log-side">
                     <div className="log-header">SESSION_LOG</div>
-                      <div className="log-entries">
-                        <div className="log-entry">&gt; HANDSHAKE INITIALIZED...</div>
-                        <div className="log-entry">&gt; SECURE_TUNNEL_ESTABLISHED: 256-BIT</div>
-                        <div className="log-entry">&gt; WAITING_FOR_OPERATOR_INPUT...</div>
-                      <motion.div 
+                    <div className="log-entries">
+                      {terminalLogs.map((log, i) => (
+                        <div key={i} className="log-entry">&gt; {log}</div>
+                      ))}
+                      <div ref={logEndRef} />
+                      <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 1, 0] }}
                         transition={{ repeat: Infinity, duration: 1 }}
@@ -838,19 +1151,53 @@ function App() {
           )}
         </AnimatePresence>
 
+        <ResumeModal
+          isOpen={showResume}
+          onClose={() => setShowResume(false)}
+          handleCursorHover={handleCursorHover}
+          handleCursorLeave={handleCursorLeave}
+          playClick={playClick}
+        />
+
         {/* Global Social Footer */}
-        <motion.footer 
+        <motion.footer
           className="global-footer"
           initial={{ opacity: 0, y: 50 }}
-          animate={{ 
+          animate={{
             opacity: introComplete ? (activeScene >= 3 ? 1 : 0.4) : 0,
-            y: introComplete ? 0 : 50 
+            y: introComplete ? 0 : 50
           }}
           transition={{ duration: 0.8 }}
         >
           <div className="footer-content">
             <div className="footer-left">
               <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
+              
+              <motion.button
+                className="sound-toggle-btn"
+                onClick={handleToggleMute}
+                onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
+                onMouseLeave={handleCursorLeave}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <div className="sound-icon-wrapper">
+                  {muted ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                      <line x1="23" y1="9" x2="17" y2="15" />
+                      <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                      <path d="M19.07 4.93C20.9461 6.80654 21.9989 9.3512 21.9989 12C21.9989 14.6488 20.9461 17.1935 19.07 19.07" />
+                      <path d="M15.54 8.46C16.4774 9.39764 17.0031 10.6692 17.0031 12C17.0031 13.3308 16.4774 14.6024 15.54 15.54" />
+                    </svg>
+                  )}
+                </div>
+                <span className="sound-status-label">{muted ? 'OFF' : 'ON'}</span>
+              </motion.button>
             </div>
             <div className="footer-center">
               <div className="social-links-hud">
