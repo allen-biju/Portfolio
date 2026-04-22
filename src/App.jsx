@@ -158,6 +158,20 @@ function App() {
   const [showResume, setShowResume] = useState(false);
   const [muted, setMuted] = useState(getIsMuted());
 
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    // Only flag as touch if it's a mobile/tablet viewport with touch support
+    const checkTouch = () => {
+      const isMobileSize = window.innerWidth <= 1024;
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouch(isMobileSize && hasTouch);
+    };
+    checkTouch();
+    window.addEventListener('resize', checkTouch);
+    return () => window.removeEventListener('resize', checkTouch);
+  }, []);
+
   const handleToggleMute = () => {
     const newState = toggleMute();
     setMuted(newState);
@@ -583,7 +597,7 @@ function App() {
                     className="intro-role-wrapper"
                   >
                     <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
-                    <button 
+                    <button
                       className="intro-resume-btn"
                       onClick={() => { playClick(); setShowResume(true); }}
                       onMouseEnter={handleCursorHover('VIEW_RESUME')}
@@ -736,7 +750,7 @@ function App() {
                   &gt; SKILL_MATRIX v2.4.1 — ONLINE
                 </motion.p>
 
-                <div className="bento-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="bento-grid">
                   {[
                     {
                       name: 'Full Stack Dev', xp: 94, icon: '🖥️', rank: 'S', tags: ['React', 'Node', 'MongoDB'], color: '#E8A020',
@@ -1172,7 +1186,7 @@ function App() {
           <div className="footer-content">
             <div className="footer-left">
               <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
-              
+
               <motion.button
                 className="sound-toggle-btn"
                 onClick={handleToggleMute}
@@ -1202,10 +1216,10 @@ function App() {
             <div className="footer-center">
               <div className="social-links-hud">
                 {[
-                  { name: 'INSTAGRAM', url: 'https://instagram.com/allen_biju', color: '#E1306C' },
-                  { name: 'FIVERR', url: 'https://fiverr.com/allenbiju', color: '#1DBF73' },
+                  { name: 'INSTAGRAM', url: 'https://www.instagram.com/a_llen___?igsh=MTdiM2FlNmtsd2Yx', color: '#E1306C' },
+                  { name: 'FIVERR', url: 'https://www.fiverr.com/s/42VKoVR', color: '#1DBF73' },
                   { name: 'GITHUB', url: 'https://github.com/allen-biju', color: '#FFF' },
-                  { name: 'LINKEDIN', url: 'https://linkedin.com/in/allen-biju', color: '#0077B5' }
+                  { name: 'LINKEDIN', url: 'https://www.linkedin.com/in/allen-biju-2b7458291?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app', color: '#0077B5' }
                 ].map((link) => (
                   <motion.a
                     key={link.name}

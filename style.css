@@ -319,7 +319,7 @@ a {
 
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
 
@@ -1440,8 +1440,10 @@ a {
 .intro-resume-btn::before {
   content: '';
   position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 100%;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.1), transparent);
   transition: left 0.6s ease;
 }
@@ -1492,12 +1494,13 @@ a {
   position: relative;
   overflow-y: auto;
   border-radius: 4px;
-  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
 }
 
 .resume-container::-webkit-scrollbar {
   width: 4px;
 }
+
 .resume-container::-webkit-scrollbar-thumb {
   background: var(--color-accent);
 }
@@ -1555,6 +1558,31 @@ a {
   font-size: 0.6rem;
   color: var(--color-text-muted);
   letter-spacing: 0.2em;
+}
+
+.resume-social-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.resume-social-links a {
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.15em;
+  padding: 6px 14px;
+  border: 1px solid rgba(232, 160, 32, 0.3);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.resume-social-links a:hover {
+  background: var(--color-accent);
+  color: #000;
+  box-shadow: 0 0 15px rgba(232, 160, 32, 0.4);
 }
 
 .resume-content-grid {
@@ -1615,7 +1643,8 @@ a {
   color: var(--color-accent);
 }
 
-.exp-item, .edu-item {
+.exp-item,
+.edu-item {
   margin-bottom: 1.5rem;
 }
 
@@ -1673,15 +1702,270 @@ a {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
   .header-metadata {
     flex-direction: column;
     gap: 0.5rem;
   }
+
   .resume-name {
     font-size: 2rem;
   }
+
   .resume-container {
     padding: 1.5rem;
   }
 }
-
+
+
+/* ==========================================================================
+   RESPONSIVE OVERRIDES (MOBILE ONLY)
+   Ensuring desktop remains untouched while optimizing for smaller viewports.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Global Sticky Fixes */
+  .scene-sticky-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Navigation HUD */
+  .main-nav {
+    padding: 0.8rem 1rem;
+    background: rgba(10, 25, 47, 0.8);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+  }
+
+  .nav-links {
+    gap: 0.8rem;
+  }
+
+  .nav-link-item {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+  }
+
+  .scene-counter {
+    display: none;
+  }
+
+  /* Scene Overrides */
+  .frame-container {
+    padding: 0 1rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Intro Section (Home) */
+  .intro-split-layout {
+    flex-direction: column-reverse;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-top: 60px;
+    text-align: center;
+    max-height: 100vh;
+  }
+
+  .intro-text-content {
+    max-width: 100%;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .intro-name {
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .intro-role {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.15em;
+  }
+
+  .intro-bio {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    max-width: 320px;
+  }
+
+  .hero-image-container {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 0px;
+  }
+
+  .glitch-portrait-wrapper {
+    max-width: 200px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Arsenal (Skills) - Compact 2-Column Grid */
+  .skills-wrapper {
+    padding-top: 25px;
+  }
+
+  .section-heading-modern {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .bento-card {
+    padding: 0.6rem !important;
+    min-height: auto !important;
+    display: block !important;
+    border-radius: 8px;
+  }
+
+  .bento-card h3 {
+    font-size: 0.75rem !important;
+    line-height: 1.1;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Force inner structure to be compact */
+  .bento-card > div {
+    margin-bottom: 0.35rem !important;
+  }
+
+  .bento-card > div:first-of-type {
+    margin-bottom: 0.4rem !important;
+  }
+
+  /* Tags Row Shrink */
+  .bento-card > div:nth-of-type(3) {
+    gap: 0.25rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  .bento-card > div:nth-of-type(3) span {
+    font-size: 0.48rem !important;
+    padding: 2px 4px !important;
+  }
+
+  /* Rank Badge Shrink */
+  .bento-card > div > div:last-child {
+    font-size: 0.65rem !important;
+    padding: 1px 4px !important;
+  }
+
+  /* Selected Works (Horizontal Swipe Carousel) */
+  .gallery-wrapper {
+    padding-top: 0px;
+    height: 80vh !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100vw;
+  }
+
+  .gallery-track {
+    flex-direction: row;
+    gap: 15px;
+    padding: 0 5vw;
+    align-items: center;
+    width: 100vw;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    transform: none !important; /* Disable js marquee */
+    justify-content: flex-start;
+  }
+
+  .gallery-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gallery-card {
+    width: 80vw !important;
+    flex: 0 0 auto;
+    max-width: 320px;
+    height: 55vh !important;
+    border-radius: 12px;
+    transform: none !important; /* Disable 3D tilt for mobile stability */
+    scroll-snap-align: center;
+  }
+
+  .project-name-display {
+    font-size: 1.4rem;
+  }
+
+  .project-desc-display {
+    font-size: 0.8rem;
+    margin-bottom: 1rem !important;
+  }
+
+  .visit-btn-modern {
+    font-size: 0.7rem;
+    padding: 8px 15px;
+  }
+
+  /* Terminal Form (Stacked Handshake) */
+  .terminal-wrapper {
+    padding: 1.2rem;
+    width: 98%;
+    border-radius: 4px;
+  }
+
+  .terminal-content {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .terminal-log-side {
+    display: none;
+  }
+
+  .modern-form-terminal {
+    gap: 1rem;
+  }
+
+  /* Global Social Footer */
+  .global-footer {
+    padding: 1rem;
+    background: rgba(10, 25, 47, 1);
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .social-links-hud {
+    gap: 1.2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .social-hover-link {
+    font-size: 0.65rem;
+  }
+
+  .footer-right, .footer-left .system-tag {
+    display: none;
+  }
+
+  /* Skill Detail Overlay on Mobile */
+  .skill-detail-overlay {
+    padding: 1rem;
+  }
+
+  .detail-content {
+    padding: 1.5rem;
+  }
+}

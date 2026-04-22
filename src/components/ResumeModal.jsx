@@ -6,13 +6,13 @@ const ResumeModal = ({ isOpen, onClose, handleCursorHover, handleCursorLeave, pl
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         className="resume-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <motion.div 
+        <motion.div
           className="resume-container glass-hud"
           data-lenis-prevent
           initial={{ scale: 0.9, opacity: 0, rotateX: 15 }}
@@ -25,9 +25,9 @@ const ResumeModal = ({ isOpen, onClose, handleCursorHover, handleCursorLeave, pl
           <div className="hud-corner top-right" />
           <div className="hud-corner bottom-left" />
           <div className="hud-corner bottom-right" />
-          
-          <button 
-            className="resume-close-btn" 
+
+          <button
+            className="resume-close-btn"
             onClick={() => { playClick(); onClose(); }}
             onMouseEnter={handleCursorHover('CLOZE RECORD')}
             onMouseLeave={handleCursorLeave}
@@ -46,14 +46,19 @@ const ResumeModal = ({ isOpen, onClose, handleCursorHover, handleCursorLeave, pl
               <span>UPLINK: ACTIVE</span>
               <span>SECURITY_CLEARANCE: LEVEL_4</span>
             </div>
+            <div className="resume-social-links">
+              <a href="https://www.instagram.com/a_llen___?igsh=MTdiM2FlNmtsd2Yx" target="_blank" onMouseEnter={() => handleCursorHover('IG')} onMouseLeave={handleCursorLeave}>INSTAGRAM</a>
+              <a href="https://www.fiverr.com/s/42VKoVR" target="_blank" onMouseEnter={() => handleCursorHover('FVR')} onMouseLeave={handleCursorLeave}>FIVERR</a>
+              <a href="https://www.linkedin.com/in/allen-biju-2b7458291?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" onMouseEnter={() => handleCursorHover('LNKD')} onMouseLeave={handleCursorLeave}>LINKEDIN</a>
+            </div>
           </header>
 
           <div className="resume-content-grid">
             <section className="resume-section about">
               <h2 className="section-title">01_PROFILE</h2>
               <p>
-                Expertise in bridging high-performance engineering with creative storytelling. 
-                Specializing in seamless digital ecosystems, immersive frontends, and AI-driven solutions 
+                Expertise in bridging high-performance engineering with creative storytelling.
+                Specializing in seamless digital ecosystems, immersive frontends, and AI-driven solutions
                 that prioritize both technical excellence and user experience.
               </p>
             </section>

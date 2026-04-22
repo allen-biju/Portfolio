@@ -146,7 +146,7 @@ export default function IntroOverlay({ onComplete }) {
                 display: 'inline-block',
                 fontFamily: "'clash-display', sans-serif",
                 fontWeight: 700,
-                fontSize: 'clamp(3rem, 9vw, 7.5rem)',
+                fontSize: 'clamp(2rem, 8vw, 7.5rem)',
                 letterSpacing: '0.1em',
                 color: '#CCD6F6',
                 lineHeight: 1,
