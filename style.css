@@ -1804,6 +1804,28 @@ a {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   }
 
+  /* Disable persistent glitch effects entirely on mobile */
+  .phase-solid .glitch-layer.red,
+  .phase-solid .glitch-layer.blue {
+    animation: none !important;
+    display: none !important;
+  }
+
+  .phase-solid .portrait-outline {
+    animation: none !important;
+  }
+
+  .phase-solid .portrait-main {
+    animation: portrait-reveal-wipe 5s cubic-bezier(0.19, 1, 0.22, 1) forwards,
+               portrait-fade-in 1.5s ease-out forwards !important;
+  }
+
+  /* Disable Arsenal text ghost glitch on mobile */
+  .title-font > span[aria-hidden="true"] {
+    display: none !important;
+    animation: none !important;
+  }
+
   /* Arsenal (Skills) - Compact 2-Column Grid */
   .skills-wrapper {
     padding-top: 25px;
