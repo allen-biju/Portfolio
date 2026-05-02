@@ -134,21 +134,23 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
 function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
-  const [portraitPhase, setPortraitPhase] = useState('hidden'); // hidden -> sketch -> solid
+  const [captionText, setCaptionText] = useState('');
+  const fullCaption = "Turning ideas into fast, modern, and immersive web experiences";
 
   useEffect(() => {
     if (introComplete) {
-      // 1. Start Sketch immediately after intro
-      const sketchTimer = setTimeout(() => setPortraitPhase('sketch'), 200);
-      // 2. High-energy Glitch Burst
-      const glitchTimer = setTimeout(() => setPortraitPhase('glitch'), 5200);
-      // 3. Final physical materialization
-      const solidTimer = setTimeout(() => setPortraitPhase('solid'), 5500);
+      // Wait for image slide-in to finish (1.8s) before starting typewriter
+      const timer = setTimeout(() => {
+        let i = 0;
+        const interval = setInterval(() => {
+          setCaptionText(fullCaption.substring(0, i + 1));
+          i++;
+          if (i === fullCaption.length) clearInterval(interval);
+        }, 30);
+      }, 1800);
 
       return () => {
-        clearTimeout(sketchTimer);
-        clearTimeout(glitchTimer);
-        clearTimeout(solidTimer);
+        clearTimeout(timer);
       };
     }
   }, [introComplete]);
@@ -633,35 +635,34 @@ function App() {
 
                 <motion.div
                   className="hero-image-container"
-                  initial={{ opacity: 0, scale: 0.9, x: 40 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  transition={{ delay: 0.8, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, scale: 0.9, x: 400 }}
+                  animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 400 }}
+                  transition={{ delay: 0.3, duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
                   style={{ zIndex: 100, position: 'relative' }}
                 >
-                  <div className={`glitch-portrait-wrapper phase-${portraitPhase}`}>
-                    {/* Phase 1: Neural Outline Sketch */}
-                    <img
-                      src="./assets/hero-portrait.jpg"
-                      className="portrait-layer portrait-outline"
-                      alt="Neural Outline"
-                    />
-
-                    {/* Glitch RGB Layers (Hidden by default, active in phase-solid) */}
-                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer red" alt="" aria-hidden="true" />
-                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer blue" alt="" aria-hidden="true" />
-
-                    {/* Phase 2: Solid Physical Reveal */}
-                    <img
-                      src="./assets/hero-portrait.jpg"
-                      className="portrait-layer portrait-main"
-                      alt="Allen Biju Portrait"
-                      onMouseEnter={handleCursorHover('OPERATOR_ID')}
-                      onMouseLeave={handleCursorLeave}
-                    />
-
-                    <div className="portrait-scanline" />
-                    <div className="input-glow" style={{ opacity: 0.3 }} />
-                  </div>
+                  <img
+                    src="./assets/hero.png"
+                    alt="Allen Biju Portrait"
+                    className="hero-portrait-image"
+                    onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                    onMouseLeave={handleCursorLeave}
+                  />
+                  <p className="hero-caption" style={{ 
+                    position: 'absolute',
+                    bottom: '-40px',
+                    right: '10%',
+                    color: '#CCD6F6', 
+                    textAlign: 'center', 
+                    width: '100%',
+                    maxWidth: '400px', 
+                    fontSize: '1.1rem', 
+                    lineHeight: '1.6',
+                    opacity: 0.9,
+                    zIndex: 10 
+                  }}>
+                    {captionText}
+                    <span style={{ opacity: captionText.length > 0 && captionText.length < fullCaption.length ? 1 : 0 }}>_</span>
+                  </p>
                 </motion.div>
               </div>
             </motion.div>
