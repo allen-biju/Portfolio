@@ -134,21 +134,23 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
 function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
-  const [portraitPhase, setPortraitPhase] = useState('hidden'); // hidden -> sketch -> solid
+  const [captionText, setCaptionText] = useState('');
+  const fullCaption = "Turning ideas into fast, modern, and immersive web experiences";
 
   useEffect(() => {
     if (introComplete) {
-      // 1. Start Sketch immediately after intro
-      const sketchTimer = setTimeout(() => setPortraitPhase('sketch'), 200);
-      // 2. High-energy Glitch Burst
-      const glitchTimer = setTimeout(() => setPortraitPhase('glitch'), 5200);
-      // 3. Final physical materialization
-      const solidTimer = setTimeout(() => setPortraitPhase('solid'), 5500);
+      // Wait for image slide-in to finish (1.8s) before starting typewriter
+      const timer = setTimeout(() => {
+        let i = 0;
+        const interval = setInterval(() => {
+          setCaptionText(fullCaption.substring(0, i + 1));
+          i++;
+          if (i === fullCaption.length) clearInterval(interval);
+        }, 30);
+      }, 1800);
 
       return () => {
-        clearTimeout(sketchTimer);
-        clearTimeout(glitchTimer);
-        clearTimeout(solidTimer);
+        clearTimeout(timer);
       };
     }
   }, [introComplete]);
@@ -388,10 +390,10 @@ function App() {
     return scrollYProgress.onChange((v) => {
       let newScene = activeScene;
 
-      // Scene 0 (Intro): 0.0 - 0.25
-      if (v <= 0.25) newScene = 0;
-      // Scene 1 (Arsenal): 0.26 - 0.55
-      else if (v > 0.25 && v <= 0.55) newScene = 1;
+      // Scene 0 (Intro): 0.0 - 0.17
+      if (v <= 0.17) newScene = 0;
+      // Scene 1 (Arsenal): 0.18 - 0.55
+      else if (v > 0.17 && v <= 0.55) newScene = 1;
       // Scene 2 (Works): 0.56 - 0.92
       else if (v > 0.55 && v <= 0.92) newScene = 2;
       // Scene 3 (Contact): 0.93+
@@ -404,10 +406,10 @@ function App() {
   }, [scrollYProgress, activeScene]);
 
   // Transform values for Scene 1 (Arsenal) Entry/Exit
-  const arsenalOpacity = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [0, 1, 1, 0]);
-  const arsenalZ = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [-1000, 0, 0, -2500]);
-  const arsenalScale = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], [0.4, 1, 1, 0.2]);
-  const arsenalBlur = useTransform(scrollYProgress, [0.26, 0.35, 0.48, 0.56], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
+  const arsenalOpacity = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], [0, 1, 1, 0]);
+  const arsenalZ = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], [-1000, 0, 0, -2500]);
+  const arsenalScale = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], [0.4, 1, 1, 0.2]);
+  const arsenalBlur = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
 
   // Transform values for Scene 2 (Works) Entry/Exit
   const worksOpacity = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0, 1, 1, 0]);
@@ -471,14 +473,14 @@ function App() {
 
   const NAV_LINKS = [
     { name: 'ABOUT', progress: 0.05, scene: 0 },
-    { name: 'SKILLS', progress: 0.40, scene: 1 },
+    { name: 'SKILLS', progress: 0.30, scene: 1 },
     { name: 'WORKS', progress: 0.75, scene: 2 },
     { name: 'CONTACT', progress: 0.98, scene: 3 }
   ];
 
   const scrollToSection = (progress) => {
     if (!lenisRef.current) return;
-    const target = window.innerHeight * 5 * progress;
+    const target = window.innerHeight * 4 * progress;
     lenisRef.current.scrollTo(target, {
       duration: 2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
@@ -633,42 +635,41 @@ function App() {
 
                 <motion.div
                   className="hero-image-container"
-                  initial={{ opacity: 0, scale: 0.9, x: 40 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  transition={{ delay: 0.8, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, scale: 0.9, x: 400 }}
+                  animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 400 }}
+                  transition={{ delay: 0.3, duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
                   style={{ zIndex: 100, position: 'relative' }}
                 >
-                  <div className={`glitch-portrait-wrapper phase-${portraitPhase}`}>
-                    {/* Phase 1: Neural Outline Sketch */}
-                    <img
-                      src="./assets/hero-portrait.jpg"
-                      className="portrait-layer portrait-outline"
-                      alt="Neural Outline"
-                    />
-
-                    {/* Glitch RGB Layers (Hidden by default, active in phase-solid) */}
-                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer red" alt="" aria-hidden="true" />
-                    <img src="./assets/hero-portrait.jpg" className="portrait-layer glitch-layer blue" alt="" aria-hidden="true" />
-
-                    {/* Phase 2: Solid Physical Reveal */}
-                    <img
-                      src="./assets/hero-portrait.jpg"
-                      className="portrait-layer portrait-main"
-                      alt="Allen Biju Portrait"
-                      onMouseEnter={handleCursorHover('OPERATOR_ID')}
-                      onMouseLeave={handleCursorLeave}
-                    />
-
-                    <div className="portrait-scanline" />
-                    <div className="input-glow" style={{ opacity: 0.3 }} />
-                  </div>
+                  <img
+                    src="./assets/hero.png"
+                    alt="Allen Biju Portrait"
+                    className="hero-portrait-image"
+                    onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                    onMouseLeave={handleCursorLeave}
+                  />
+                  <p className="hero-caption" style={{ 
+                    position: 'absolute',
+                    bottom: '-40px',
+                    right: '10%',
+                    color: '#CCD6F6', 
+                    textAlign: 'center', 
+                    width: '100%',
+                    maxWidth: '400px', 
+                    fontSize: '1.1rem', 
+                    lineHeight: '1.6',
+                    opacity: 0.9,
+                    zIndex: 10 
+                  }}>
+                    {captionText}
+                    <span style={{ opacity: captionText.length > 0 && captionText.length < fullCaption.length ? 1 : 0 }}>_</span>
+                  </p>
                 </motion.div>
               </div>
             </motion.div>
           )}
 
           {/* Frame 1: Skills HUD — Game-like */}
-          {activeScene > 0 && activeScene < 2 && scrollYProgress.get() > 0.25 && scrollYProgress.get() < 0.58 && (
+          {activeScene === 1 && (
             <motion.div
               key="scene1"
               style={{
@@ -927,7 +928,7 @@ function App() {
 
 
           {/* Frame 2: Stabilized 3D Project Showcase */}
-          {activeScene > 1 && activeScene < 3 && scrollYProgress.get() > 0.50 && scrollYProgress.get() < 0.95 && (
+          {activeScene === 2 && (
             <motion.div
               key="scene2"
               style={{

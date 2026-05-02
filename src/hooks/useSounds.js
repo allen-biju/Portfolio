@@ -93,6 +93,11 @@ export const playBack = () => play('leaveProject', 0.5);
 export const playProjectText = () => play('projectText', 0.3);
 export const playParticles = () => play('particles', 0.3);
 export const playWordAssembled = () => play('enterProject', 0.4, 0.95);
+export const playTypewriterBeep = () => {
+  const beepNames = ['beeps', 'beeps2', 'beeps3'];
+  const pick = beepNames[Math.floor(Math.random() * beepNames.length)];
+  play(pick, 0.12, 0.95 + Math.random() * 0.1);
+};
 
 export const startWordWoosh = () => {
   if (isMuted) return { source: null, stop: () => {} };

@@ -1023,15 +1023,28 @@ a {
   z-index: 5;
 }
 
-.glitch-portrait-wrapper {
-  position: relative;
+.hero-image-container::before {
+  content: '';
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(60, 130, 246, 0.45) 0%, transparent 60%);
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-portrait-image {
   width: 100%;
-  max-width: 380px;
-  aspect-ratio: 3/4;
-  border: 1px solid rgba(232, 160, 32, 0.2);
-  overflow: hidden;
-  background: var(--color-bg-primary);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+  max-width: 800px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  transform: scale(1.6) translate(45px, -70px);
+  transform-origin: center right;
+  filter: drop-shadow(0 -40px 70px rgba(60, 130, 246, 0.6));
 }
 
 .portrait-layer {
@@ -1724,6 +1737,7 @@ a {
    ========================================================================== */
 
 @media (max-width: 768px) {
+
   /* Global Sticky Fixes */
   .scene-sticky-container {
     overflow-y: auto;
@@ -1817,11 +1831,11 @@ a {
 
   .phase-solid .portrait-main {
     animation: portrait-reveal-wipe 5s cubic-bezier(0.19, 1, 0.22, 1) forwards,
-               portrait-fade-in 1.5s ease-out forwards !important;
+      portrait-fade-in 1.5s ease-out forwards !important;
   }
 
   /* Disable Arsenal text ghost glitch on mobile */
-  .title-font > span[aria-hidden="true"] {
+  .title-font>span[aria-hidden="true"] {
     display: none !important;
     animation: none !important;
   }
@@ -1860,27 +1874,27 @@ a {
   }
 
   /* Force inner structure to be compact */
-  .bento-card > div {
+  .bento-card>div {
     margin-bottom: 0.35rem !important;
   }
 
-  .bento-card > div:first-of-type {
+  .bento-card>div:first-of-type {
     margin-bottom: 0.4rem !important;
   }
 
   /* Tags Row Shrink */
-  .bento-card > div:nth-of-type(3) {
+  .bento-card>div:nth-of-type(3) {
     gap: 0.25rem !important;
     margin-bottom: 0 !important;
   }
 
-  .bento-card > div:nth-of-type(3) span {
+  .bento-card>div:nth-of-type(3) span {
     font-size: 0.48rem !important;
     padding: 2px 4px !important;
   }
 
   /* Rank Badge Shrink */
-  .bento-card > div > div:last-child {
+  .bento-card>div>div:last-child {
     font-size: 0.65rem !important;
     padding: 1px 4px !important;
   }
@@ -1905,7 +1919,8 @@ a {
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    transform: none !important; /* Disable js marquee */
+    transform: none !important;
+    /* Disable js marquee */
     justify-content: flex-start;
   }
 
@@ -1919,7 +1934,8 @@ a {
     max-width: 320px;
     height: 55vh !important;
     border-radius: 12px;
-    transform: none !important; /* Disable 3D tilt for mobile stability */
+    transform: none !important;
+    /* Disable 3D tilt for mobile stability */
     scroll-snap-align: center;
   }
 
@@ -1978,7 +1994,8 @@ a {
     font-size: 0.65rem;
   }
 
-  .footer-right, .footer-left .system-tag {
+  .footer-right,
+  .footer-left .system-tag {
     display: none;
   }
 
@@ -1990,4 +2007,4 @@ a {
   .detail-content {
     padding: 1.5rem;
   }
-}
+}
