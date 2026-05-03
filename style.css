@@ -1766,8 +1766,9 @@ a {
   }
 
   /* Scene Overrides */
-  .frame-container {
-    padding: 0 1rem;
+  .frame-container,
+  .frame-container.padded-left {
+    padding: 0 1rem !important;
     justify-content: center;
     align-items: center;
   }
@@ -1776,9 +1777,9 @@ a {
   .intro-split-layout {
     flex-direction: column-reverse;
     justify-content: center;
-    gap: 1rem;
-    padding-top: 80px;
-    padding-bottom: 2rem;
+    gap: 0.2rem;
+    padding-top: 65px;
+    padding-bottom: 1rem;
     text-align: center;
     height: 100%;
     width: 100%;
@@ -1792,27 +1793,28 @@ a {
   }
 
   .intro-name {
-    font-size: 2.8rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.4rem;
+    margin-bottom: 0.2rem;
   }
 
   .intro-role {
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
-    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.12em;
   }
 
   .intro-bio {
-    font-size: 0.85rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    max-width: 320px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    max-width: 300px;
+    opacity: 0.9;
   }
 
   .hero-image-container {
     justify-content: center;
     width: 100%;
-    margin-bottom: 0px;
+    margin-bottom: -0.5rem !important;
   }
 
   .glitch-portrait-wrapper {
@@ -1824,25 +1826,47 @@ a {
     transform: scale(1) translate(0, 0) !important;
     transform-origin: center center !important;
     max-width: 100% !important;
-    max-height: 45vh !important;
+    max-height: 38vh !important;
     object-fit: contain !important;
-    filter: drop-shadow(0 10px 30px rgba(60, 130, 246, 0.4)) !important;
+    filter: drop-shadow(0 10px 25px rgba(60, 130, 246, 0.4)) !important;
   }
 
   .hero-caption {
     position: relative !important;
     bottom: 0 !important;
     right: 0 !important;
-    margin-top: 1rem !important;
-    font-size: 0.9rem !important;
-    max-width: 100% !important;
+    margin-top: 0.2rem !important;
+    font-size: 0.75rem !important;
+    max-width: 90% !important;
     width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    opacity: 0.8 !important;
   }
 
   /* Disable persistent glitch effects entirely on mobile */
   .phase-solid .glitch-layer.red,
   .phase-solid .glitch-layer.blue {
     animation: none !important;
+    display: none !important;
+  }
+
+  .intro-role-wrapper {
+    gap: 0.8rem !important;
+    margin-bottom: 1rem !important;
+    justify-content: center !important;
+  }
+
+  .intro-resume-btn {
+    padding: 0.4rem 0.8rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .btn-label {
+    font-size: 0.65rem !important;
+  }
+
+  .btn-tag {
     display: none !important;
   }
 
