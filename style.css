@@ -1776,10 +1776,12 @@ a {
   .intro-split-layout {
     flex-direction: column-reverse;
     justify-content: center;
-    gap: 1.5rem;
-    padding-top: 60px;
+    gap: 1rem;
+    padding-top: 80px;
+    padding-bottom: 2rem;
     text-align: center;
-    max-height: 100vh;
+    height: 100%;
+    width: 100%;
   }
 
   .intro-text-content {
@@ -1816,6 +1818,25 @@ a {
   .glitch-portrait-wrapper {
     max-width: 200px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero-portrait-image {
+    transform: scale(1) translate(0, 0) !important;
+    transform-origin: center center !important;
+    max-width: 100% !important;
+    max-height: 45vh !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 10px 30px rgba(60, 130, 246, 0.4)) !important;
+  }
+
+  .hero-caption {
+    position: relative !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    margin-top: 1rem !important;
+    font-size: 0.9rem !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   /* Disable persistent glitch effects entirely on mobile */
