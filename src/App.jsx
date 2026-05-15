@@ -17,8 +17,8 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
   const cardRef = useRef(null);
 
   // Accelerated Assembly
-  const start = 0.50 + (i * 0.04);
-  const end = 0.65 + (i * 0.04);
+  const start = 0.44 + (i * 0.02);
+  const end = 0.56 + (i * 0.02);
 
   const assemblyRotateX = useTransform(scrollProgress, [start, end], [180, 0]);
   const assemblyRotateY = useTransform(scrollProgress, [start, end], [130, 0]);
@@ -159,6 +159,7 @@ function App() {
   const [showEntryFlash, setShowEntryFlash] = useState(false);
   const [showResume, setShowResume] = useState(false);
   const [muted, setMuted] = useState(getIsMuted());
+  const [bentoInView, setBentoInView] = useState(false);
 
   const [isTouch, setIsTouch] = useState(false);
 
@@ -212,7 +213,7 @@ function App() {
   };
 
   useEffect(() => {
-    if (logEndRef.current) {
+    if (logEndRef.current && terminalLogs.length > 3) {
       logEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [terminalLogs]);
@@ -336,8 +337,8 @@ function App() {
   const SET_WIDTH = (CARD_WIDTH + CARD_GAP) * PROJECTS_COUNT;
 
   useAnimationFrame((t, delta) => {
-    // Only move if we are in the Works section and entry animation is complete
-    if (activeScene >= 2 && activeScene < 3 && scrollYProgress.get() > 0.65) {
+    // Only move if we are in the Works section
+    if (activeScene === 2) {
       const targetSpeed = isMarqueeHovered.current ? 0 : -0.8;
       // Fluid deceleration/acceleration (Lerp)
       marqueeSpeed.current += (targetSpeed - marqueeSpeed.current) * 0.08;
@@ -385,37 +386,57 @@ function App() {
     }
   }, [selectedSkill, showResume]);
 
-  // Stabilized Scene Transitions (Locked Dwell Zones)
+  // Active Scene tracked via IntersectionObserver later on the sections themselves.
+
+  // Transform values handled per-section via whileInView now.
+
+  // ---------- Scroll Snap Logic ----------
+  // After the user stops scrolling for 350ms, snap to the nearest section.
   useEffect(() => {
-    return scrollYProgress.onChange((v) => {
-      let newScene = activeScene;
+    const SECTION_IDS = ['scene-0', 'scene-1', 'scene-2', 'scene-3'];
+    let snapTimer = null;
+    let isSnapping = false;
 
-      // Scene 0 (Intro): 0.0 - 0.17
-      if (v <= 0.17) newScene = 0;
-      // Scene 1 (Arsenal): 0.18 - 0.55
-      else if (v > 0.17 && v <= 0.55) newScene = 1;
-      // Scene 2 (Works): 0.56 - 0.92
-      else if (v > 0.55 && v <= 0.92) newScene = 2;
-      // Scene 3 (Contact): 0.93+
-      else if (v > 0.92) newScene = 3;
+    const snapToNearest = () => {
+      if (!lenisRef.current) return;
+      if (selectedSkill || showResume) return; // disable during overlays
 
-      if (newScene !== activeScene) {
-        setActiveScene(newScene);
+      const scrollTop = window.scrollY;
+      let closest = null;
+      let minDist = Infinity;
+
+      SECTION_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const elTop = window.scrollY + rect.top;
+        const dist = Math.abs(elTop - scrollTop);
+        if (dist < minDist) { minDist = dist; closest = el; }
+      });
+
+      if (closest && !isSnapping) {
+        isSnapping = true;
+        lenisRef.current.scrollTo(closest, {
+          duration: 1.2,
+          easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+          onComplete: () => { isSnapping = false; }
+        });
       }
-    });
-  }, [scrollYProgress, activeScene]);
+    };
 
-  // Transform values for Scene 1 (Arsenal) Entry/Exit
-  const arsenalOpacity = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], [0, 1, 1, 0]);
-  const arsenalZ = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], [-1000, 0, 0, -2500]);
-  const arsenalScale = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], [0.4, 1, 1, 0.2]);
-  const arsenalBlur = useTransform(scrollYProgress, [0.18, 0.26, 0.48, 0.56], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
+    const onScroll = () => {
+      if (isSnapping) return;
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(snapToNearest, 350);
+    };
 
-  // Transform values for Scene 2 (Works) Entry/Exit
-  const worksOpacity = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0, 1, 1, 0]);
-  const worksZ = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [-1000, 0, 0, -1000]);
-  const worksScale = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], [0.4, 1, 1, 0.4]);
-  const worksBlur = useTransform(scrollYProgress, [0.54, 0.62, 0.88, 0.94], ["blur(15px)", "blur(0px)", "blur(0px)", "blur(15px)"]);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      clearTimeout(snapTimer);
+    };
+  }, [selectedSkill, showResume]);
+  // ----------------------------------------
 
   // Sound preloading
   useEffect(() => {
@@ -472,23 +493,32 @@ function App() {
   const handleCursorLeave = () => setCursorText("");
 
   const NAV_LINKS = [
-    { name: 'ABOUT', progress: 0.05, scene: 0 },
-    { name: 'SKILLS', progress: 0.30, scene: 1 },
-    { name: 'WORKS', progress: 0.75, scene: 2 },
-    { name: 'CONTACT', progress: 0.98, scene: 3 }
+    { name: 'ABOUT', id: 'scene-0', scene: 0 },
+    { name: 'SKILLS', id: 'scene-1', scene: 1 },
+    { name: 'WORKS', id: 'scene-2', scene: 2 },
+    { name: 'CONTACT', id: 'scene-3', scene: 3 }
   ];
 
-  const scrollToSection = (progress) => {
+  const scrollToSection = (id) => {
     if (!lenisRef.current) return;
-    const target = window.innerHeight * 4 * progress;
-    lenisRef.current.scrollTo(target, {
-      duration: 2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-    });
+    const target = document.getElementById(id);
+    if (target) {
+      lenisRef.current.scrollTo(target, {
+        duration: 2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+      });
+    }
   };
 
   return (
     <div className="main-content-wrapper">
+      {/* Context-Aware Custom Cursor */}
+      <div className={`cursor-dot ${cursorText ? 'hidden' : ''}`} ref={cursorDot}></div>
+      <div className={`cursor-outline ${cursorText ? 'expanded' : ''}`} ref={cursorOutline}></div>
+      <div className="cursor-text" ref={cursorTextRef} style={{ opacity: cursorText ? 1 : 0 }}>
+        {cursorText}
+      </div>
+
       {/* Portraits and Handshake Handled below in intro-split-layout */}
       {/* Cinematic Intro Overlay */}
       <IntroOverlay onComplete={() => setIntroComplete(true)} />
@@ -527,13 +557,6 @@ function App() {
           </filter>
         </svg>
 
-        {/* Context-Aware Custom Cursor */}
-        <div className={`cursor-dot ${cursorText ? 'hidden' : ''}`} ref={cursorDot}></div>
-        <div className={`cursor-outline ${cursorText ? 'expanded' : ''}`} ref={cursorOutline}></div>
-        <div className="cursor-text" ref={cursorTextRef} style={{ opacity: cursorText ? 1 : 0 }}>
-          {cursorText}
-        </div>
-
         <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
           <div className="nav-content">
             <div className="logo magnetic" onClick={() => scrollToSection(0)} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
@@ -542,7 +565,7 @@ function App() {
                 <button
                   key={link.name}
                   className={`nav-link-item ${activeScene === link.scene ? 'active' : ''}`}
-                  onClick={() => { playClick(); scrollToSection(link.progress); }}
+                  onClick={() => { playClick(); scrollToSection(link.id); }}
                   onMouseEnter={handleCursorHover(`JUMP TO ${link.name}`)}
                   onMouseLeave={handleCursorLeave}
                 >
@@ -555,7 +578,7 @@ function App() {
         </nav>
 
         {/* WebGL Background */}
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
           <Canvas eventSource={document.body} eventPrefix="client" camera={{ position: [0, 0, 10], fov: 45 }}>
             <React.Suspense fallback={null}>
               <HeroScene activeScene={activeScene} />
@@ -563,19 +586,20 @@ function App() {
           </Canvas>
         </div>
 
-        <AnimatePresence mode="wait">
+        <div className="scroll-sections">
           {/* Frame 0: Cinematic Introduction */}
-          {activeScene === 0 && (
-            <motion.div
-              key="scene0"
-              initial="initial"
-              animate="in"
-              exit="out"
-              variants={pageVariants}
-              transition={pageTransition}
-              className="frame-container padded-left"
-              style={{ pointerEvents: activeScene === 0 ? 'auto' : 'none' }}
-            >
+          <motion.div
+            id="scene-0"
+            onViewportEnter={() => setActiveScene(0)}
+            viewport={{ amount: 0.3 }}
+            key="scene0"
+            initial="initial"
+            whileInView="in"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="frame-container padded-left"
+            style={{ pointerEvents: 'auto' }}
+          >
               <div className="intro-split-layout">
                 <div className="intro-text-content">
                   <motion.div
@@ -647,18 +671,18 @@ function App() {
                     onMouseEnter={handleCursorHover('OPERATOR_ID')}
                     onMouseLeave={handleCursorLeave}
                   />
-                  <p className="hero-caption" style={{ 
+                  <p className="hero-caption" style={{
                     position: 'absolute',
                     bottom: '-40px',
                     right: '10%',
-                    color: '#CCD6F6', 
-                    textAlign: 'center', 
+                    color: '#CCD6F6',
+                    textAlign: 'center',
                     width: '100%',
-                    maxWidth: '400px', 
-                    fontSize: '1.1rem', 
+                    maxWidth: '400px',
+                    fontSize: '1.1rem',
                     lineHeight: '1.6',
                     opacity: 0.9,
-                    zIndex: 10 
+                    zIndex: 10
                   }}>
                     {captionText}
                     <span style={{ opacity: captionText.length > 0 && captionText.length < fullCaption.length ? 1 : 0 }}>_</span>
@@ -666,26 +690,26 @@ function App() {
                 </motion.div>
               </div>
             </motion.div>
-          )}
 
           {/* Frame 1: Skills HUD — Game-like */}
-          {activeScene === 1 && (
             <motion.div
+              id="scene-1"
+              onViewportEnter={() => setActiveScene(1)}
+              viewport={{ amount: 0.3 }}
               key="scene1"
+              initial={{ opacity: 0, scale: 0.8, filter: "blur(15px)" }}
+              whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.8 }}
               style={{
-                position: 'absolute',
-                inset: 0,
+                position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '0 5vw',
-                pointerEvents: activeScene === 1 ? 'auto' : 'none',
-                opacity: arsenalOpacity,
-                z: arsenalZ,
-                scale: arsenalScale,
-                filter: arsenalBlur,
+                pointerEvents: 'auto',
                 transformStyle: 'preserve-3d',
-                zIndex: activeScene === 1 ? 10 : 5
+                zIndex: 10,
+                minHeight: '100vh'
               }}
             >
               {/* Scanline overlay */}
@@ -708,7 +732,7 @@ function App() {
 
               <div className="skills-wrapper" style={{ position: 'relative', zIndex: 5, maxWidth: '1100px', width: '100%' }}>
 
-                {/* Glitch heading */}
+                Glitch heading
                 <motion.h2 className="title-font"
                   initial={{ opacity: 0, x: -80 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -750,7 +774,11 @@ function App() {
                 >
                   &gt; SKILL_MATRIX v2.4.1 — ONLINE
                 </motion.p>
-
+                <motion.div
+                  onViewportEnter={() => setBentoInView(true)}
+                  onViewportLeave={() => setBentoInView(false)}
+                  viewport={{ once: false, amount: 0.1 }}
+                >
                 <div className="bento-grid">
                   {[
                     {
@@ -789,13 +817,32 @@ function App() {
                       tools: ['Midjourney v6', 'Stable Diffusion XL', 'ComfyUI', 'LoRA Training', 'ControlNet', 'Inpainting / Upscaling'],
                       projects: ['AI Brand Illustrations', 'Custom Character Sheets', 'AI-Generated NFT Series'],
                     },
-                  ].map((skill, i) => (
+                  ].map((skill, i) => {
+                    // 3-col × 2-row grid entry directions (moderate px values avoid body overflow-x clip)
+                    const entryMap = [
+                      { x: -500, y: -400 }, // 0: top-left corner
+                      { x: 0,    y: -500 }, // 1: top-center
+                      { x: 500,  y: -400 }, // 2: top-right corner
+                      { x: -500, y:  400 }, // 3: bottom-left corner
+                      { x: 0,    y:  500 }, // 4: bottom-center
+                      { x: 500,  y:  400 }, // 5: bottom-right corner
+                    ];
+                    const entry = entryMap[i] || { x: 0, y: 40 };
+
+                    return (
                     <motion.div
                       key={skill.name}
                       className="bento-card"
-                      initial={{ opacity: 0, y: 40, scale: 0.88, rotateX: 15 }}
-                      animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                      transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      initial={{ opacity: 0, x: entry.x, y: entry.y, scale: 0.85 }}
+                      animate={bentoInView
+                        ? { opacity: 1, x: 0, y: 0, scale: 1 }
+                        : { opacity: 0, x: entry.x, y: entry.y, scale: 0.85 }
+                      }
+                      transition={{ 
+                        duration: 0.9, 
+                        delay: bentoInView ? i * 0.08 : (5 - i) * 0.05, 
+                        ease: [0.22, 1, 0.36, 1] 
+                      }}
                       onMouseEnter={() => { handleCursorHover('INSPECT')(); playHover(); }}
                       onMouseLeave={handleCursorLeave}
                       onClick={() => { playClick(); setSelectedSkill(skill); }}
@@ -829,8 +876,10 @@ function App() {
                           </h3>
                         </div>
                         {/* Rank badge */}
-                        <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
-                          transition={{ delay: 0.4 + i * 0.1, type: 'spring', stiffness: 400 }}
+                        <motion.div
+                          initial={{ scale: 0, rotate: -20 }}
+                          animate={bentoInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -20 }}
+                          transition={{ delay: 0.5 + i * 0.08, type: 'spring', stiffness: 400 }}
                           style={{
                             fontFamily: 'var(--font-heading)', fontSize: '0.75rem', fontWeight: 700,
                             color: skill.color, border: `1px solid ${skill.color}60`,
@@ -848,7 +897,10 @@ function App() {
                           <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
                             XP LEVEL
                           </span>
-                          <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 + i * 0.1 }}
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={bentoInView ? { opacity: 1 } : { opacity: 0 }}
+                            transition={{ delay: 0.6 + i * 0.08 }}
                             style={{ fontSize: '0.7rem', fontFamily: 'var(--font-heading)', color: skill.color, fontWeight: 700 }}>
                             {skill.xp}/100
                           </motion.span>
@@ -858,8 +910,8 @@ function App() {
                           <motion.div
                             style={{ height: '100%', borderRadius: 3, background: `linear-gradient(90deg, ${skill.color}90, ${skill.color})`, position: 'relative' }}
                             initial={{ width: '0%' }}
-                            animate={{ width: `${skill.xp}%` }}
-                            transition={{ duration: 1.2, delay: 0.6 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                            animate={bentoInView ? { width: `${skill.xp}%` } : { width: '0%' }}
+                            transition={{ duration: 1.2, delay: 0.7 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                           >
                             {/* Shimmer */}
                             <motion.div
@@ -868,7 +920,7 @@ function App() {
                                 background: 'rgba(255,255,255,0.7)', borderRadius: 3
                               }}
                               animate={{ opacity: [0, 1, 0] }}
-                              transition={{ duration: 0.5, delay: 1.8 + i * 0.1, repeat: Infinity, repeatDelay: 3 }}
+                              transition={{ duration: 0.5, delay: 2 + i * 0.08, repeat: Infinity, repeatDelay: 3 }}
                             />
                           </motion.div>
                         </div>
@@ -878,8 +930,9 @@ function App() {
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                         {skill.tags.map((tag, ti) => (
                           <motion.span key={tag}
-                            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.9 + i * 0.1 + ti * 0.06 }}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={bentoInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
+                            transition={{ delay: 1 + i * 0.08 + ti * 0.06 }}
                             style={{
                               fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase',
                               padding: '2px 7px', borderRadius: 3, color: skill.color,
@@ -891,8 +944,9 @@ function App() {
 
                       <div className="glow-bar" style={{ background: skill.color }} />
                     </motion.div>
-                  ))}
+                  );})}
                 </div>
+                </motion.div>
 
                 {/* Stats row */}
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -924,26 +978,26 @@ function App() {
 
               </div>
             </motion.div>
-          )}
-
 
           {/* Frame 2: Stabilized 3D Project Showcase */}
-          {activeScene === 2 && (
             <motion.div
+              id="scene-2"
+              onViewportEnter={() => setActiveScene(2)}
+              viewport={{ amount: 0.3 }}
               key="scene2"
+              initial={{ opacity: 0, scale: 0.8, filter: "blur(15px)" }}
+              whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.8 }}
               style={{
-                opacity: worksOpacity,
-                z: worksZ,
-                scale: worksScale,
-                filter: worksBlur,
                 transformStyle: 'preserve-3d',
-                pointerEvents: activeScene === 2 ? 'auto' : 'none',
-                zIndex: activeScene === 2 ? 10 : 5
+                pointerEvents: 'auto',
+                zIndex: 10,
+                minHeight: '100vh'
               }}
               className="frame-container centered"
             >
               <div className="gallery-wrapper">
-                <div style={{ textAlign: 'center', marginBottom: '8vh' }}>
+                <div style={{ textAlign: 'center', marginBottom: '4vh' }}>
                   <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1017,11 +1071,20 @@ function App() {
                 </motion.div>
               </div>
             </motion.div>
-          )}
 
           {/* Frame 3: Contact Form - Terminal Overhaul */}
-          {activeScene === 3 && (
-            <motion.div key="scene3" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="frame-container centered">
+            <motion.div 
+              id="scene-3"
+              onViewportEnter={() => setActiveScene(3)}
+              viewport={{ amount: 0.3 }}
+              key="scene3" 
+              initial="initial" 
+              whileInView="in" 
+              variants={pageVariants} 
+              transition={pageTransition} 
+              className="frame-container centered"
+              style={{ pointerEvents: 'auto', minHeight: '100vh' }}
+            >
               <div className="terminal-wrapper">
                 {/* HUD Brackets */}
                 <div className="card-hud-brackets">
@@ -1163,16 +1226,37 @@ function App() {
                 </div>
               </div>
             </motion.div>
+        </div>
+
+        <div style={{ position: 'fixed', bottom: '40px', right: '40px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {[0, 1, 2, 3].map((scene) => (
+            <div key={scene} style={{
+              width: '4px', height: activeScene === scene ? '40px' : '20px',
+              backgroundColor: activeScene === scene ? 'var(--color-accent)' : 'rgba(255,255,255,0.2)',
+              transition: 'all 0.5s cubic-bezier(0.77, 0, 0.175, 1)'
+            }}
+            />
+          ))}
+        </div>
+
+        {/* Full-page Skill Detail */}
+        <AnimatePresence>
+          {selectedSkill && (
+            <SkillDetailPage
+              key={selectedSkill.name}
+              skill={selectedSkill}
+              onBack={() => setSelectedSkill(null)}
+            />
           )}
         </AnimatePresence>
 
-        <ResumeModal
-          isOpen={showResume}
-          onClose={() => setShowResume(false)}
-          handleCursorHover={handleCursorHover}
-          handleCursorLeave={handleCursorLeave}
-          playClick={playClick}
-        />
+      <ResumeModal
+        isOpen={showResume}
+        onClose={() => setShowResume(false)}
+        handleCursorHover={handleCursorHover}
+        handleCursorLeave={handleCursorLeave}
+        playClick={playClick}
+      />
 
         {/* Global Social Footer */}
         <motion.footer
@@ -1244,27 +1328,6 @@ function App() {
             </div>
           </div>
         </motion.footer>
-
-        <div style={{ position: 'fixed', bottom: '40px', right: '40px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {[0, 1, 2, 3].map((scene) => (
-            <div key={scene} style={{
-              width: '4px', height: activeScene === scene ? '40px' : '20px',
-              backgroundColor: activeScene === scene ? 'var(--color-accent)' : 'rgba(255,255,255,0.2)',
-              transition: 'all 0.5s cubic-bezier(0.77, 0, 0.175, 1)'
-            }}
-            />
-          ))}
-        </div>
-        {/* Full-page Skill Detail */}
-        <AnimatePresence>
-          {selectedSkill && (
-            <SkillDetailPage
-              key={selectedSkill.name}
-              skill={selectedSkill}
-              onBack={() => setSelectedSkill(null)}
-            />
-          )}
-        </AnimatePresence>
 
 
       </div>{/* end main content wrapper */}
