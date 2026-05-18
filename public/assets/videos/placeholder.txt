@@ -1,0 +1,6 @@
+PLACE YOUR PORTRAIT VIDEO HERE:
+1. File Name: cinematic_reel.mp4
+2. Recommended Resolution: 1080x1350 (4:5 Aspect Ratio)
+3. Formats: MP4 (H.264 video codec, AAC or no audio is fine as it will be muted)
+
+Once you paste the video file with the name "cinematic_reel.mp4" here, the Cinematic Reels project card will automatically load it.
