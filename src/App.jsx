@@ -87,7 +87,18 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
       </div>
 
       <div className="project-image-wrapper">
-        <img src={proj.img} alt={proj.name} />
+        {proj.video ? (
+          <video
+            src={proj.video}
+            poster={proj.img}
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        ) : (
+          <img src={proj.img} alt={proj.name} />
+        )}
         <div className="image-overlay-glitch" />
       </div>
 
@@ -1031,7 +1042,8 @@ function App() {
                       name: "Cinematic Reels",
                       desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
                       tags: ["Premiere", "After Effects", "AI"],
-                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop"
+                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop",
+                      video: "/assets/videos/cinematic_reel.mp4"
                     },
                     {
                       name: "Neural Identity",
@@ -1051,7 +1063,8 @@ function App() {
                       name: "Cinematic Reels",
                       desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
                       tags: ["Premiere", "After Effects", "AI"],
-                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop"
+                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop",
+                      video: "/assets/videos/cinematic_reel.mp4"
                     },
                     {
                       name: "Neural Identity",
