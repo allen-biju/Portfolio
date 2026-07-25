@@ -9,6 +9,7 @@ import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
 import ResumeModal from './components/ResumeModal';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
+import heroImg from './assets/hero.png';
 import emailjs from '@emailjs/browser';
 
 const TOTAL_SCENES = 4;
@@ -145,26 +146,7 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
 function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
-  const [captionText, setCaptionText] = useState('');
-  const fullCaption = "Turning ideas into fast, modern, and immersive web experiences";
 
-  useEffect(() => {
-    if (introComplete) {
-      // Wait for image slide-in to finish (1.8s) before starting typewriter
-      const timer = setTimeout(() => {
-        let i = 0;
-        const interval = setInterval(() => {
-          setCaptionText(fullCaption.substring(0, i + 1));
-          i++;
-          if (i === fullCaption.length) clearInterval(interval);
-        }, 30);
-      }, 1800);
-
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [introComplete]);
 
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [showEntryFlash, setShowEntryFlash] = useState(false);
@@ -608,24 +590,22 @@ function App() {
             whileInView="in"
             variants={pageVariants}
             transition={pageTransition}
-            className="frame-container padded-left"
+            className="frame-container padded-left hero-editorial-frame"
             style={{ pointerEvents: 'auto' }}
           >
             <div className="intro-split-layout">
               <div className="intro-text-content">
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
+                {/* Background Editorial Title in Flow */}
+                <motion.h1
+                  className="hero-bg-headline"
+                  initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.8 }}
+                  transition={{ delay: 0.2, duration: 0.9 }}
+                  onMouseEnter={handleCursorHover('SAY HI')}
+                  onMouseLeave={handleCursorLeave}
                 >
-                  <h1
-                    className="intro-name"
-                    onMouseEnter={handleCursorHover('SAY HI')}
-                    onMouseLeave={handleCursorLeave}
-                  >
-                    ALLEN BIJU.
-                  </h1>
-                </motion.div>
+                  ALLEN BIJU.
+                </motion.h1>
 
                 <motion.div
                   initial={{ opacity: 0, x: -30 }}
@@ -633,14 +613,14 @@ function App() {
                   transition={{ delay: 0.4, duration: 0.8 }}
                   className="intro-role-wrapper"
                 >
-                  <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
+                  <h2 className="intro-role-styled">WEB DEVELOPER & DIGITAL ARCHITECT</h2>
                   <button
-                    className="intro-resume-btn"
+                    className="intro-resume-btn-cyber"
                     onClick={() => { playClick(); setShowResume(true); }}
                     onMouseEnter={handleCursorHover('VIEW_RESUME')}
                     onMouseLeave={handleCursorLeave}
                   >
-                    <span className="btn-tag">[SYSTEM_RECORD]</span>
+                    <span className="btn-tag">[SYSTEM _RECORD]</span>
                     <span className="btn-label">VIEW_RESUME</span>
                   </button>
                 </motion.div>
@@ -669,35 +649,21 @@ function App() {
               </div>
 
               <motion.div
-                className="hero-image-container"
-                initial={{ opacity: 0, scale: 0.9, x: 400 }}
-                animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 400 }}
-                transition={{ delay: 0.3, duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-                style={{ zIndex: 100, position: 'relative' }}
+                className="hero-image-container-3d"
+                initial={{ opacity: 0, scale: 0.9, x: 150 }}
+                animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 150 }}
+                transition={{ delay: 0.3, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                onMouseLeave={handleCursorLeave}
               >
+
+
+                {/* Pre-aligned Single Merged Hero Image */}
                 <img
-                  src="./assets/hero.png"
-                  alt="Allen Biju Portrait"
-                  className="hero-portrait-image"
-                  onMouseEnter={handleCursorHover('OPERATOR_ID')}
-                  onMouseLeave={handleCursorLeave}
+                  src={heroImg}
+                  alt="Allen Biju Sitting on Vintage TV"
+                  className="hero-composite-img"
                 />
-                <p className="hero-caption" style={{
-                  position: 'absolute',
-                  bottom: '-40px',
-                  right: '10%',
-                  color: '#CCD6F6',
-                  textAlign: 'center',
-                  width: '100%',
-                  maxWidth: '400px',
-                  fontSize: '1.1rem',
-                  lineHeight: '1.6',
-                  opacity: 0.9,
-                  zIndex: 10
-                }}>
-                  {captionText}
-                  <span style={{ opacity: captionText.length > 0 && captionText.length < fullCaption.length ? 1 : 0 }}>_</span>
-                </p>
               </motion.div>
             </div>
           </motion.div>

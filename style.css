@@ -235,41 +235,109 @@ a {
   pointer-events: auto;
 }
 
-/* Intro (Frame 0) */
+/* Intro (Frame 0 - Editorial Hero Redesign) */
+.hero-editorial-frame {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8vh 5vw 4vh;
+  overflow: visible;
+}
+
+.intro-split-layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 0;
+}
+
 .intro-text-content {
   text-align: left;
-  max-width: 800px;
+  max-width: 560px;
   pointer-events: auto;
-  mix-blend-mode: difference;
+  z-index: 2;
+  position: relative;
 }
 
-.intro-name {
-  font-family: var(--font-heading);
-  font-size: clamp(3rem, 10vw, 8rem);
-  font-weight: 700;
-  line-height: 0.9;
-  margin-bottom: 1rem;
-  color: var(--color-text-main);
-}
-
-.intro-role {
-  font-family: var(--font-heading);
-  font-size: clamp(1rem, 2.5vw, 1.8rem);
-  color: var(--color-accent);
-  letter-spacing: 0.2em;
+.hero-bg-headline {
+  font-family: 'Rammetto One', cursive, sans-serif;
+  font-size: clamp(3.2rem, 8.8vw, 9.8rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 0.95;
+  color: #FFFFFF;
   text-transform: uppercase;
-  margin-bottom: 2rem;
+  white-space: nowrap;
+  margin: 0 0 1.5rem 0;
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.4));
+  pointer-events: auto;
+  user-select: none;
+  width: max-content;
+}
+
+.intro-role-styled {
+  font-family: 'Rammetto One', 'clash-display', sans-serif;
+  font-size: clamp(0.95rem, 1.6vw, 1.5rem);
+  font-weight: 400;
+  color: #F5A623;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  line-height: 1.35;
+  max-width: 480px;
+}
+
+.intro-resume-btn-cyber {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(8, 20, 36, 0.85);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  padding: 0.65rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  backdrop-filter: blur(10px);
+  margin-bottom: 0.8rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.intro-resume-btn-cyber:hover {
+  border-color: #F5A623;
+  background: rgba(8, 20, 36, 0.98);
+  box-shadow: 0 0 25px rgba(245, 166, 35, 0.35);
+  transform: translateY(-2px);
+}
+
+.intro-resume-btn-cyber .btn-tag {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  font-family: var(--font-mono, monospace);
+}
+
+.intro-resume-btn-cyber .btn-label {
+  color: #F5A623;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
 }
 
 .intro-bio {
-  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
   color: rgba(204, 214, 246, 0.85);
-  /* Lightened for better contrast */
-  max-width: 600px;
+  max-width: 540px;
   line-height: 1.8;
-  margin-bottom: 3rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  /* Subtle depth to separate from background */
+  margin-bottom: 2.5rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .scroll-hint {
@@ -279,15 +347,14 @@ a {
   font-family: var(--font-heading);
   font-size: 0.7rem;
   letter-spacing: 0.3em;
-  color: var(--color-accent);
+  color: #F5A623;
   opacity: 0.9;
-  /* Increased visibility */
 }
 
 .scroll-line {
   width: 40px;
   height: 1px;
-  background: var(--color-accent);
+  background: #F5A623;
   transform-origin: left;
   animation: scroll-line-anim 2s infinite var(--transition-smooth);
 }
@@ -307,6 +374,70 @@ a {
     transform: scaleX(0);
     opacity: 0;
     transform-origin: right;
+  }
+}
+
+/* 3D Composite Hero Image Stack */
+.hero-image-container-3d {
+  position: relative;
+  width: min(620px, 48vw);
+  height: min(740px, 78vh);
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-right: 1vw;
+  margin-top: 6vh;
+  align-self: flex-end;
+}
+
+.hero-composite-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom right;
+  z-index: 2;
+  pointer-events: auto;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
+}
+
+.hero-image-container-3d:hover .hero-composite-img {
+  transform: scale(1.02) translateY(-4px);
+}
+
+@media (max-width: 1024px) {
+  .hero-editorial-frame {
+    flex-direction: column;
+    padding: 100px 5vw 40px;
+    min-height: auto;
+  }
+
+  .hero-bg-headline-wrapper {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .hero-bg-headline {
+    font-size: clamp(3rem, 12vw, 5.5rem);
+    white-space: normal;
+  }
+
+  .intro-split-layout {
+    flex-direction: column-reverse;
+    margin-top: 2rem;
+    gap: 2rem;
+  }
+
+  .hero-image-container-3d {
+    width: 100%;
+    max-width: 460px;
+    height: 550px;
+    margin-right: 0;
   }
 }
 
@@ -359,8 +490,10 @@ a {
 .gallery-wrapper {
   width: 100%;
   overflow: hidden;
-  padding: 80px 0; /* Balanced padding */
-  min-height: 70vh; /* Reduced to keep it within viewport */
+  padding: 80px 0;
+  /* Balanced padding */
+  min-height: 70vh;
+  /* Reduced to keep it within viewport */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -866,7 +999,7 @@ a {
   bottom: 0;
   left: 0;
   width: 100%;
-  padding: 30px 60px;
+  padding: 10px 60px 18px;
   z-index: 100;
   background: linear-gradient(to top, rgba(13, 27, 42, 0.9), transparent);
   pointer-events: none;
@@ -1025,374 +1158,31 @@ a {
 }
 
 .hero-image-container {
-  flex: 1;
+  flex: 1.4;
+  /* Increased from 1 to let the image take up a larger portion of the layout */
   display: flex;
   justify-content: flex-end;
   align-items: center;
   position: relative;
   z-index: 5;
-}
-
-.hero-image-container::before {
-  content: '';
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(60, 130, 246, 0.45) 0%, transparent 60%);
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  pointer-events: none;
+  max-height: 75vh;
+  overflow: hidden;
 }
 
 .hero-portrait-image {
   width: 100%;
-  max-width: 800px;
+  max-width: 700px;
   height: auto;
+  max-height: 75vh;
   object-fit: contain;
+  /* Show the entire image cleanly without cropping */
+  object-position: right center;
   display: block;
-  transform: scale(1.6) translate(45px, -70px);
-  transform-origin: center right;
-  filter: drop-shadow(0 -40px 70px rgba(60, 130, 246, 0.6));
+  transform: none;
+  transform-origin: center center;
+  border-radius: 20px;
 }
 
-.portrait-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
-}
-
-/* PHASE-BASED MATERIALIZATION SYSTEM */
-.portrait-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* 1. Initial State */
-.phase-hidden .portrait-layer {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* 2. Neural Sketch Phase - Pulling out facial/hoodie features */
-.phase-sketch .portrait-outline {
-  opacity: 1;
-  visibility: visible;
-  /* Darker Neon Green Neural Edge Detection with subtle illumination */
-  filter: url(#neural-edge-detect) drop-shadow(0 0 8px #39FF14);
-  transform: scale(1);
-  /* Ultra-slow holographic development */
-  animation: outline-reveal-wipe 5s cubic-bezier(0.19, 1, 0.22, 1) forwards, holographic-pulse 4s infinite ease-in-out;
-}
-
-@keyframes outline-reveal-wipe {
-  0% {
-    opacity: 0;
-    transform: translate(-10px, 5px) skew(5deg);
-    clip-path: inset(40% 0 40% 0);
-  }
-
-  10% {
-    opacity: 0.5;
-    transform: translate(10px, -5px) skew(-5deg);
-    clip-path: inset(10% 0 80% 0);
-  }
-
-  20% {
-    opacity: 0.2;
-    transform: translate(0, 0) skew(0);
-    clip-path: none;
-  }
-
-  30% {
-    opacity: 0.8;
-    transform: translate(-5px, 2px);
-  }
-
-  40% {
-    opacity: 0.3;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(0, 0);
-    clip-path: none;
-  }
-}
-
-@keyframes holographic-pulse {
-
-  0%,
-  100% {
-    filter: url(#neural-edge-detect) drop-shadow(0 0 8px #39FF14) brightness(1.0);
-  }
-
-  50% {
-    filter: url(#neural-edge-detect) drop-shadow(0 0 12px #39FF14) brightness(1.2);
-  }
-}
-
-/* New: Persistent Glitch Layers - RGB Split Logic */
-.glitch-layer {
-  mix-blend-mode: lighten;
-  z-index: 2;
-  opacity: 0;
-}
-
-.phase-solid .glitch-layer.red {
-  filter: brightness(1.2) sepia(1) hue-rotate(-50deg) saturate(5);
-  /* Reddish */
-  animation: ultra-combined-glitch 4s infinite steps(1);
-}
-
-.phase-solid .glitch-layer.blue {
-  filter: brightness(1.2) sepia(1) hue-rotate(180deg) saturate(5);
-  /* Bluish */
-  animation: ultra-combined-glitch 4s infinite reverse steps(1);
-}
-
-
-/* 2.5 Glitch Transition Burst */
-.phase-glitch .glitch-portrait-wrapper {
-  animation: ultra-glitch-shake 0.3s steps(2, end) infinite;
-}
-
-.phase-glitch .portrait-outline {
-  opacity: 1;
-  visibility: visible;
-  filter: url(#neural-edge-detect) drop-shadow(0 0 15px #39FF14) brightness(5);
-  animation: glitch-slice 0.3s infinite;
-}
-
-.phase-glitch .portrait-main {
-  opacity: 0.5 !important;
-  visibility: visible !important;
-  filter: saturate(0) brightness(10) !important;
-  clip-path: none !important;
-  mix-blend-mode: color-dodge !important;
-}
-
-/* 3. Solid Physical Lockdown - RAW IMAGE */
-.phase-solid .portrait-outline {
-  opacity: 0.1;
-  visibility: visible !important;
-  filter: url(#neural-edge-detect) drop-shadow(0 0 5px #39FF14);
-  /* Independent outline jitter (The Echo) */
-  animation: ultra-combined-glitch 8s infinite steps(1) 0.5s;
-}
-
-.phase-solid .portrait-main {
-  opacity: 1 !important;
-  visibility: visible !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  transform: scale(1);
-  /* Materialization + Persistent Jitter */
-  animation: portrait-reveal-wipe 5s cubic-bezier(0.19, 1, 0.22, 1) forwards,
-    portrait-fade-in 1.5s ease-out forwards,
-    ultra-combined-glitch 6s infinite steps(1) 5s;
-}
-
-/* Hyper-Frequency Ultra Combined Glitch */
-@keyframes ultra-combined-glitch {
-
-  0%,
-  10%,
-  20%,
-  30.1%,
-  40%,
-  50%,
-  60.1%,
-  70%,
-  80%,
-  90%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0;
-    clip-path: none;
-  }
-
-  30% {
-    transform: translate(-18px, 8px) skew(3deg);
-    opacity: 0.7;
-    clip-path: inset(20% 0 60% 0);
-  }
-
-  60% {
-    transform: translate(18px, -8px) skew(-3deg);
-    opacity: 0.7;
-    clip-path: inset(50% 0 10% 0);
-  }
-
-  61% {
-    transform: translate(-10px, 0);
-    opacity: 0.5;
-  }
-}
-
-
-/* Glitch Animations */
-@keyframes ultra-glitch-shake {
-  0% {
-    transform: translate(10px, -10px) skew(8deg);
-    box-shadow: -8px 0 red, 8px 0 cyan;
-  }
-
-  25% {
-    transform: translate(-10px, 10px) skew(-8deg);
-    box-shadow: 8px 0 red, -8px 0 cyan;
-  }
-
-  50% {
-    transform: translate(15px, 0) skew(12deg);
-    filter: hue-rotate(90deg);
-  }
-
-  75% {
-    transform: translate(-15px, -5px) skew(-12deg);
-    filter: contrast(150%);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-@keyframes glitch-slice {
-  0% {
-    clip-path: inset(10% 0 80% 0);
-    transform: translateX(-25px);
-  }
-
-  20% {
-    clip-path: inset(50% 0 30% 0);
-    transform: translateX(25px);
-  }
-
-  40% {
-    clip-path: inset(20% 0 70% 0);
-    transform: translateX(-15px);
-  }
-
-  60% {
-    clip-path: inset(80% 0 5% 0);
-    transform: translateX(20px);
-  }
-
-  80% {
-    clip-path: inset(40% 0 40% 0);
-    transform: translateX(-20px);
-  }
-}
-
-@keyframes portrait-fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes portrait-reveal-wipe {
-  0% {
-    opacity: 0;
-    transform: translate(20px, -10px);
-    filter: brightness(5) contrast(2) saturate(0);
-    clip-path: inset(80% 0 0 0);
-  }
-
-  15% {
-    opacity: 0.8;
-    transform: translate(-20px, 10px);
-    filter: brightness(3) contrast(1.5) saturate(0.5);
-    clip-path: inset(10% 0 60% 0);
-  }
-
-  30% {
-    opacity: 0.4;
-    transform: translate(0, 0);
-    filter: brightness(1) contrast(1) saturate(1);
-    clip-path: none;
-  }
-
-  45% {
-    opacity: 0.9;
-    transform: translateX(10px);
-    clip-path: inset(40% 0 40% 0);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(0, 0);
-    filter: brightness(1) contrast(1) saturate(1);
-    clip-path: none;
-  }
-}
-
-/* Global scanline visibility */
-.phase-sketch .portrait-scanline,
-.phase-solid .portrait-scanline {
-  opacity: 1;
-}
-
-@keyframes final-solid-lock {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Scanline for portrait */
-.portrait-scanline {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent);
-  opacity: 0.1;
-  box-shadow: 0 0 10px var(--color-accent);
-  animation: scanline 4s linear infinite;
-  z-index: 20;
-  pointer-events: none;
-}
-
-@keyframes scanline {
-  0% {
-    top: -2%;
-  }
-
-  100% {
-    top: 102%;
-  }
-}
-
-@keyframes scanline {
-  0% {
-    top: -2%;
-  }
-
-  100% {
-    top: 102%;
-  }
-}
 
 .intro-role-wrapper {
   display: flex;
