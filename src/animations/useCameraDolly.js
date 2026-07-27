@@ -5,9 +5,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Calculates the exact scale, transformOrigin, and translation (x, y) needed
- * to align the 4 sides of the tvAnchor element symmetrically with the 4 sides
- * of the desktop screen.
+ * Calculates the exact scale (both viewport-fit scale and push-through scale),
+ * transformOrigin, and translation (x, y) needed to align the 4 sides of the tvAnchor
+ * with the desktop screen, and then push further in until the TV frame moves out of view.
  */
 function computeDollyTarget(container, anchor) {
   if (!container || !anchor) return null;
@@ -44,17 +44,21 @@ function computeDollyTarget(container, anchor) {
   const originXPercent = ((anchorCenterX - containerRect.left) / containerRect.width) * 100;
   const originYPercent = ((anchorCenterY - containerRect.top) / containerRect.height) * 100;
 
-  // Exact scale required so all 4 sides of tv-anchor align symmetrically with the 4 sides of the desktop screen
+  // Phase 1 Scale: exact scale so all 4 sides of tv-anchor align symmetrically with the 4 sides of the desktop screen
   const scaleX = vw / anchorRect.width;
   const scaleY = vh / anchorRect.height;
-  const finalScale = Math.max(scaleX, scaleY);
+  const fitScale = Math.max(scaleX, scaleY);
+
+  // Phase 2 Scale: further scale pushing deep into the TV screen so the TV bezel/frame moves out of the viewport
+  const pushThroughScale = fitScale * 2.8;
 
   // Exact translation needed so anchor center lands at desktop screen center (vw/2, vh/2)
   const targetX = (vw / 2) - anchorCenterX;
   const targetY = (vh / 2) - anchorCenterY;
 
   return {
-    scale: finalScale,
+    fitScale,
+    pushThroughScale,
     x: targetX,
     y: targetY,
     originX: `${originXPercent}%`,
@@ -64,7 +68,8 @@ function computeDollyTarget(container, anchor) {
 
 /**
  * Modular GSAP ScrollTrigger hook — Phase 1: Cinematic Camera Dolly.
- * Reference-based push animation aligning tvAnchor sides symmetrically to desktop screen.
+ * Preserves the exact 4-side viewport alignment when reaching full size,
+ * then allows further scrolling deep into the TV screen so the frame exits the viewport.
  */
 export function useCameraDolly({
   sceneRef,
@@ -116,7 +121,7 @@ export function useCameraDolly({
         scrollTrigger: {
           trigger: scene,
           start: 'top top',
-          end: '+=220vh',
+          end: '+=280vh',
           pin: true,
           scrub: 0.6,
           anticipatePin: 1,
@@ -138,11 +143,11 @@ export function useCameraDolly({
         opacity: 0,
         filter: 'blur(18px)',
         y: -20,
-        ease: 'power1.inOut',
-        duration: 0.4,
+        ease: 'power1.in',
+        duration: 0.35,
       }, 0);
 
-      // Camera dolly animation aligning tvAnchor sides symmetrically to the 4 sides of the desktop
+      // Phase 1 (0.0 -> 0.70): Dolly camera to center & align 4 sides of tvAnchor symmetrically with desktop viewport
       tl.fromTo(
         imageContainer,
         {
@@ -151,33 +156,51 @@ export function useCameraDolly({
           y: 0,
           rotateX: 0,
           rotateY: 0,
+          opacity: 1,
           transformOrigin: () => dollyTarget ? `${dollyTarget.originX} ${dollyTarget.originY}` : '50% 50%',
         },
         {
-          scale: () => dollyTarget ? dollyTarget.scale : 1,
+          scale: () => dollyTarget ? dollyTarget.fitScale : 1,
           x: () => dollyTarget ? dollyTarget.x : 0,
           y: () => dollyTarget ? dollyTarget.y : 0,
           rotateX: 0,
           rotateY: 0,
+          opacity: 1,
           transformOrigin: () => dollyTarget ? `${dollyTarget.originX} ${dollyTarget.originY}` : '50% 50%',
           ease: 'power2.inOut',
-          duration: 1.0,
+          duration: 0.70,
         },
         0
       );
 
-      // Smooth pass-through fade as anchor aligns with screen borders
-      tl.to(imageContainer, {
-        opacity: 0,
-        ease: 'power1.in',
-        duration: 0.2,
-      }, 0.85);
+      // Phase 2 (0.70 -> 0.95): Continue scrolling DEEPER into the TV screen so the TV bezel/frame exits past the viewport frame
+      tl.to(
+        imageContainer,
+        {
+          scale: () => dollyTarget ? dollyTarget.pushThroughScale : 2.8,
+          opacity: 1,
+          ease: 'power1.in',
+          duration: 0.25,
+        },
+        0.70
+      );
+
+      // Final smooth handoff fade at the climax as TV frame completely exits viewport (0.95 -> 1.00)
+      tl.to(
+        imageContainer,
+        {
+          opacity: 0,
+          ease: 'power1.out',
+          duration: 0.05,
+        },
+        0.95
+      );
 
       if (image) {
         tl.to(image, {
           filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.8))',
           ease: 'sine.inOut',
-          duration: 1.0,
+          duration: 0.70,
         }, 0);
       }
     }, scene);
