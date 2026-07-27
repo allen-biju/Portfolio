@@ -397,19 +397,16 @@ a {
   justify-content: center;
 }
 
-/* TV Anchor — DEBUG VISIBLE */
+/* TV Anchor element precisely aligned to TV screen */
 .tv-anchor {
   position: absolute;
   left: 48%;
   top: 59%;
   width: 42%;
   height: 27%;
-  z-index: 100;
+  z-index: 10;
   pointer-events: none;
-  opacity: 1;
-  background: rgba(255, 0, 0, 0.35);
-  border: 2px solid #ff0000;
-  box-shadow: 0 0 12px rgba(255, 0, 0, 0.8);
+  opacity: 0;
 }
 
 .hero-composite-img {
