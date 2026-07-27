@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { Loader } from '@react-three/drei';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import HeroScene from './components/HeroScene';
 import IntroOverlay from './components/IntroOverlay';
@@ -11,6 +12,9 @@ import ResumeModal from './components/ResumeModal';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
 import heroImg from './assets/hero.png';
 import emailjs from '@emailjs/browser';
+import { useCameraDolly } from './animations/useCameraDolly';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const TOTAL_SCENES = 4;
 
@@ -147,6 +151,22 @@ function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
 
+  // Phase 1 Camera Dolly DOM Refs
+  const scene0Ref = useRef(null);
+  const introTextRef = useRef(null);
+  const heroImageContainerRef = useRef(null);
+  const heroImgRef = useRef(null);
+  const tvAnchorRef = useRef(null);
+
+  // Hook up isolated GSAP ScrollTrigger camera dolly animation
+  useCameraDolly({
+    sceneRef: scene0Ref,
+    textRef: introTextRef,
+    imageContainerRef: heroImageContainerRef,
+    imageRef: heroImgRef,
+    anchorRef: tvAnchorRef,
+    enabled: introComplete,
+  });
 
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [showEntryFlash, setShowEntryFlash] = useState(false);
@@ -358,6 +378,9 @@ function App() {
 
     lenisRef.current = lenis;
 
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -395,6 +418,10 @@ function App() {
       if (selectedSkill || showResume) return; // disable during overlays
 
       const scrollTop = window.scrollY;
+
+      // Allow free scrubbing inside pinned Hero Dolly zone without forced snapping
+      if (scrollTop > 50 && scrollTop < window.innerHeight * 1.05) return;
+
       let closest = null;
       let minDist = Infinity;
 
@@ -583,6 +610,7 @@ function App() {
           {/* Frame 0: Cinematic Introduction */}
           <motion.div
             id="scene-0"
+            ref={scene0Ref}
             onViewportEnter={() => setActiveScene(0)}
             viewport={{ amount: 0.3 }}
             key="scene0"
@@ -594,7 +622,7 @@ function App() {
             style={{ pointerEvents: 'auto' }}
           >
             <div className="intro-split-layout">
-              <div className="intro-text-content">
+              <div className="intro-text-content" ref={introTextRef}>
                 {/* Background Editorial Title in Flow */}
                 <motion.h1
                   className="hero-bg-headline"
@@ -648,22 +676,30 @@ function App() {
                 </motion.div>
               </div>
 
+              {/* Framer Motion Intro Animation Wrapper */}
               <motion.div
-                className="hero-image-container-3d"
+                className="hero-image-intro-wrapper"
                 initial={{ opacity: 0, scale: 0.9, x: 150 }}
                 animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 150 }}
                 transition={{ delay: 0.3, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                onMouseEnter={handleCursorHover('OPERATOR_ID')}
-                onMouseLeave={handleCursorLeave}
               >
+                <div
+                  className="hero-image-container-3d"
+                  ref={heroImageContainerRef}
+                  onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                  onMouseLeave={handleCursorLeave}
+                >
+                  {/* Invisible TV Anchor element that precisely covers the TV screen in the image */}
+                  <div ref={tvAnchorRef} className="tv-anchor" />
 
-
-                {/* Pre-aligned Single Merged Hero Image */}
-                <img
-                  src={heroImg}
-                  alt="Allen Biju Sitting on Vintage TV"
-                  className="hero-composite-img"
-                />
+                  {/* Pre-aligned Single Merged Hero Image */}
+                  <img
+                    src={heroImg}
+                    ref={heroImgRef}
+                    alt="Allen Biju Sitting on Vintage TV"
+                    className="hero-composite-img"
+                  />
+                </div>
               </motion.div>
             </div>
           </motion.div>
