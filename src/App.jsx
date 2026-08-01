@@ -16,8 +16,6 @@ import { useCameraDolly } from './animations/useCameraDolly';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const TOTAL_SCENES = 4;
-
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
   const cardRef = useRef(null);
 
@@ -157,6 +155,10 @@ function App() {
   const heroImageContainerRef = useRef(null);
   const heroImgRef = useRef(null);
   const tvAnchorRef = useRef(null);
+  const navRef = useRef(null);
+  const scrollHintRef = useRef(null);
+  const globalFooterRef = useRef(null);
+  const footerContentRef = useRef(null);
 
   // Hook up isolated GSAP ScrollTrigger camera dolly animation
   useCameraDolly({
@@ -165,6 +167,10 @@ function App() {
     imageContainerRef: heroImageContainerRef,
     imageRef: heroImgRef,
     anchorRef: tvAnchorRef,
+    navRef,
+    scrollHintRef,
+    footerRef: globalFooterRef,
+    footerContentRef,
     enabled: introComplete,
   });
 
@@ -577,7 +583,7 @@ function App() {
           </filter>
         </svg>
 
-        <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
+        <nav ref={navRef} className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
           <div className="nav-content">
             <div className="logo magnetic" onClick={() => scrollToSection(0)} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
             <div className="nav-links">
@@ -592,7 +598,6 @@ function App() {
                   {link.name}
                 </button>
               ))}
-              <span className="scene-counter" style={{ color: 'var(--color-accent)', marginLeft: '1rem' }}>FRAME {activeScene + 1}/{TOTAL_SCENES}</span>
             </div>
           </div>
         </nav>
@@ -663,16 +668,14 @@ function App() {
                     and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
                     the gap between complex engineering and creative storytelling.
                   </p>
-                </motion.div>
 
-                <motion.div
-                  className="scroll-hint"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                >
-                  <div className="scroll-line"></div>
-                  <span>SCROLL TO EXPLORE</span>
+                  <div
+                    ref={scrollHintRef}
+                    className="scroll-hint hero-text-scroll-hint"
+                  >
+                    <div className="scroll-line"></div>
+                    <span>SCROLL TO EXPLORE</span>
+                  </div>
                 </motion.div>
               </div>
 
@@ -1092,7 +1095,7 @@ function App() {
           <motion.div
             id="scene-3"
             onViewportEnter={() => setActiveScene(3)}
-            viewport={{ amount: 0.3 }}
+            viewport={{ amount: 0.1 }}
             key="scene3"
             initial="initial"
             whileInView="in"
@@ -1244,16 +1247,7 @@ function App() {
           </motion.div>
         </div>
 
-        <div style={{ position: 'fixed', bottom: '40px', right: '40px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {[0, 1, 2, 3].map((scene) => (
-            <div key={scene} style={{
-              width: '4px', height: activeScene === scene ? '40px' : '20px',
-              backgroundColor: activeScene === scene ? 'var(--color-accent)' : 'rgba(255,255,255,0.2)',
-              transition: 'all 0.5s cubic-bezier(0.77, 0, 0.175, 1)'
-            }}
-            />
-          ))}
-        </div>
+
 
         {/* Full-page Skill Detail */}
         <AnimatePresence>
@@ -1276,6 +1270,7 @@ function App() {
 
         {/* Global Social Footer */}
         <motion.footer
+          ref={globalFooterRef}
           className="global-footer"
           initial={{ opacity: 0, y: 50 }}
           animate={{
@@ -1284,7 +1279,7 @@ function App() {
           }}
           transition={{ duration: 0.8 }}
         >
-          <div className="footer-content">
+          <div className="footer-content" ref={footerContentRef}>
             <div className="footer-left">
               <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
 
