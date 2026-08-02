@@ -9,6 +9,7 @@ import HeroScene from './components/HeroScene';
 import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
 import ResumeModal from './components/ResumeModal';
+import TVWorld from './components/TVWorld';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
 import heroImg from './assets/hero.png';
 import emailjs from '@emailjs/browser';
@@ -155,6 +156,7 @@ function App() {
   const heroImageContainerRef = useRef(null);
   const heroImgRef = useRef(null);
   const tvAnchorRef = useRef(null);
+  const tvScreenAnchorRef = useRef(null);
   const navRef = useRef(null);
   const scrollHintRef = useRef(null);
   const globalFooterRef = useRef(null);
@@ -692,8 +694,14 @@ function App() {
                   onMouseEnter={handleCursorHover('OPERATOR_ID')}
                   onMouseLeave={handleCursorLeave}
                 >
+                  {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
+                  <TVWorld />
+
                   {/* Invisible TV Anchor element that precisely covers the TV screen in the image */}
                   <div ref={tvAnchorRef} className="tv-anchor" />
+
+                  {/* Passive TV Screen Anchor marking the transparent CRT screen opening */}
+                  <div ref={tvScreenAnchorRef} className="tv-screen-anchor" id="tvScreenAnchor" />
 
                   {/* Pre-aligned Single Merged Hero Image */}
                   <img
