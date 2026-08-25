@@ -178,12 +178,6 @@ export function BurstImage({ image, trajectory, dataIndex }) {
       <div className="vortex-img__corner-tl" style={{ borderColor: image.accent }} />
       <div className="vortex-img__corner-br" style={{ borderColor: image.accent }} />
 
-      {/* Title Badge Label */}
-      <div className="vortex-img__badge">
-        <span className="vortex-img__dot" style={{ backgroundColor: image.accent }} />
-        <span className="vortex-img__label">{image.title}</span>
-      </div>
-
       {/* Surface Sheen */}
       <div className="vortex-img__sheen" />
     </div>
