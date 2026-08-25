@@ -10,6 +10,7 @@ import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
 import ResumeModal from './components/ResumeModal';
 import TVWorld from './components/TVWorld';
+import CosmicGalaxy3D from './components/CosmicGalaxy3D';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
 import heroImg from './assets/hero.png';
 import emailjs from '@emailjs/browser';
@@ -161,6 +162,7 @@ function App() {
   const scrollHintRef = useRef(null);
   const globalFooterRef = useRef(null);
   const footerContentRef = useRef(null);
+  const galaxyViewportRef = useRef(null);
 
   // Hook up isolated GSAP ScrollTrigger camera dolly animation
   useCameraDolly({
@@ -173,6 +175,7 @@ function App() {
     scrollHintRef,
     footerRef: globalFooterRef,
     footerContentRef,
+    galaxyViewportRef,
     enabled: introComplete,
   });
 
@@ -417,7 +420,7 @@ function App() {
   // ---------- Scroll Snap Logic ----------
   // After the user stops scrolling for 350ms, snap to the nearest section.
   useEffect(() => {
-    const SECTION_IDS = ['scene-0', 'scene-1', 'scene-2', 'scene-3'];
+    const SECTION_IDS = ['scene-0', 'scene-galaxy', 'scene-1', 'scene-2', 'scene-3'];
     let snapTimer = null;
     let isSnapping = false;
 
@@ -628,6 +631,8 @@ function App() {
             className="frame-container padded-left hero-editorial-frame"
             style={{ pointerEvents: 'auto' }}
           >
+            {/* 3D Cosmic Galaxy Viewport — Fullscreen 3D Spatial Environment */}
+            <CosmicGalaxy3D ref={galaxyViewportRef} />
             <div className="intro-split-layout">
               <div className="intro-text-content" ref={introTextRef}>
                 {/* Background Editorial Title in Flow */}

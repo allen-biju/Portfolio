@@ -1,0 +1,170 @@
+/* ==========================================================================
+   COSMIC GALAXY 3D — TRUE PERSPECTIVE-DRIVEN SPACE FLIGHT
+   Stars emerge naturally via CSS 3D perspective, not opacity trickery.
+   Container perspective = 900px. Stars range from Z=-5600px to Z=-80px.
+   Scroll drives the entire volume forward, creating genuine space-flight.
+   ========================================================================== */
+
+.cosmic-galaxy-3d-viewport {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+  z-index: 1;
+  background-color: #02050e;
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* ─── 3D Scene Root Container ──────────────────────────────────────── */
+.galaxy-3d-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* ─── Deep Void Base ───────────────────────────────────────────────── */
+.galaxy-void-base {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, #09152a 0%, #040916 55%, #02050e 100%);
+  z-index: 1;
+}
+
+/* ─── Diffuse Atmospheric Nebulae ──────────────────────────────────── */
+.galaxy-nebula-3d {
+  position: absolute;
+  inset: -40%;
+  width: 180%;
+  height: 180%;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  z-index: 2;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.galaxy-nebula-cloud-far {
+  position: absolute;
+  top: -10%;
+  left: 10%;
+  width: 80vw;
+  height: 80vh;
+  background: radial-gradient(ellipse at center, rgba(13, 31, 62, 0.65) 0%, rgba(8, 16, 38, 0.28) 50%, transparent 75%);
+  filter: blur(60px);
+  transform: translateZ(-2200px) rotate(-15deg);
+  border-radius: 50%;
+}
+
+.galaxy-nebula-cloud-mid {
+  position: absolute;
+  top: 25%;
+  right: -10%;
+  width: 75vw;
+  height: 75vh;
+  background: radial-gradient(ellipse at center, rgba(10, 48, 86, 0.55) 0%, rgba(6, 28, 54, 0.22) 55%, transparent 80%);
+  filter: blur(65px);
+  transform: translateZ(-1500px) rotate(20deg);
+  border-radius: 50%;
+}
+
+.galaxy-nebula-cloud-cyan {
+  position: absolute;
+  bottom: -15%;
+  left: 15%;
+  width: 65vw;
+  height: 65vh;
+  background: radial-gradient(ellipse at center, rgba(0, 85, 128, 0.35) 0%, rgba(0, 45, 75, 0.14) 60%, transparent 80%);
+  filter: blur(60px);
+  transform: translateZ(-900px) rotate(-5deg);
+  border-radius: 50%;
+}
+
+/* ─── 3D Starfield Volume Container ─────────────────────────────────
+   This is the SINGLE element GSAP drives forward in Z.
+   ───────────────────────────────────────────────────────────────── */
+.galaxy-stars-volume {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  z-index: 3;
+  will-change: transform;
+  transform: translateZ(0px);
+}
+
+/* ─── Individual Star Elements ─────────────────────────────────────── */
+.star-3d {
+  position: absolute;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  opacity: 0.92;
+  will-change: transform;
+}
+
+/* Micro star */
+.star-3d--micro {
+  width: 1.5px;
+  height: 1.5px;
+  background: rgba(224, 242, 254, 0.95);
+  box-shadow: 0 0 2px rgba(224, 242, 254, 0.8);
+}
+
+/* Small star */
+.star-3d--small {
+  width: 2.5px;
+  height: 2.5px;
+  background: #e0f2fe;
+  box-shadow: 0 0 4px rgba(224, 242, 254, 0.9);
+}
+
+/* Medium star */
+.star-3d--medium {
+  width: 3.5px;
+  height: 3.5px;
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(186, 230, 253, 0.9), 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+/* Large star */
+.star-3d--large {
+  width: 5px;
+  height: 5px;
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(224, 242, 254, 1), 0 0 16px rgba(56, 189, 248, 0.8), 0 0 28px rgba(14, 165, 233, 0.4);
+}
+
+/* Subtle twinkle */
+.star-twinkle {
+  animation: starTwinkle 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes starTwinkle {
+  0%   { opacity: 0.55; }
+  40%  { opacity: 0.92; }
+  70%  { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* ─── Edge Vignette ─────────────────────────────────────────────────── */
+.galaxy-vignette-3d {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 20%,
+    rgba(2, 5, 14, 0.6) 70%,
+    rgba(2, 5, 14, 0.96) 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}

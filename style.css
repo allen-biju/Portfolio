@@ -451,17 +451,930 @@ a {
   height: 17.5%;
   z-index: 1;
   pointer-events: none;
-  overflow: hidden;
+  overflow: hidden !important;
   border-radius: 4px;
+  isolation: isolate;
+  contain: paint;
+  transform: translateZ(0);
+  clip-path: inset(0) !important;
 }
 
 .tv-world-screen-off {
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 50% 48%, #0c111a 0%, #05070c 65%, #020305 100%);
-  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.95), inset 0 0 3px rgba(255, 255, 255, 0.04);
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 48%, #0d1320 0%, #060a11 60%, #020407 100%);
+  overflow: hidden !important;
+  clip-path: inset(0) !important;
 }
 
+/* ─── CRT Activation & Signal Content (underneath glass) ─────────────────── */
+
+.crt-activation {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden !important;
+  opacity: 0;
+  will-change: transform, opacity;
+  isolation: isolate;
+  contain: paint;
+  clip-path: inset(0) !important;
+}
+
+/* Container for vertical opening raster expand */
+.crt-raster-container {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform: scaleY(0);
+  overflow: hidden !important;
+  background: #080d16;
+  will-change: transform, opacity;
+  clip-path: inset(0) !important;
+}
+
+/* Electrical response flash — theme amber + neon ignition */
+.crt-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%,
+      rgba(5, 34, 75, 0.95) 0%,
+      rgba(5, 34, 75, 0.95) 30%,
+      rgba(0, 243, 255, 0.45) 65%,
+      transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  will-change: opacity;
+}
+
+/* Horizontal Startup Line — neon cyan + green */
+.crt-h-line {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 243, 255, 0.8) 10%,
+      rgba(255, 255, 255, 1) 40%,
+      rgba(0, 255, 136, 1) 60%,
+      rgba(0, 243, 255, 0.8) 90%,
+      transparent 100%);
+  box-shadow:
+    0 0 12px 3px rgba(0, 243, 255, 1),
+    0 0 25px 8px rgba(0, 255, 136, 0.85),
+    0 0 45px 15px rgba(0, 243, 255, 0.5);
+  border-radius: 2px;
+  transform-origin: 50% 50%;
+  transform: scaleX(0);
+  opacity: 0;
+  z-index: 6;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Signal Screen — theme deep navy base */
+.crt-static-screen {
+  position: absolute;
+  inset: 0;
+  background: #0d1b2a;
+  overflow: hidden;
+}
+
+/* Layer 1: High-contrast Cyberpunk Digital & Analog Canvas Noise */
+.crt-static-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  opacity: 0.88;
+  mix-blend-mode: screen;
+  filter: contrast(1.2) brightness(1.1);
+}
+
+/* Layer 2: Holographic Matrix Grid — neon cyan + green */
+.cyber-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 255, 136, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 243, 255, 0.12) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.65;
+  animation: cyberGridDrift 12s linear infinite;
+}
+
+@keyframes cyberGridDrift {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 0 160px;
+  }
+}
+
+/* Layer 3: Neon Cyan + Green Rolling V-Sync Distortion Bar */
+.crt-vsync-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 25%;
+  top: -30%;
+  background: linear-gradient(to bottom,
+      transparent 0%,
+      rgba(0, 243, 255, 0.35) 30%,
+      rgba(0, 255, 136, 0.40) 50%,
+      rgba(0, 243, 255, 0.25) 70%,
+      transparent 100%);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+  border-top: 1px solid rgba(0, 243, 255, 0.7);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.6);
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+  animation: crtVSyncRoll 4.2s linear infinite;
+}
+
+@keyframes crtVSyncRoll {
+  0% {
+    top: -30%;
+  }
+
+  100% {
+    top: 120%;
+  }
+}
+
+/* Layer 4: Irregular Neon Interference Bands */
+.crt-interference-bands {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.crt-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  will-change: transform, opacity;
+}
+
+.crt-band--1 {
+  height: 8%;
+  top: 15%;
+  background: linear-gradient(90deg,
+      rgba(0, 243, 255, 0.55) 0%,
+      rgba(0, 255, 136, 0.6) 50%,
+      rgba(0, 243, 255, 0.45) 100%);
+  border-bottom: 1.5px solid rgba(0, 255, 136, 0.75);
+  animation: cyberBandDrift1 2.8s steps(2) infinite alternate;
+}
+
+.crt-band--2 {
+  height: 14%;
+  top: 45%;
+  background: linear-gradient(90deg,
+      rgba(0, 255, 136, 0.4) 0%,
+      rgba(0, 243, 255, 0.55) 50%,
+      rgba(0, 255, 136, 0.35) 100%);
+  border-top: 1px solid rgba(0, 243, 255, 0.7);
+  animation: cyberBandDrift2 4.1s steps(3) infinite alternate;
+}
+
+.crt-band--3 {
+  height: 5%;
+  top: 75%;
+  background: rgba(0, 243, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+  animation: cyberBandDrift3 2.1s ease-in-out infinite alternate;
+}
+
+@keyframes cyberBandDrift1 {
+  0% {
+    transform: translateY(0px) scaleY(1);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translateY(14px) scaleY(1.4);
+    opacity: 0.95;
+  }
+
+  100% {
+    transform: translateY(-10px) scaleY(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes cyberBandDrift2 {
+  0% {
+    transform: translateY(0px);
+    opacity: 0.6;
+  }
+
+  60% {
+    transform: translateY(-22px);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translateY(14px);
+    opacity: 0.5;
+  }
+}
+
+@keyframes cyberBandDrift3 {
+  0% {
+    transform: translateY(0px);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: translateY(-16px);
+    opacity: 0.85;
+  }
+
+  100% {
+    transform: translateY(18px);
+    opacity: 0.4;
+  }
+}
+
+/* Layer 5: Cyberpunk RGB Split Slices & Aggressive Chromatic Tearing */
+.crt-signal-tear-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.crt-tear-slice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  will-change: transform, opacity, filter;
+}
+
+/* Tear slice 1: neon cyan */
+.crt-tear-slice--1 {
+  top: 12%;
+  height: 6%;
+  background: rgba(0, 243, 255, 0.5);
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.9);
+  animation: cyberTearJitter1 1.9s steps(1) infinite;
+}
+
+/* Tear slice 2: matrix green */
+.crt-tear-slice--2 {
+  top: 38%;
+  height: 4%;
+  background: rgba(0, 255, 136, 0.45);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.75);
+  animation: cyberTearJitter2 2.6s steps(1) infinite;
+}
+
+/* Tear slice 3: neon cyan */
+.crt-tear-slice--3 {
+  top: 64%;
+  height: 7%;
+  background: rgba(0, 243, 255, 0.45);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.8);
+  animation: cyberTearJitter3 1.5s steps(1) infinite;
+}
+
+/* Tear slice 4: green */
+.crt-tear-slice--4 {
+  top: 82%;
+  height: 3.5%;
+  background: rgba(0, 255, 136, 0.45);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+  animation: cyberTearJitter4 3.2s steps(1) infinite;
+}
+
+@keyframes cyberTearJitter1 {
+
+  0%,
+  75%,
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  76% {
+    transform: translateX(12px) skewX(-12deg);
+    opacity: 0.95;
+    filter: drop-shadow(-5px 0 #00f3ff) drop-shadow(5px 0 #00ff88);
+  }
+
+  78% {
+    transform: translateX(-15px) skewX(8deg);
+    opacity: 0.9;
+  }
+
+  80% {
+    transform: translateX(6px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes cyberTearJitter2 {
+
+  0%,
+  80%,
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  81% {
+    transform: translateX(-14px) skewX(15deg);
+    opacity: 0.95;
+    filter: drop-shadow(6px 0 #00ff88) drop-shadow(-6px 0 #00f3ff);
+  }
+
+  83% {
+    transform: translateX(18px) skewX(-10deg);
+    opacity: 0.9;
+  }
+
+  85% {
+    transform: translateX(-4px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes cyberTearJitter3 {
+
+  0%,
+  70%,
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  71% {
+    transform: translateX(16px);
+    opacity: 0.9;
+    filter: drop-shadow(-4px 0 #00f3ff) drop-shadow(4px 0 #00ff88);
+  }
+
+  73% {
+    transform: translateX(-10px);
+    opacity: 0.85;
+  }
+
+  75% {
+    transform: translateX(8px);
+    opacity: 0.75;
+  }
+}
+
+@keyframes cyberTearJitter4 {
+
+  0%,
+  88%,
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  89% {
+    transform: translateX(-18px) skewX(-20deg);
+    opacity: 0.95;
+  }
+
+  92% {
+    transform: translateX(12px) skewX(10deg);
+    opacity: 0.85;
+  }
+}
+
+/* Layer 6: Cyber Glitch Macroblock Fragments */
+.cyber-glitch-blocks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  overflow: hidden;
+}
+
+.cyber-block {
+  position: absolute;
+  background: rgba(0, 243, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.9);
+  will-change: transform, opacity;
+}
+
+.cyber-block--1 {
+  width: 25%;
+  height: 12px;
+  top: 22%;
+  left: 15%;
+  /* Neon cyan */
+  background: rgba(0, 243, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.9);
+  animation: cyberBlockJump1 2.3s steps(1) infinite;
+}
+
+.cyber-block--2 {
+  width: 18%;
+  height: 8px;
+  top: 55%;
+  left: 60%;
+  /* Matrix green */
+  background: rgba(0, 255, 136, 0.6);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.85);
+  animation: cyberBlockJump2 3.1s steps(1) infinite;
+}
+
+.cyber-block--3 {
+  width: 30%;
+  height: 15px;
+  top: 78%;
+  left: 35%;
+  /* Neon cyan */
+  background: rgba(0, 243, 255, 0.55);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.85);
+  animation: cyberBlockJump3 1.8s steps(1) infinite;
+}
+
+@keyframes cyberBlockJump1 {
+
+  0%,
+  82%,
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  83% {
+    opacity: 0.9;
+    transform: translate(-10px, 8px) scaleX(1.3);
+  }
+
+  85% {
+    opacity: 0.4;
+    transform: translate(15px, -5px) scaleX(0.8);
+  }
+}
+
+@keyframes cyberBlockJump2 {
+
+  0%,
+  78%,
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  79% {
+    opacity: 0.95;
+    transform: translate(14px, -12px) scaleY(1.4);
+  }
+
+  81% {
+    opacity: 0.5;
+    transform: translate(-8px, 6px);
+  }
+}
+
+@keyframes cyberBlockJump3 {
+
+  0%,
+  86%,
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  87% {
+    opacity: 0.85;
+    transform: translate(-18px, 5px) scaleX(1.2);
+  }
+
+  89% {
+    opacity: 0.6;
+    transform: translate(12px, -8px);
+  }
+}
+
+/* Layer 7: Cyberpunk HUD — neon cyan primary, green secondary */
+.cyber-hud-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-family: monospace, 'Courier New', sans-serif;
+  color: #00f3ff;
+  text-shadow: 0 0 6px rgba(0, 243, 255, 0.9), 0 0 12px rgba(0, 243, 255, 0.5);
+  opacity: 0.75;
+  animation: cyberHudFlicker 3.6s infinite;
+}
+
+.cyber-hud-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.cyber-hud-status {
+  color: #00f3ff;
+  text-shadow: 0 0 6px #00f3ff;
+}
+
+.cyber-hud-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: rgba(0, 255, 136, 0.7);
+  text-shadow: 0 0 8px #00ff88, 0 0 16px rgba(0, 255, 136, 0.4);
+}
+
+.cyber-hud-footer {
+  font-size: 5px;
+  letter-spacing: 1px;
+  opacity: 0.6;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #00f3ff;
+}
+
+.cyber-hud-glitch-badge {
+  position: absolute;
+  right: 10px;
+  top: 40%;
+  background: #00ff88;
+  color: #0d1b2a;
+  font-size: 6px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 8px #00ff88, 0 0 16px rgba(0, 255, 136, 0.5);
+  animation: cyberBadgeGlitch 2.2s steps(1) infinite;
+}
+
+@keyframes cyberHudFlicker {
+
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+
+  42% {
+    opacity: 0.8;
+  }
+
+  43% {
+    opacity: 0.3;
+  }
+
+  44% {
+    opacity: 0.95;
+  }
+
+  88% {
+    opacity: 0.75;
+  }
+
+  89% {
+    opacity: 0.2;
+  }
+
+  90% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes cyberBadgeGlitch {
+
+  0%,
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  71% {
+    opacity: 1;
+    transform: scale(1.1) translateX(-3px);
+    background: #00ff88;
+  }
+
+  73% {
+    opacity: 0.8;
+    transform: scale(0.95) translateX(3px);
+    background: #00f3ff;
+    color: #0d1b2a;
+  }
+
+  75% {
+    opacity: 0;
+  }
+}
+
+/* Layer 8: Cyan + Green Laser Beam Sweeper */
+.cyber-laser-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  top: -10%;
+  background: linear-gradient(90deg, #00f3ff, #00ff88, #00f3ff);
+  box-shadow:
+    0 0 8px #00f3ff,
+    0 0 16px rgba(0, 243, 255, 0.8),
+    0 0 30px rgba(0, 255, 136, 0.5);
+  pointer-events: none;
+  z-index: 8;
+  opacity: 0.85;
+  animation: cyberLaserSweep 3.5s ease-in-out infinite;
+}
+
+@keyframes cyberLaserSweep {
+  0% {
+    top: -5%;
+    opacity: 0.2;
+  }
+
+  50% {
+    top: 105%;
+    opacity: 0.9;
+  }
+
+  100% {
+    top: -5%;
+    opacity: 0.2;
+  }
+}
+
+/* Layer 9: Cyan + Green chromatic edge fringe */
+.crt-chromatic-bleed {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9;
+  background: linear-gradient(90deg,
+      rgba(0, 243, 255, 0.2) 0%,
+      transparent 10%,
+      transparent 90%,
+      rgba(0, 255, 136, 0.15) 100%);
+  box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.25);
+  animation: crtChromaticFlicker 3.2s ease-in-out infinite;
+}
+
+@keyframes crtChromaticFlicker {
+
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+
+  33% {
+    opacity: 0.9;
+  }
+
+  66% {
+    opacity: 0.4;
+  }
+
+  92% {
+    opacity: 0.95;
+  }
+}
+
+/* Layer 10: Cyan + Green Phosphor Luminance Pulse */
+.crt-luminance-pulse {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  background: radial-gradient(ellipse 85% 85% at 50% 50%,
+      rgba(0, 255, 136, 0.10) 0%,
+      rgba(0, 243, 255, 0.07) 50%,
+      transparent 80%);
+  mix-blend-mode: overlay;
+  animation: crtLuminancePulse 4.5s infinite;
+}
+
+@keyframes crtLuminancePulse {
+
+  0%,
+  92%,
+  100% {
+    opacity: 0.3;
+  }
+
+  93% {
+    opacity: 0.95;
+  }
+
+  94% {
+    opacity: 0.15;
+  }
+
+  95% {
+    opacity: 0.7;
+  }
+}
+
+/* Layer 11: Cyan-tinted Scanlines */
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+      rgba(0, 243, 255, 0.05) 50%,
+      rgba(13, 27, 42, 0.60) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 11;
+  opacity: 0.75;
+}
+
+/* Internal edge vignette — theme navy */
+.crt-static-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 65% at 50% 50%,
+      transparent 45%,
+      rgba(13, 27, 42, 0.65) 80%,
+      rgba(8, 15, 26, 0.95) 100%);
+  pointer-events: none;
+  z-index: 12;
+}
+
+/* Layer 12: Dynamic Flickering Inner Border Light Reflection (screen light casting onto inner bezel rim) */
+.crt-bezel-reflection {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 13;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 3px 6px 0 rgba(255, 255, 255, 0.65),
+    inset 0 6px 16px 1px rgba(0, 243, 255, 0.55),
+    inset 0 -4px 12px 0 rgba(0, 255, 136, 0.45),
+    inset 4px 0 10px 0 rgba(0, 243, 255, 0.45),
+    inset -4px 0 10px 0 rgba(0, 255, 136, 0.4);
+  opacity: 0.85;
+  animation: tvBezelFlicker 0.28s infinite alternate ease-in-out;
+}
+
+@keyframes tvBezelFlicker {
+  0% {
+    opacity: 0.55;
+    box-shadow:
+      inset 0 2px 4px 0 rgba(255, 255, 255, 0.5),
+      inset 0 4px 12px 0 rgba(0, 243, 255, 0.4),
+      inset 0 -3px 8px 0 rgba(0, 255, 136, 0.35),
+      inset 3px 0 8px 0 rgba(0, 243, 255, 0.35),
+      inset -3px 0 8px 0 rgba(0, 255, 136, 0.3);
+  }
+
+  25% {
+    opacity: 0.95;
+    box-shadow:
+      inset 0 4px 9px 1px rgba(255, 255, 255, 0.85),
+      inset 0 8px 20px 2px rgba(0, 243, 255, 0.7),
+      inset 0 -5px 14px 1px rgba(0, 255, 136, 0.5),
+      inset 5px 0 12px 1px rgba(0, 243, 255, 0.6),
+      inset -5px 0 12px 1px rgba(0, 255, 136, 0.5);
+  }
+
+  50% {
+    opacity: 0.65;
+    box-shadow:
+      inset 0 3px 5px 0 rgba(255, 255, 255, 0.6),
+      inset 0 5px 14px 0 rgba(0, 255, 136, 0.5),
+      inset 0 -4px 10px 0 rgba(0, 243, 255, 0.4),
+      inset 4px 0 9px 0 rgba(0, 255, 136, 0.4),
+      inset -4px 0 9px 0 rgba(0, 243, 255, 0.35);
+  }
+
+  75% {
+    opacity: 0.88;
+    box-shadow:
+      inset 0 3px 7px 1px rgba(255, 255, 255, 0.75),
+      inset 0 7px 18px 1px rgba(0, 243, 255, 0.65),
+      inset 0 -5px 12px 1px rgba(0, 255, 136, 0.45),
+      inset 4px 0 11px 1px rgba(0, 243, 255, 0.5),
+      inset -4px 0 11px 1px rgba(0, 255, 136, 0.45);
+  }
+
+  100% {
+    opacity: 0.7;
+    box-shadow:
+      inset 0 2px 5px 0 rgba(255, 255, 255, 0.55),
+      inset 0 5px 15px 0 rgba(0, 243, 255, 0.45),
+      inset 0 -3px 9px 0 rgba(0, 255, 136, 0.35),
+      inset 3px 0 8px 0 rgba(0, 243, 255, 0.4),
+      inset -3px 0 8px 0 rgba(0, 255, 136, 0.35);
+  }
+}
+
+
+/* ─── CRT Glass Overlay ────────────────────────────────────────────────────
+   Sits above all screen/world content.
+   Provides physical-glass illusion: edge depth, curvature, reflection, glare.
+   Contains no animation and no screen-state logic.
+   Must remain in place across all future TVWorld content states.
+──────────────────────────────────────────────────────────────────────────── */
+
+.crt-glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 4px;
+  overflow: hidden;
+  clip-path: inset(0);
+  isolation: isolate;
+
+  /* Edge depth / barrel curvature illusion —
+     four-sided inset shadow to darken corners and borders,
+     giving the impression the glass curves away from center. */
+  box-shadow:
+    inset 0 0 18px 6px rgba(0, 0, 0, 0.72),
+    inset 4px 0 10px 0 rgba(0, 0, 0, 0.35),
+    inset -4px 0 10px 0 rgba(0, 0, 0, 0.35),
+    inset 0 6px 12px 0 rgba(0, 0, 0, 0.40),
+    inset 0 -8px 14px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* Subtle central lift — the very middle of the glass is fractionally
+   lighter than the dark surround, mimicking convex CRT glass curvature. */
+.crt-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: radial-gradient(ellipse 70% 55% at 50% 45%,
+      rgba(255, 255, 255, 0.025) 0%,
+      transparent 80%);
+}
+
+/* Broad diagonal reflection —
+   a soft band of low-opacity translucent light passing across the upper-left
+   of the glass, suggesting ambient room light caught in the curved surface.
+   Not a sharp stripe. Gradients on both axes for softness. */
+/* Oversized beyond TVWorld — GSAP translates this element so the band
+   sweeps visibly across the glass. Parent .crt-glass has overflow:hidden
+   so the rounded-corner clip is handled there, not here.
+   width:250% / left:-75% → band is centered on TVWorld at rest.
+   A 12% element-translation = 30% TVWorld sweep = clearly visible shift. */
+.crt-glass__reflection {
+  position: absolute;
+  width: 250%;
+  height: 200%;
+  left: -75%;
+  top: -50%;
+  pointer-events: none;
+  background:
+    linear-gradient(128deg,
+      transparent 20%,
+      rgba(200, 215, 235, 0.055) 34%,
+      rgba(210, 225, 245, 0.095) 44%,
+      rgba(200, 215, 235, 0.060) 54%,
+      transparent 68%);
+}
+
+/* Localised upper glare —
+   Oversized beyond TVWorld so translation sweeps the hotspot clearly
+   across the face of the glass rather than clipping it off-screen.
+   width:280% / left:-80% → hotspot at 37%×280%−80% = ~24% TVWorld at rest.
+   A 16% element-translation = ~45% TVWorld sweep. */
+.crt-glass__glare {
+  position: absolute;
+  width: 280%;
+  height: 220%;
+  left: -80%;
+  top: -55%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 32% 30% at 37% 36%,
+      rgba(230, 240, 255, 0.085) 0%,
+      rgba(210, 225, 245, 0.035) 45%,
+      transparent 68%);
+}
 
 .hero-composite-img {
   position: absolute;
