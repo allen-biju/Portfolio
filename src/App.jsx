@@ -378,13 +378,14 @@ function App() {
     }
   });
 
-  // Initialize Lenis
+  // Initialize Lenis with true continuous liquid lerp smoothing (eliminates distinct stepped notches)
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 2.5,
+      lerp: 0.075,
       smoothWheel: true,
-      wheelMultiplier: 0.9,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Clean cinematic curve
+      wheelMultiplier: 0.85,
+      touchMultiplier: 1.2,
+      infinite: false,
     });
 
     lenisRef.current = lenis;
@@ -392,13 +393,16 @@ function App() {
     // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    // Synchronize Lenis raf loop with GSAP ticker to eliminate scrub frame skips & runaway scrolling
+    const tickerHandler = (time) => {
+      lenis.raf(time * 1000);
+    };
 
-    requestAnimationFrame(raf);
+    gsap.ticker.add(tickerHandler);
+    gsap.ticker.lagSmoothing(0);
+
     return () => {
+      gsap.ticker.remove(tickerHandler);
       lenis.destroy();
       lenisRef.current = null;
     };
@@ -412,62 +416,6 @@ function App() {
       lenisRef.current?.start();
     }
   }, [selectedSkill, showResume]);
-
-  // Active Scene tracked via IntersectionObserver later on the sections themselves.
-
-  // Transform values handled per-section via whileInView now.
-
-  // ---------- Scroll Snap Logic ----------
-  // After the user stops scrolling for 350ms, snap to the nearest section.
-  useEffect(() => {
-    const SECTION_IDS = ['scene-0', 'scene-galaxy', 'scene-1', 'scene-2', 'scene-3'];
-    let snapTimer = null;
-    let isSnapping = false;
-
-    const snapToNearest = () => {
-      if (!lenisRef.current) return;
-      if (selectedSkill || showResume) return; // disable during overlays
-
-      const scrollTop = window.scrollY;
-
-      // Allow free scrubbing inside pinned Hero Dolly zone without forced snapping
-      if (scrollTop > 50 && scrollTop < window.innerHeight * 1.05) return;
-
-      let closest = null;
-      let minDist = Infinity;
-
-      SECTION_IDS.forEach((id) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const elTop = window.scrollY + rect.top;
-        const dist = Math.abs(elTop - scrollTop);
-        if (dist < minDist) { minDist = dist; closest = el; }
-      });
-
-      if (closest && !isSnapping) {
-        isSnapping = true;
-        lenisRef.current.scrollTo(closest, {
-          duration: 1.2,
-          easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-          onComplete: () => { isSnapping = false; }
-        });
-      }
-    };
-
-    const onScroll = () => {
-      if (isSnapping) return;
-      clearTimeout(snapTimer);
-      snapTimer = setTimeout(snapToNearest, 350);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      clearTimeout(snapTimer);
-    };
-  }, [selectedSkill, showResume]);
-  // ----------------------------------------
 
   // Sound preloading
   useEffect(() => {
