@@ -160,6 +160,7 @@ export function BurstImage({ image, trajectory, dataIndex }) {
       style={{
         transform: `translate3d(calc(-50% + ${emitX}px), calc(-50% + ${emitY}px), ${startZ}px) scale(${startScale})`,
         opacity: 0,
+        visibility: 'hidden',
         willChange: 'transform, opacity',
       }}
     >
@@ -168,7 +169,7 @@ export function BurstImage({ image, trajectory, dataIndex }) {
           src={image.img}
           alt={image.title}
           className="vortex-img__media"
-          loading="eager"
+          decoding="async"
         />
       ) : (
         <div className="vortex-img__media placeholder" style={{ background: image.bg }} />
@@ -261,23 +262,23 @@ export function setupVortexBurstTimeline(tl, vortexContainer) {
       scrollStart
     );
 
-    // 2. Smooth opacity rise as card emerges from center
+    // 2. Smooth autoAlpha rise as card emerges from center (auto-manages visibility)
     tl.fromTo(
       img,
-      { opacity: 0 },
+      { autoAlpha: 0 },
       {
-        opacity: peakOpacity,
+        autoAlpha: peakOpacity,
         ease: 'power2.out',
         duration: fadeInDur,
       },
       scrollStart
     );
 
-    // 3. Complete and clean fade out to 0 opacity as card expands and drifts into void
+    // 3. Complete and clean fade out to 0 autoAlpha (sets visibility: hidden)
     tl.to(
       img,
       {
-        opacity: 0,
+        autoAlpha: 0,
         ease: 'power2.inOut',
         duration: fadeOutDur,
       },

@@ -412,6 +412,7 @@ a {
   align-items: flex-end;
   justify-content: center;
   left: -50px;
+  will-change: transform;
 }
 
 /* TV Anchor element precisely aligned to TV screen */
@@ -456,7 +457,6 @@ a {
   isolation: isolate;
   contain: paint;
   transform: translateZ(0);
-  clip-path: inset(0) !important;
 }
 
 .tv-world-screen-off {
@@ -464,7 +464,6 @@ a {
   inset: 0;
   background: radial-gradient(ellipse at 50% 48%, #08111e 0%, #03070f 60%, #010205 100%);
   overflow: hidden !important;
-  clip-path: inset(0) !important;
 }
 
 /* ─── CRT Activation & Signal Content (underneath glass) ─────────────────── */
@@ -479,7 +478,8 @@ a {
   will-change: transform, opacity;
   isolation: isolate;
   contain: paint;
-  clip-path: inset(0) !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Container for vertical opening raster expand */
@@ -491,7 +491,7 @@ a {
   overflow: hidden !important;
   background: #02050e;
   will-change: transform, opacity;
-  clip-path: inset(0) !important;
+  backface-visibility: hidden;
 }
 
 /* Electrical response flash — celestial pale blue-white ignition */
@@ -537,214 +537,15 @@ a {
   will-change: transform, opacity;
 }
 
-/* ─── HEAVENLY WORLD OF LIGHT (Inside TV Screen) ─────────────────────────── */
+/* ─── TV SCREEN WORLD (Clean Solid Pure Black Background) ────────────────── */
 .tv-light-world {
   position: absolute;
   inset: 0;
   overflow: hidden;
   z-index: 1;
-  background: radial-gradient(ellipse at 50% 50%, #061122 0%, #030814 60%, #010308 100%);
+  background: #000000;
   isolation: isolate;
   pointer-events: none;
-}
-
-/* Layer A: Deep Atmospheric Cosmic Aura */
-.tv-light__aura {
-  position: absolute;
-  inset: -20%;
-  width: 140%;
-  height: 140%;
-  background: radial-gradient(ellipse 90% 75% at 50% 50%,
-      rgba(56, 189, 248, 0.45) 0%,
-      rgba(14, 116, 144, 0.30) 35%,
-      rgba(7, 24, 56, 0.65) 65%,
-      transparent 85%);
-  filter: blur(14px);
-  animation: lightAuraBreathe 6s ease-in-out infinite alternate;
-}
-
-/* Layer B: Subtle Celestial Rays & Atmospheric Shimmer */
-.tv-light__rays {
-  position: absolute;
-  inset: -30%;
-  width: 160%;
-  height: 160%;
-  background:
-    radial-gradient(ellipse 65% 55% at 48% 46%, rgba(186, 230, 253, 0.30) 0%, transparent 60%),
-    conic-gradient(from 20deg at 50% 50%,
-      rgba(224, 242, 254, 0.08) 0deg,
-      transparent 35deg,
-      rgba(56, 189, 248, 0.12) 75deg,
-      transparent 110deg,
-      rgba(224, 242, 254, 0.06) 160deg,
-      transparent 210deg,
-      rgba(186, 230, 253, 0.10) 270deg,
-      transparent 320deg,
-      rgba(224, 242, 254, 0.08) 360deg);
-  filter: blur(18px);
-  mix-blend-mode: screen;
-  animation: lightRaysSlowDrift 22s linear infinite;
-}
-
-/* Layer C: Organic Primary Lobe (Asymmetric soft opening) */
-.tv-light__lobe-primary {
-  position: absolute;
-  width: 90%;
-  height: 80%;
-  top: 10%;
-  left: 5%;
-  background: radial-gradient(ellipse 68% 60% at 48% 48%,
-      rgba(224, 242, 254, 0.95) 0%,
-      rgba(186, 230, 253, 0.78) 25%,
-      rgba(56, 189, 248, 0.48) 55%,
-      transparent 78%);
-  filter: blur(10px);
-  transform: rotate(-4deg);
-  animation: lightLobePrimaryMove 8s ease-in-out infinite alternate;
-}
-
-/* Layer D: Organic Secondary Lobe (Irregular aperture variation) */
-.tv-light__lobe-secondary {
-  position: absolute;
-  width: 75%;
-  height: 85%;
-  top: 6%;
-  left: 14%;
-  background: radial-gradient(ellipse 58% 66% at 54% 50%,
-      rgba(240, 249, 255, 0.90) 0%,
-      rgba(125, 211, 252, 0.68) 30%,
-      rgba(14, 165, 233, 0.38) 60%,
-      transparent 80%);
-  filter: blur(12px);
-  transform: rotate(7deg);
-  animation: lightLobeSecondaryMove 7s ease-in-out infinite alternate;
-}
-
-/* Layer E: Tertiary Atmospheric Bleed */
-.tv-light__lobe-tertiary {
-  position: absolute;
-  width: 60%;
-  height: 60%;
-  top: 18%;
-  left: 20%;
-  background: radial-gradient(ellipse 50% 48% at 46% 54%,
-      rgba(255, 255, 255, 0.92) 0%,
-      rgba(186, 230, 253, 0.70) 35%,
-      transparent 72%);
-  filter: blur(8px);
-  transform: rotate(-12deg);
-}
-
-/* Layer F: Blazing Incandescent Core (Incandescent White / Pale Blue) */
-.tv-light__core {
-  position: absolute;
-  width: 50%;
-  height: 46%;
-  top: 27%;
-  left: 25%;
-  background: radial-gradient(ellipse 48% 42% at 50% 48%,
-      #ffffff 0%,
-      rgba(255, 255, 255, 0.98) 25%,
-      rgba(224, 242, 254, 0.88) 50%,
-      rgba(56, 189, 248, 0.45) 75%,
-      transparent 100%);
-  filter: blur(5px);
-  box-shadow:
-    0 0 35px 10px rgba(255, 255, 255, 0.95),
-    0 0 75px 25px rgba(56, 189, 248, 0.70),
-    0 0 120px 45px rgba(14, 165, 233, 0.40);
-  animation: lightCoreIncandescence 4.5s ease-in-out infinite alternate;
-}
-
-/* Layer G: Living Celestial Shimmer */
-.tv-light__shimmer {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 48%,
-      rgba(255, 255, 255, 0.18) 0%,
-      transparent 50%);
-  mix-blend-mode: overlay;
-  animation: lightShimmerPulse 3s ease-in-out infinite alternate;
-}
-
-@keyframes lightAuraBreathe {
-  0% {
-    transform: scale(0.96);
-    opacity: 0.85;
-  }
-
-  100% {
-    transform: scale(1.05);
-    opacity: 1.0;
-  }
-}
-
-@keyframes lightRaysSlowDrift {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes lightLobePrimaryMove {
-  0% {
-    transform: rotate(-4deg) scale(0.97) translate(0, 0);
-  }
-
-  50% {
-    transform: rotate(-2deg) scale(1.03) translate(-2px, 1px);
-  }
-
-  100% {
-    transform: rotate(-5deg) scale(1.0) translate(2px, -2px);
-  }
-}
-
-@keyframes lightLobeSecondaryMove {
-  0% {
-    transform: rotate(7deg) scale(1.0) translate(0, 0);
-  }
-
-  50% {
-    transform: rotate(5deg) scale(0.96) translate(2px, -1px);
-  }
-
-  100% {
-    transform: rotate(9deg) scale(1.04) translate(-1px, 2px);
-  }
-}
-
-@keyframes lightCoreIncandescence {
-  0% {
-    transform: scale(0.97);
-    opacity: 0.92;
-    filter: blur(4.5px);
-  }
-
-  50% {
-    transform: scale(1.04);
-    opacity: 1.0;
-    filter: blur(5.5px);
-  }
-
-  100% {
-    transform: scale(0.99);
-    opacity: 0.95;
-    filter: blur(4.8px);
-  }
-}
-
-@keyframes lightShimmerPulse {
-  0% {
-    opacity: 0.4;
-  }
-
-  100% {
-    opacity: 0.85;
-  }
 }
 
 /* ─── ADVANCED SMPTE COLOR PALETTE & CRT SIGNAL DISTORTION ENGINE ─────────── */
@@ -755,9 +556,52 @@ a {
   pointer-events: none;
   overflow: hidden;
   opacity: 1;
-  will-change: opacity, filter, transform;
+  /* NOTE: filter:contrast/saturate removed — a static CSS filter on an element
+     with will-change:filter inside a preserve-3d ancestor creates an expensive
+     stacking context that prevents GPU compositing of child layers. */
+  will-change: opacity, transform;
   background: #050505;
-  filter: contrast(1.08) saturate(1.15);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Authentic SMPTE-170M Color Bar Pattern via CSS Multi-Stop Gradients */
+.smpte-bg {
+  background-image:
+    /* Tier 1: Top 67% Color Bars (7 equal columns) */
+    linear-gradient(90deg,
+      #bfbfbf 0%, #bfbfbf 14.286%,
+      #bfbf00 14.286%, #bfbf00 28.571%,
+      #00bfbf 28.571%, #00bfbf 42.857%,
+      #00bf00 42.857%, #00bf00 57.143%,
+      #bf00bf 57.143%, #bf00bf 71.429%,
+      #bf0000 71.429%, #bf0000 85.714%,
+      #0000bf 85.714%, #0000bf 100%),
+    /* Tier 2: Middle 8% Castellation Band */
+    linear-gradient(90deg,
+      #0000bf 0%, #0000bf 14.286%,
+      #131313 14.286%, #131313 28.571%,
+      #bf00bf 28.571%, #bf00bf 42.857%,
+      #131313 42.857%, #131313 57.143%,
+      #00bfbf 57.143%, #00bfbf 71.429%,
+      #131313 71.429%, #131313 85.714%,
+      #bfbfbf 85.714%, #bfbfbf 100%),
+    /* Tier 3: Bottom 25% I/Q/PLUGE Baseline */
+    linear-gradient(90deg,
+      #00284e 0%, #00284e 16.666%,
+      #ffffff 16.666%, #ffffff 33.333%,
+      #3b0054 33.333%, #3b0054 50%,
+      #131313 50%, #131313 66.666%,
+      #000000 66.666%, #000000 72.222%,
+      #131313 72.222%, #131313 77.777%,
+      #262626 77.777%, #262626 83.333%,
+      #131313 83.333%, #131313 100%);
+  background-size: 100% 67%, 100% 8.5%, 100% 25%;
+  background-position: left top, left 67%, left bottom;
+  background-repeat: no-repeat;
+  background-color: #131313;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* 1. Sub-pixel Phosphor Aperture Grille & Fine CRT Scanlines */
@@ -766,17 +610,14 @@ a {
   inset: 0;
   z-index: 8;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.06) 0px,
-    rgba(255, 0, 0, 0.06) 1px,
-    rgba(0, 255, 0, 0.06) 1px,
-    rgba(0, 255, 0, 0.06) 2px,
-    rgba(0, 100, 255, 0.06) 2px,
-    rgba(0, 100, 255, 0.06) 3px
-  );
-  mix-blend-mode: overlay;
-  opacity: 0.9;
+  background: repeating-linear-gradient(90deg,
+      rgba(255, 0, 0, 0.06) 0px,
+      rgba(255, 0, 0, 0.06) 1px,
+      rgba(0, 255, 0, 0.06) 1px,
+      rgba(0, 255, 0, 0.06) 2px,
+      rgba(0, 100, 255, 0.06) 2px,
+      rgba(0, 100, 255, 0.06) 3px);
+  opacity: 0.35;
 }
 
 .crt-test-scanlines {
@@ -784,13 +625,11 @@ a {
   inset: 0;
   z-index: 9;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.38) 0px,
-    rgba(0, 0, 0, 0.38) 1.5px,
-    transparent 1.5px,
-    transparent 3px
-  );
+  background: repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, 0.38) 0px,
+      rgba(0, 0, 0, 0.38) 1.5px,
+      transparent 1.5px,
+      transparent 3px);
   opacity: 0.85;
 }
 
@@ -809,11 +648,12 @@ a {
   letter-spacing: 0.12em;
   color: #39ff14;
   text-shadow: 0 0 6px rgba(57, 255, 20, 0.8), 0 0 12px rgba(57, 255, 20, 0.4);
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
   opacity: 0.92;
 }
 
-.crt-osd-top, .crt-osd-bottom {
+.crt-osd-top,
+.crt-osd-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -846,8 +686,15 @@ a {
 }
 
 @keyframes crtDotBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 /* 3. SMPTE-170M Color Pattern Architecture */
@@ -884,20 +731,58 @@ a {
 }
 
 /* Authentic SMPTE-170M 75% Amplitude Color Reference */
-.smpte-bar--gray    { background: #bfbfbf; }
-.smpte-bar--yellow  { background: #bfbf00; }
-.smpte-bar--cyan    { background: #00bfbf; }
-.smpte-bar--green   { background: #00bf00; }
-.smpte-bar--magenta { background: #bf00bf; }
-.smpte-bar--red     { background: #bf0000; }
-.smpte-bar--blue    { background: #0000bf; }
-.smpte-bar--black   { background: #131313; }
+.smpte-bar--gray {
+  background: #bfbfbf;
+}
+
+.smpte-bar--yellow {
+  background: #bfbf00;
+}
+
+.smpte-bar--cyan {
+  background: #00bfbf;
+}
+
+.smpte-bar--green {
+  background: #00bf00;
+}
+
+.smpte-bar--magenta {
+  background: #bf00bf;
+}
+
+.smpte-bar--red {
+  background: #bf0000;
+}
+
+.smpte-bar--blue {
+  background: #0000bf;
+}
+
+.smpte-bar--black {
+  background: #131313;
+}
 
 /* Tier 3: Calibration Blocks */
-.smpte-block--navy     { flex: 1; background: #00284e; }
-.smpte-block--white    { flex: 1; background: #ffffff; }
-.smpte-block--purple   { flex: 1; background: #3b0054; }
-.smpte-block--black-0  { flex: 1; background: #111111; }
+.smpte-block--navy {
+  flex: 1;
+  background: #00284e;
+}
+
+.smpte-block--white {
+  flex: 1;
+  background: #ffffff;
+}
+
+.smpte-block--purple {
+  flex: 1;
+  background: #3b0054;
+}
+
+.smpte-block--black-0 {
+  flex: 1;
+  background: #111111;
+}
 
 .smpte-block--pluge {
   flex: 2;
@@ -905,16 +790,29 @@ a {
   height: 100%;
 }
 
-.pluge-sub-black   { flex: 1; background: #000000; }
-.pluge-black       { flex: 1; background: #131313; }
-.pluge-super-black { flex: 1; background: #262626; }
+.pluge-sub-black {
+  flex: 1;
+  background: #000000;
+}
+
+.pluge-black {
+  flex: 1;
+  background: #131313;
+}
+
+.pluge-super-black {
+  flex: 1;
+  background: #262626;
+}
 
 /* 4. Multi-Slice Tearing Slices (7 Independent Raster Bands) */
 .crt-test-slices-wrapper {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  will-change: transform, filter;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .crt-test-slice {
@@ -922,37 +820,65 @@ a {
   inset: 0;
   width: 100%;
   height: 100%;
-  will-change: transform, filter;
+  will-change: transform;
   pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
-/* Precision Inset Clip Paths for each horizontal band */
-.crt-test-slice--1 { clip-path: inset(0 0 85% 0); }
-.crt-test-slice--2 { clip-path: inset(15% 0 70% 0); }
-.crt-test-slice--3 { clip-path: inset(30% 0 52% 0); }
-.crt-test-slice--4 { clip-path: inset(48% 0 34% 0); }
-.crt-test-slice--5 { clip-path: inset(66% 0 24% 0); }
-.crt-test-slice--6 { clip-path: inset(76% 0 12% 0); }
-.crt-test-slice--7 { clip-path: inset(88% 0 0 0); }
+/* Precision Inset Clip Paths for each horizontal band — with active living retro jitter */
+.crt-test-slice--1 {
+  clip-path: inset(0 0 85% 0);
+  animation: crtSliceJitter1 2.2s steps(1) infinite;
+}
+
+.crt-test-slice--2 {
+  clip-path: inset(15% 0 70% 0);
+}
+
+.crt-test-slice--3 {
+  clip-path: inset(30% 0 52% 0);
+  animation: crtSliceJitter2 1.8s steps(1) infinite;
+}
+
+.crt-test-slice--4 {
+  clip-path: inset(48% 0 34% 0);
+}
+
+.crt-test-slice--5 {
+  clip-path: inset(66% 0 24% 0);
+  animation: crtSliceJitter3 2.5s steps(1) infinite;
+}
+
+.crt-test-slice--6 {
+  clip-path: inset(76% 0 12% 0);
+}
+
+.crt-test-slice--7 {
+  clip-path: inset(88% 0 0 0);
+}
 
 /* 5. Chromatic Aberration RGB Misconvergence Ghost Channels */
 .crt-test-chroma {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0;
-  mix-blend-mode: screen;
-  will-change: transform, opacity, filter;
+  opacity: 0.25;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .crt-test-chroma--red {
-  filter: drop-shadow(0 0 6px #ff0055) saturate(4) hue-rotate(-25deg);
-  opacity: 0;
+  opacity: 0.25;
+  background-color: rgba(255, 0, 85, 0.22);
+  animation: crtChromaRed 1.7s steps(2, start) infinite;
 }
 
 .crt-test-chroma--cyan {
-  filter: drop-shadow(0 0 6px #00f0ff) saturate(4) hue-rotate(160deg);
-  opacity: 0;
+  opacity: 0.25;
+  background-color: rgba(0, 240, 255, 0.22);
+  animation: crtChromaCyan 2.1s steps(2, start) infinite;
 }
 
 /* 6. Analog V-Hold Vertical Sync Slip Bar */
@@ -962,68 +888,148 @@ a {
   right: 0;
   top: -25%;
   height: 22%;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.95) 0%,
-    rgba(20, 20, 20, 0.98) 40%,
-    rgba(255, 255, 255, 0.35) 50%,
-    rgba(10, 10, 10, 0.95) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(20, 20, 20, 0.98) 40%,
+      rgba(255, 255, 255, 0.35) 50%,
+      rgba(10, 10, 10, 0.95) 100%);
   box-shadow: 0 0 16px rgba(0, 0, 0, 0.9);
   z-index: 7;
   pointer-events: none;
-  opacity: 0;
+  opacity: 0.75;
   will-change: transform, opacity;
+  animation: crtVHoldSlip 3.4s ease-in-out infinite;
 }
 
 .crt-vhold-noise-band {
   width: 100%;
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent 0px,
-    transparent 4px,
-    rgba(255, 255, 255, 0.25) 4px,
-    rgba(255, 255, 255, 0.25) 7px
-  );
-  mix-blend-mode: overlay;
+  background: repeating-linear-gradient(90deg,
+      transparent 0px,
+      transparent 4px,
+      rgba(255, 255, 255, 0.20) 4px,
+      rgba(255, 255, 255, 0.20) 7px);
 }
 
 /* 7. Phosphor Smear & High-Energy Glitch Interference */
 .crt-test-phosphor-smear {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.15) 20%,
-    rgba(0, 240, 255, 0.25) 50%,
-    rgba(255, 0, 85, 0.25) 80%,
-    transparent 100%
-  );
-  mix-blend-mode: screen;
-  filter: blur(8px);
-  opacity: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(0, 240, 255, 0.25) 50%,
+      rgba(255, 0, 85, 0.25) 80%,
+      transparent 100%);
+  opacity: 0.35;
   pointer-events: none;
   z-index: 6;
   will-change: transform, opacity;
+  animation: crtSmearDrift 2.8s ease-in-out infinite;
 }
 
 .crt-test-glitch-interference {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.08) 0px,
-    rgba(255, 255, 255, 0.08) 2px,
-    transparent 2px,
-    transparent 6px
-  );
-  mix-blend-mode: color-dodge;
-  opacity: 0;
+  background: repeating-linear-gradient(0deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 2px,
+      transparent 2px,
+      transparent 6px);
+  opacity: 0.45;
   pointer-events: none;
   z-index: 7;
-  will-change: opacity, transform;
+  will-change: opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  animation: crtGlitchFlicker 0.9s steps(2, start) infinite;
+}
+
+/* ─── Continuous Living CRT Signal Distortion Keyframes ────────── */
+@keyframes crtSliceJitter1 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  14% { transform: translate3d(0, 0, 0); }
+  16% { transform: translate3d(-24px, 0, 0); }
+  19% { transform: translate3d(16px, 0, 0); }
+  22% { transform: translate3d(0, 0, 0); }
+  58% { transform: translate3d(0, 0, 0); }
+  60% { transform: translate3d(28px, 0, 0); }
+  63% { transform: translate3d(-12px, 0, 0); }
+  66% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes crtSliceJitter2 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  28% { transform: translate3d(0, 0, 0); }
+  30% { transform: translate3d(32px, 0, 0); }
+  33% { transform: translate3d(-20px, 0, 0); }
+  36% { transform: translate3d(0, 0, 0); }
+  72% { transform: translate3d(0, 0, 0); }
+  74% { transform: translate3d(-35px, 0, 0); }
+  77% { transform: translate3d(18px, 0, 0); }
+  80% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes crtSliceJitter3 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  8% { transform: translate3d(0, 0, 0); }
+  10% { transform: translate3d(20px, 0, 0); }
+  13% { transform: translate3d(-15px, 0, 0); }
+  15% { transform: translate3d(0, 0, 0); }
+  45% { transform: translate3d(0, 0, 0); }
+  47% { transform: translate3d(-26px, 0, 0); }
+  50% { transform: translate3d(12px, 0, 0); }
+  52% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes crtVHoldSlip {
+  0% { transform: translate3d(0, -120%, 0); opacity: 0; }
+  15% { opacity: 0.85; }
+  75% { opacity: 0.85; }
+  100% { transform: translate3d(0, 480%, 0); opacity: 0; }
+}
+
+@keyframes crtChromaRed {
+  0%, 100% { opacity: 0.15; transform: translate3d(-3px, 0, 0); }
+  22% { opacity: 0.85; transform: translate3d(-26px, 0, 0); }
+  26% { opacity: 0.25; transform: translate3d(-6px, 0, 0); }
+  64% { opacity: 0.90; transform: translate3d(18px, 0, 0); }
+  68% { opacity: 0.10; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes crtChromaCyan {
+  0%, 100% { opacity: 0.15; transform: translate3d(3px, 0, 0); }
+  22% { opacity: 0.85; transform: translate3d(26px, 0, 0); }
+  26% { opacity: 0.25; transform: translate3d(6px, 0, 0); }
+  64% { opacity: 0.90; transform: translate3d(-18px, 0, 0); }
+  68% { opacity: 0.10; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes crtGlitchFlicker {
+  0%, 100% { opacity: 0.08; }
+  18% { opacity: 0.80; }
+  22% { opacity: 0.12; }
+  54% { opacity: 0.85; }
+  58% { opacity: 0.18; }
+  82% { opacity: 0.70; }
+  85% { opacity: 0.06; }
+}
+
+@keyframes crtSmearDrift {
+  0%, 100% { opacity: 0.1; transform: translate3d(-8px, 0, 0); }
+  35% { opacity: 0.75; transform: translate3d(24px, 0, 0); }
+  40% { opacity: 0.15; transform: translate3d(0, 0, 0); }
+}
+
+/* ─── Animation Pause State ─────────────────────────────────────────────────
+   Applied by JS when the crt-test-signal is hidden (autoAlpha:0 / scroll > 0.22).
+   Pausing all child CSS animations prevents the GPU from running background
+   keyframe compositing, which eliminates the lag spike when restoring visibility
+   on reverse scroll.
+────────────────────────────────────────────────────────────────────────────── */
+.crt-animations-paused,
+.crt-animations-paused * {
+  animation-play-state: paused !important;
 }
 
 /* 8. Cathode Ray Laser Collapse Beam */
@@ -1144,7 +1150,11 @@ a {
   object-position: bottom right;
   z-index: 2;
   pointer-events: auto;
-  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
+  /* NOTE: drop-shadow filter removed — animating a filter on a 4MB PNG scaled
+     to ~22x forces a CPU Gaussian blur recalculation on every scroll frame.
+     Shadow is replaced by a static box-shadow on the parent container. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -1284,6 +1294,8 @@ a {
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: border-color 0.4s;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .gallery-card:hover {
@@ -2591,4 +2603,4 @@ a {
   .detail-content {
     padding: 1.5rem;
   }
-}
+}

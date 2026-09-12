@@ -54,7 +54,7 @@ function computeDollyTarget(container, anchor, text) {
   const scaleX = vw / anchorRect.width;
   const scaleY = vh / anchorRect.height;
   const fitScale = Math.max(scaleX, scaleY);
-  const pushThroughScale = fitScale * 2.8;
+  const pushThroughScale = fitScale * 2.4;
 
   const targetX = (vw / 2) - anchorCenterX;
   const targetY = (vh / 2) - anchorCenterY;
@@ -149,20 +149,115 @@ export function useCameraDolly({
         ScrollTrigger.refresh();
       }, 1600);
 
-      /* ─── MASTER TIMELINE — EXTENDED SCROLL DISTANCE (1400vh) ───── */
-      let checkCrtActivation = null;
+      /* ─── CRT ACTIVATION / POWER-ON SEQUENCE (Automatic Real-Time Timeline) ─── */
+      const crtActivation = imageContainer.querySelector('.crt-activation');
+      const crtFlash = imageContainer.querySelector('.crt-flash');
+      const crtHLine = imageContainer.querySelector('.crt-h-line');
+      const crtRaster = imageContainer.querySelector('.crt-raster-container');
 
+      let hasCrtActivated = false;
+      const crtPowerOnTl = gsap.timeline({ paused: true });
+
+      if (crtActivation && crtFlash && crtHLine && crtRaster) {
+        gsap.set(crtActivation, { opacity: 0 });
+        gsap.set(crtFlash, { opacity: 0 });
+        gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
+        gsap.set(crtRaster, { scaleY: 0, opacity: 0 });
+
+        crtPowerOnTl
+          .to(crtActivation, { opacity: 1, duration: 0.01 })
+          .to(crtFlash, { opacity: 0.95, ease: 'power2.in', duration: 0.12 })
+          .to(crtFlash, { opacity: 0.25, ease: 'power2.out', duration: 0.18 })
+          .fromTo(
+            crtHLine,
+            { opacity: 0, scaleX: 0 },
+            { opacity: 1, scaleX: 1, ease: 'power3.out', duration: 0.18 },
+            0.12
+          )
+          .fromTo(
+            crtRaster,
+            { scaleY: 0.005, opacity: 0 },
+            { scaleY: 0.005, opacity: 1, duration: 0.01 },
+            0.30
+          )
+          .to(crtRaster, { scaleY: 1.0, ease: 'power2.inOut', duration: 0.30 }, 0.31)
+          .to(crtHLine, { opacity: 0, duration: 0.12 }, 0.35)
+          .to(crtFlash, { opacity: 0, duration: 0.15 }, 0.31);
+      }
+
+      let checkCrtActivation = null;
+      if (crtActivation) {
+        checkCrtActivation = (progress) => {
+          // Automatic power-on: fires once in real-time when scroll reaches ~0.08
+          if (progress >= 0.08 && progress <= 0.32) {
+            if (!hasCrtActivated) {
+              hasCrtActivated = true;
+              crtPowerOnTl.play(0);
+            }
+          } else if (progress < 0.04) {
+            // Scrolled back out: reset cleanly without any inline CSS filter injection
+            if (hasCrtActivated) {
+              hasCrtActivated = false;
+              crtPowerOnTl.pause(0);
+              crtActivation.style.opacity = '0';
+              if (crtFlash) crtFlash.style.opacity = '0';
+              if (crtHLine) {
+                crtHLine.style.opacity = '0';
+                crtHLine.style.transform = 'scaleX(0)';
+              }
+              if (crtRaster) {
+                crtRaster.style.opacity = '0';
+                crtRaster.style.transform = 'scaleY(0)';
+              }
+            }
+          }
+        };
+      }
+
+      /* ─── CSS ANIMATION PAUSE HELPER ──────────────────────────────
+         The CRT test signal has several CSS keyframe animations running
+         continuously (chroma shift, vhold slip, glitch flicker, etc.).
+         When autoAlpha sets visibility:hidden the animations keep running
+         in the background. On reverse scroll, restoring visibility forces
+         the GPU to re-composite all animated layers at once → lag spike.
+         Fix: add a class that sets animation-play-state:paused on every
+         child whenever the signal is hidden, and remove it to resume.
+      ──────────────────────────────────────────────────────────────── */
+      const testSignalRef = imageContainer.querySelector('.crt-test-signal');
+      let signalAnimsPaused = false;
+
+      const pauseSignalAnims = () => {
+        if (!signalAnimsPaused && testSignalRef) {
+          testSignalRef.classList.add('crt-animations-paused');
+          signalAnimsPaused = true;
+        }
+      };
+      const resumeSignalAnims = () => {
+        if (signalAnimsPaused && testSignalRef) {
+          testSignalRef.classList.remove('crt-animations-paused');
+          signalAnimsPaused = false;
+        }
+      };
+
+      /* ─── MASTER TIMELINE — EXTENDED SCROLL DISTANCE (1400vh) ───── */
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: scene,
           start: 'top top',
           end: '+=1400vh',
           pin: true,
-          scrub: true,
+          scrub: 0.3,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             if (checkCrtActivation) checkCrtActivation(self.progress);
+            // Pause CSS animations while signal is hidden (progress > 0.22)
+            // to prevent GPU recomposition lag on reverse scroll.
+            if (self.progress >= 0.22) {
+              pauseSignalAnims();
+            } else {
+              resumeSignalAnims();
+            }
           },
           onRefreshInit: () => {
             if (imageContainer.parentElement) {
@@ -184,14 +279,12 @@ export function useCameraDolly({
           x: 0,
           y: 0,
           opacity: 1,
-          filter: 'blur(0px)',
         },
         {
           scale: () => dollyTarget ? dollyTarget.textScale : 3.0,
           x: () => dollyTarget ? dollyTarget.textX : -300,
           y: () => dollyTarget ? dollyTarget.textY : -100,
           opacity: 0,
-          filter: 'blur(20px)',
           ease: 'power2.inOut',
           duration: 0.28,
         },
@@ -207,7 +300,6 @@ export function useCameraDolly({
 
         tl.to(nav, {
           opacity: 0,
-          filter: 'blur(12px)',
           ease: 'power2.inOut',
           duration: 0.20,
         }, 0);
@@ -355,10 +447,10 @@ export function useCameraDolly({
 
       /* ─── TV IMAGE — PHASE 2: push through into TV screen ────── */
       tl.to(imageContainer, {
-        scale: () => dollyTarget ? dollyTarget.pushThroughScale : 2.8,
+        scale: () => dollyTarget ? dollyTarget.pushThroughScale : 2.4,
         opacity: 1,
         ease: 'power1.in',
-        duration: 0.08,
+        duration: 0.09,
       }, 0.28);
 
       /* ─── TV IMAGE — PHASE 3: handoff fade to Deep Void ───────── */
@@ -366,97 +458,25 @@ export function useCameraDolly({
         opacity: 0,
         ease: 'power1.out',
         duration: 0.03,
-      }, 0.36);
+      }, 0.37);
 
-      /* ─── HERO IMAGE SHADOW ──────────────────────────────────── */
-      if (image) {
-        tl.to(image, {
-          filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.8))',
-          ease: 'sine.inOut',
-          duration: 0.28,
-        }, 0);
-      }
+      /* ─── HERO IMAGE SHADOW ──────────────────────────────────────── */
+      // NOTE: Removed dynamic drop-shadow filter tween.
+      // Animating filter on a 2440x3160px image scaled up to 22x triggers
+      // a full CPU Gaussian blur recalculation every scroll frame.
+      // Shadow is applied statically via CSS class instead.
 
-      /* ─── CRT ACTIVATION / POWER-ON SEQUENCE ────────────────── */
-      const crtActivation = imageContainer.querySelector('.crt-activation');
-      const crtFlash = imageContainer.querySelector('.crt-flash');
-      const crtHLine = imageContainer.querySelector('.crt-h-line');
-      const crtRaster = imageContainer.querySelector('.crt-raster-container');
-
-      let hasCrtActivated = false;
-      const crtPowerOnTl = gsap.timeline({ paused: true });
-
-      if (crtActivation && crtFlash && crtHLine && crtRaster) {
-        gsap.set(crtActivation, { opacity: 0 });
-        gsap.set(crtFlash, { opacity: 0 });
-        gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
-        gsap.set(crtRaster, { scaleY: 0, opacity: 0 });
-
-        crtPowerOnTl
-          .to(crtActivation, { opacity: 1, duration: 0.01 })
-          .to(crtFlash, { opacity: 0.95, ease: 'power2.in', duration: 0.12 })
-          .to(crtFlash, { opacity: 0.25, ease: 'power2.out', duration: 0.18 })
-          .fromTo(
-            crtHLine,
-            { opacity: 0, scaleX: 0 },
-            { opacity: 1, scaleX: 1, ease: 'power3.out', duration: 0.18 },
-            0.12
-          )
-          .fromTo(
-            crtRaster,
-            { scaleY: 0.005, opacity: 0 },
-            { scaleY: 0.005, opacity: 1, duration: 0.01 },
-            0.30
-          )
-          .to(crtRaster, { scaleY: 1.0, ease: 'power2.inOut', duration: 0.30 }, 0.31)
-          .to(crtHLine, { opacity: 0, duration: 0.12 }, 0.35)
-          .to(crtFlash, { opacity: 0, duration: 0.15 }, 0.31);
-
-
-
-        checkCrtActivation = (progress) => {
-          // Strictly contain CRT glitch activation between progress 0.08 and 0.28
-          // (while TV is aligning and fitting to screen before 3D push-through)
-          if (progress >= 0.08 && progress <= 0.28) {
-            if (!hasCrtActivated) {
-              hasCrtActivated = true;
-              crtPowerOnTl.play(0);
-            }
-            gsap.set(crtActivation, { opacity: 1 });
-          } else if (progress > 0.28) {
-            // When TV scales up to push through or when scrolling back up from 3D space:
-            // FORCE-HIDE crtActivation so it can NEVER bleed full-screen!
-            gsap.set(crtActivation, { opacity: 0 });
-          } else if (progress < 0.04) {
-            if (hasCrtActivated) {
-              hasCrtActivated = false;
-              crtPowerOnTl.pause(0);
-              gsap.set(crtActivation, { opacity: 0 });
-              gsap.set(crtFlash, { opacity: 0 });
-              gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
-              gsap.set(crtRaster, { scaleY: 0, opacity: 0 });
-              const testSignalReset = imageContainer.querySelector('.crt-test-signal');
-              const slicesWrapReset = imageContainer.querySelector('.crt-test-slices-wrapper');
-              const slicesReset = imageContainer.querySelectorAll('.crt-test-slice');
-              const chromaReset = imageContainer.querySelectorAll('.crt-test-chroma');
-              const vHoldReset = imageContainer.querySelector('.crt-test-vhold-bar');
-              const smearReset = imageContainer.querySelector('.crt-test-phosphor-smear');
-              const interfReset = imageContainer.querySelector('.crt-test-glitch-interference');
-              const beamReset = imageContainer.querySelector('.crt-test-collapse-beam');
-              const osdReset = imageContainer.querySelector('.crt-test-osd');
-
-              if (testSignalReset) gsap.set(testSignalReset, { opacity: 1, filter: 'contrast(1.08) saturate(1.15)' });
-              if (slicesWrapReset) gsap.set(slicesWrapReset, { opacity: 1, scaleX: 1, scaleY: 1, filter: 'none' });
-              if (slicesReset.length) gsap.set(slicesReset, { x: 0, skewX: 0, scaleX: 1 });
-              if (chromaReset.length) gsap.set(chromaReset, { opacity: 0, x: 0 });
-              if (vHoldReset) gsap.set(vHoldReset, { opacity: 0, y: '-30%' });
-              if (smearReset) gsap.set(smearReset, { opacity: 0 });
-              if (interfReset) gsap.set(interfReset, { opacity: 0 });
-              if (beamReset) gsap.set(beamReset, { opacity: 0, scaleX: 0 });
-              if (osdReset) gsap.set(osdReset, { opacity: 0.92, skewX: 0, filter: 'none' });
-            }
-          }
-        };
+      /* ─── CRT TEST SIGNAL: BLANK SCREEN BEFORE PUSH-THROUGH ─── */
+      const testSignal = imageContainer.querySelector('.crt-test-signal');
+      if (testSignal) {
+        // Color palette & distortion smoothly fade to blank before transition into TV
+        // autoAlpha sets visibility: hidden to completely suspend GPU rendering of the palette
+        tl.fromTo(
+          testSignal,
+          { autoAlpha: 1 },
+          { autoAlpha: 0, ease: 'power2.inOut', duration: 0.05 },
+          0.20
+        );
       }
 
       /* ─── CRT GLASS GLARE ────────────────────────────────────── */
@@ -483,152 +503,9 @@ export function useCameraDolly({
         tl.to(reflectionEl, { opacity: 0, ease: 'power1.in', duration: 0.08 }, 0.30);
       }
 
-      /* ─── ADVANCED CRT TEST SIGNAL DISTORTION & BREAKDOWN ENGINE ─── */
-      const testSignal = imageContainer.querySelector('.crt-test-signal');
-      const slicesWrapper = imageContainer.querySelector('.crt-test-slices-wrapper');
-      const slice1 = imageContainer.querySelector('.crt-test-slice--1');
-      const slice2 = imageContainer.querySelector('.crt-test-slice--2');
-      const slice3 = imageContainer.querySelector('.crt-test-slice--3');
-      const slice4 = imageContainer.querySelector('.crt-test-slice--4');
-      const slice5 = imageContainer.querySelector('.crt-test-slice--5');
-      const slice6 = imageContainer.querySelector('.crt-test-slice--6');
-      const slice7 = imageContainer.querySelector('.crt-test-slice--7');
-      const chromaRed = imageContainer.querySelector('.crt-test-chroma--red');
-      const chromaCyan = imageContainer.querySelector('.crt-test-chroma--cyan');
-      const vHoldBar = imageContainer.querySelector('.crt-test-vhold-bar');
-      const phosphorSmear = imageContainer.querySelector('.crt-test-phosphor-smear');
-      const glitchInterf = imageContainer.querySelector('.crt-test-glitch-interference');
-      const collapseBeam = imageContainer.querySelector('.crt-test-collapse-beam');
-      const osdEl = imageContainer.querySelector('.crt-test-osd');
-
-      // State 1 & 2: 0.115 → 0.145 (Signal acquired → electromagnetic disturbance)
-      if (vHoldBar) {
-        tl.fromTo(
-          vHoldBar,
-          { y: '-30%', opacity: 0 },
-          { y: '160%', opacity: 0.85, ease: 'power1.in', duration: 0.025 },
-          0.115
-        );
-        tl.to(
-          vHoldBar,
-          { y: '260%', opacity: 1, ease: 'power2.inOut', duration: 0.02 },
-          0.142
-        );
-      }
-
-      if (osdEl) {
-        tl.fromTo(osdEl, { opacity: 0.92, skewX: 0 }, { opacity: 1, skewX: -10, filter: 'hue-rotate(90deg)', duration: 0.015 }, 0.200);
-        tl.to(osdEl, { opacity: 0.4, skewX: 15, filter: 'hue-rotate(180deg) brightness(2)', duration: 0.015 }, 0.218);
-        tl.to(osdEl, { opacity: 0, duration: 0.01 }, 0.235);
-      }
-
-      // Chromatic Aberration RGB Misconvergence Ghost Channels
-      if (chromaRed && chromaCyan) {
-        tl.fromTo(chromaRed, { opacity: 0, x: 0, skewX: 0 }, { opacity: 0.85, x: -18, skewX: 6, duration: 0.02 }, 0.118);
-        tl.to(chromaRed, { opacity: 1, x: -44, skewX: -12, scaleY: 1.15, filter: 'saturate(5) hue-rotate(-40deg) brightness(1.6)', duration: 0.018 }, 0.138);
-        tl.to(chromaRed, { opacity: 0, x: 0, duration: 0.015 }, 0.158);
-
-        tl.fromTo(chromaCyan, { opacity: 0, x: 0, skewX: 0 }, { opacity: 0.85, x: 20, skewX: -6, duration: 0.02 }, 0.118);
-        tl.to(chromaCyan, { opacity: 1, x: 48, skewX: 14, scaleY: 0.90, filter: 'saturate(5) hue-rotate(180deg) brightness(1.6)', duration: 0.018 }, 0.138);
-        tl.to(chromaCyan, { opacity: 0, x: 0, duration: 0.015 }, 0.158);
-      }
-
-      // Phosphor Smear & Glitch Interference
-      if (phosphorSmear) {
-        tl.fromTo(phosphorSmear, { opacity: 0, scaleX: 0.8, x: -30 }, { opacity: 0.9, scaleX: 1.5, x: 40, duration: 0.02 }, 0.132);
-        tl.to(phosphorSmear, { opacity: 0, duration: 0.015 }, 0.155);
-      }
-
-      if (glitchInterf) {
-        tl.fromTo(glitchInterf, { opacity: 0 }, { opacity: 0.85, duration: 0.01 }, 0.125);
-        tl.to(glitchInterf, { opacity: 1, duration: 0.015 }, 0.138);
-        tl.to(glitchInterf, { opacity: 0, duration: 0.01 }, 0.155);
-      }
-
-      // State 3: Multi-Band Slice Tearing & Raster Shredding (0.128 → 0.156)
-      if (slice1) {
-        tl.fromTo(slice1, { x: 0, skewX: 0, scaleX: 1 }, { x: 38, skewX: -14, scaleX: 1.12, duration: 0.014 }, 0.128);
-        tl.to(slice1, { x: -42, skewX: 12, scaleX: 0.92, duration: 0.012 }, 0.142);
-        tl.to(slice1, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-      if (slice2) {
-        tl.fromTo(slice2, { x: 0, skewX: 0, scaleX: 1 }, { x: -62, skewX: 18, scaleX: 0.88, duration: 0.013 }, 0.129);
-        tl.to(slice2, { x: 55, skewX: -16, scaleX: 1.18, duration: 0.013 }, 0.141);
-        tl.to(slice2, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-      if (slice3) {
-        tl.fromTo(slice3, { x: 0, skewX: 0, scaleX: 1 }, { x: 78, skewX: -22, scaleX: 1.25, duration: 0.015 }, 0.130);
-        tl.to(slice3, { x: -60, skewX: 20, scaleX: 0.86, duration: 0.012 }, 0.143);
-        tl.to(slice3, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-      if (slice4) {
-        tl.fromTo(slice4, { x: 0, skewX: 0, scaleX: 1 }, { x: -46, skewX: 15, scaleX: 1.06, duration: 0.012 }, 0.128);
-        tl.to(slice4, { x: 68, skewX: -18, scaleX: 1.20, duration: 0.014 }, 0.140);
-        tl.to(slice4, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-      if (slice5) {
-        tl.fromTo(slice5, { x: 0, skewX: 0, scaleX: 1 }, { x: 54, skewX: -12, scaleX: 0.92, duration: 0.014 }, 0.131);
-        tl.to(slice5, { x: -48, skewX: 14, scaleX: 1.12, duration: 0.012 }, 0.143);
-        tl.to(slice5, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-      if (slice6) {
-        tl.fromTo(slice6, { x: 0, skewX: 0, scaleX: 1 }, { x: -36, skewX: 14, scaleX: 1.10, duration: 0.013 }, 0.130);
-        tl.to(slice6, { x: 44, skewX: -10, scaleX: 0.95, duration: 0.013 }, 0.142);
-        tl.to(slice6, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-      if (slice7) {
-        tl.fromTo(slice7, { x: 0, skewX: 0, scaleX: 1 }, { x: 30, skewX: -8, scaleX: 0.94, duration: 0.012 }, 0.129);
-        tl.to(slice7, { x: -28, skewX: 10, scaleX: 1.08, duration: 0.013 }, 0.142);
-        tl.to(slice7, { x: 0, skewX: 0, scaleX: 1, duration: 0.01 }, 0.154);
-      }
-
-      // State 4: Cathode Ray Implosion & Laser Beam Collapse (0.154 → 0.172)
-      if (slicesWrapper) {
-        tl.fromTo(
-          slicesWrapper,
-          { scaleY: 1, scaleX: 1, opacity: 1 },
-          { scaleY: 0.018, scaleX: 1.4, filter: 'brightness(3.5) contrast(2.5)', ease: 'power3.in', duration: 0.012 },
-          0.154
-        );
-        tl.to(
-          slicesWrapper,
-          { opacity: 0, duration: 0.006 },
-          0.166
-        );
-      }
-
-      if (collapseBeam) {
-        tl.fromTo(
-          collapseBeam,
-          { scaleX: 0, scaleY: 1, opacity: 0 },
-          { scaleX: 1.2, scaleY: 1, opacity: 1, ease: 'power2.out', duration: 0.008 },
-          0.158
-        );
-        tl.to(
-          collapseBeam,
-          { scaleX: 2.2, scaleY: 6, opacity: 0, ease: 'power2.in', duration: 0.012 },
-          0.166
-        );
-      }
-
-      if (testSignal) {
-        tl.fromTo(
-          testSignal,
-          { opacity: 1.0, filter: 'contrast(1.08) saturate(1.15)' },
-          { filter: 'contrast(2.4) saturate(2.8) brightness(1.4)', duration: 0.025 },
-          0.125
-        );
-        tl.to(
-          testSignal,
-          { opacity: 0, duration: 0.01 },
-          0.168
-        );
-      }
-
-
-
+      /* ─── CRT ACTIVATION — PUSH-THROUGH HANDOFF (0.35 -> 0.38) ─── */
       if (crtActivation) {
-        tl.to(crtActivation, { opacity: 0, ease: 'power1.inOut', duration: 0.06 }, 0.35);
+        tl.to(crtActivation, { opacity: 0, ease: 'power1.inOut', duration: 0.03 }, 0.36);
       }
 
       /* ─── 3D COSMIC GALAXY FLIGHT — PURE PERSPECTIVE PHYSICS ──────────
@@ -640,14 +517,10 @@ export function useCameraDolly({
          No per-group opacity needed — CSS perspective handles all emergence.
          ─────────────────────────────────────────────────────────────────── */
       if (galaxyViewport) {
-        const galaxyNebula = galaxyViewport.querySelector('.galaxy-nebula-3d');
-        const starsVolume = galaxyViewport.querySelector('.galaxy-stars-volume');
         const vortexVolume = galaxyViewport.querySelector('.galaxy-vortex-volume');
 
         /* ── Initial state ──────────────────────────────────────────── */
         gsap.set(galaxyViewport, { opacity: 0 });
-        if (starsVolume) gsap.set(starsVolume, { z: 0 });
-        if (galaxyNebula) gsap.set(galaxyNebula, { opacity: 0 });
         if (vortexVolume) gsap.set(vortexVolume, { opacity: 0 });
 
         /* ── 1. Viewport appears as deep void the moment camera enters TV ── */
@@ -655,27 +528,9 @@ export function useCameraDolly({
           opacity: 1,
           ease: 'none',
           duration: 0.02,
-        }, 0.35);
+        }, 0.36);
 
-        /* ── 2. Subtle nebula glow fades in (0.36 → 0.60) ──────────── */
-        if (galaxyNebula) {
-          tl.to(galaxyNebula, {
-            opacity: 0.80,
-            ease: 'sine.inOut',
-            duration: 0.24,
-          }, 0.36);
-        }
-
-        /* ── 3. Star volume flies forward in Z (space-flight feel) ─── */
-        if (starsVolume) {
-          tl.fromTo(starsVolume,
-            { z: 0 },
-            { z: 6500, ease: 'none', duration: 0.65 },
-            0.35
-          );
-        }
-
-        /* ── 4. Radial Burst Gallery ────────────────────────────────
+        /* ── 2. Radial Burst Gallery ────────────────────────────────
            Reveal the vortex container, then let setupVortexBurstTimeline
            register each card's independent radial-burst tween directly
            onto the master scrub timeline.
@@ -705,6 +560,10 @@ export function useCameraDolly({
     }, scene);
 
     return () => {
+      // Resume CSS animations before reverting so they're in a clean state on remount
+      const signalEl = imageContainer?.querySelector('.crt-test-signal');
+      if (signalEl) signalEl.classList.remove('crt-animations-paused');
+
       if (text) gsap.set(text, { clearProps: 'transform,opacity,filter' });
       if (nav) gsap.set(nav, { clearProps: 'transform,opacity,filter' });
       const navLogo = nav?.querySelector('.logo');

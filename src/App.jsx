@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Loader } from '@react-three/drei';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import HeroScene from './components/HeroScene';
 import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
 import ResumeModal from './components/ResumeModal';
@@ -378,14 +375,15 @@ function App() {
     }
   });
 
-  // Initialize Lenis with true continuous liquid lerp smoothing (eliminates distinct stepped notches)
+  // Initialize Lenis with responsive continuous liquid lerp smoothing
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.075,
+      lerp: 0.1,
       smoothWheel: true,
-      wheelMultiplier: 0.85,
-      touchMultiplier: 1.2,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.0,
       infinite: false,
+      autoRaf: false, // GSAP ticker drives lenis.raf() — disable internal loop to avoid double updates
     });
 
     lenisRef.current = lenis;
@@ -393,13 +391,13 @@ function App() {
     // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
-    // Synchronize Lenis raf loop with GSAP ticker to eliminate scrub frame skips & runaway scrolling
+    // Synchronize Lenis raf loop with GSAP ticker
     const tickerHandler = (time) => {
       lenis.raf(time * 1000);
     };
 
     gsap.ticker.add(tickerHandler);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     return () => {
       gsap.ticker.remove(tickerHandler);
@@ -423,27 +421,27 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!cursorOutline.current) return;
+    const xToOutline = gsap.quickTo(cursorOutline.current, 'x', { duration: 0.15, ease: 'power2.out' });
+    const yToOutline = gsap.quickTo(cursorOutline.current, 'y', { duration: 0.15, ease: 'power2.out' });
+    const xToText = cursorTextRef.current ? gsap.quickTo(cursorTextRef.current, 'x', { duration: 0.15, ease: 'power2.out' }) : null;
+    const yToText = cursorTextRef.current ? gsap.quickTo(cursorTextRef.current, 'y', { duration: 0.15, ease: 'power2.out' }) : null;
+
     const handleMouseMove = (e) => {
-      gsap.set(cursorDot.current, { x: e.clientX, y: e.clientY });
-      gsap.to(cursorOutline.current, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.15,
-        ease: 'power2.out',
-      });
-      if (cursorTextRef.current) {
-        gsap.to(cursorTextRef.current, {
-          x: e.clientX,
-          y: e.clientY,
-          duration: 0.15,
-          ease: 'power2.out'
-        });
+      if (cursorDot.current) {
+        cursorDot.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      }
+      xToOutline(e.clientX);
+      yToOutline(e.clientY);
+      if (xToText && yToText) {
+        xToText(e.clientX);
+        yToText(e.clientY);
       }
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     // Audio unlocker: Resume context on first real interaction
     const unlockAudio = () => {
-      preloadSounds(); // ensure sounds are decoeded
+      preloadSounds(); // ensure sounds are decoded
       window.removeEventListener('click', unlockAudio);
       window.removeEventListener('keydown', unlockAudio);
     };
@@ -458,9 +456,9 @@ function App() {
   }, []);
 
   const pageVariants = {
-    initial: { opacity: 0, scale: 1.05, filter: "blur(10px)" },
-    in: { opacity: 1, scale: 1, filter: "blur(0px)" },
-    out: { opacity: 0, scale: 0.95, filter: "blur(10px)" }
+    initial: { opacity: 0, scale: 1.02 },
+    in: { opacity: 1, scale: 1 },
+    out: { opacity: 0, scale: 0.98 }
   };
 
   const pageTransition = { type: "spring", stiffness: 60, damping: 20, duration: 1.2 };
@@ -503,42 +501,9 @@ function App() {
       <IntroOverlay onComplete={() => setIntroComplete(true)} />
 
       <div className="scene-sticky-container" style={{ opacity: introComplete ? 1 : 0, transition: 'opacity 0.6s ease' }}>
-        {/* 3D Preloader */}
-        <Loader
-          containerStyles={{ background: '#0A192F' }}
-          innerStyles={{ background: 'rgba(100, 255, 218, 0.2)', height: '4px', width: '250px' }}
-          barStyles={{ background: '#64FFDA', height: '4px' }}
-          dataInterpolation={(p) => `INITIALIZING WEBGL CORE ${p.toFixed(0)}%`}
-          dataStyles={{ fontFamily: 'clash-display', color: '#64FFDA', fontSize: '1.5rem', letterSpacing: '2px' }}
-        />
-
-        {/* Neural Edge Detection Filter Definitions */}
-        <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
-          <filter id="neural-edge-detect">
-            <feColorMatrix type="saturate" values="0" />
-            <feConvolveMatrix
-              order="3"
-              kernelMatrix="-1 -1 -1 
-                            -1  8 -1 
-                            -1 -1 -1"
-              preserveAlpha="true"
-            />
-            {/* Map Gray intensity to Neon Green (#39FF14) */}
-            <feColorMatrix type="matrix" values="0.22 0 0 0 0 
-                                                 1.00 0 0 0 0 
-                                                 0.08 0 0 0 0 
-                                                 0    0 0 1 0" />
-            <feComponentTransfer>
-              <feFuncR type="gamma" exponent="0.5" amplitude="0.7" />
-              <feFuncG type="gamma" exponent="0.5" amplitude="0.7" />
-              <feFuncB type="gamma" exponent="0.5" amplitude="0.7" />
-            </feComponentTransfer>
-          </filter>
-        </svg>
-
         <nav ref={navRef} className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
           <div className="nav-content">
-            <div className="logo magnetic" onClick={() => scrollToSection(0)} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
+            <div className="logo magnetic" onClick={() => scrollToSection('scene-0')} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
             <div className="nav-links">
               {NAV_LINKS.map((link) => (
                 <button
@@ -554,15 +519,6 @@ function App() {
             </div>
           </div>
         </nav>
-
-        {/* WebGL Background */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
-          <Canvas eventSource={document.body} eventPrefix="client" camera={{ position: [0, 0, 10], fov: 45 }}>
-            <React.Suspense fallback={null}>
-              <HeroScene activeScene={activeScene} />
-            </React.Suspense>
-          </Canvas>
-        </div>
 
         <div className="scroll-sections">
           {/* Frame 0: Cinematic Introduction */}
@@ -664,6 +620,8 @@ function App() {
                     className="hero-composite-img"
                   />
                 </div>
+
+
               </motion.div>
             </div>
           </motion.div>
@@ -674,8 +632,8 @@ function App() {
             onViewportEnter={() => setActiveScene(1)}
             viewport={{ amount: 0.3 }}
             key="scene1"
-            initial={{ opacity: 0, scale: 0.8, filter: "blur(15px)" }}
-            whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
             style={{
               position: 'relative',
@@ -963,8 +921,8 @@ function App() {
             onViewportEnter={() => setActiveScene(2)}
             viewport={{ amount: 0.3 }}
             key="scene2"
-            initial={{ opacity: 0, scale: 0.8, filter: "blur(15px)" }}
-            whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
             style={{
               transformStyle: 'preserve-3d',
