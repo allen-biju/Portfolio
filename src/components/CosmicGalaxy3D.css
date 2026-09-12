@@ -15,8 +15,9 @@
   z-index: 1;
   background-color: #02050e;
   opacity: 0;
-  will-change: opacity;
+  /* Remove persistent will-change — see galaxy-offscreen class below */
 }
+
 
 /* ─── 3D Scene Root Container ──────────────────────────────────────── */
 .galaxy-3d-scene {

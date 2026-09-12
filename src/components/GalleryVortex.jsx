@@ -240,6 +240,8 @@ export function setupVortexBurstTimeline(tl, vortexContainer) {
     tl.fromTo(
       img,
       {
+        xPercent: -50,
+        yPercent: -50,
         x: emitX,
         y: emitY,
         z: startZ,
@@ -249,6 +251,8 @@ export function setupVortexBurstTimeline(tl, vortexContainer) {
         rotateZ: 0,
       },
       {
+        xPercent: -50,
+        yPercent: -50,
         x: destX,
         y: destY,
         z: endZ,

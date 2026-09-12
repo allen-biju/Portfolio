@@ -475,7 +475,6 @@ a {
   z-index: 2;
   overflow: hidden !important;
   opacity: 0;
-  will-change: transform, opacity;
   isolation: isolate;
   contain: paint;
   transform: translateZ(0);
@@ -490,7 +489,6 @@ a {
   transform: scaleY(0);
   overflow: hidden !important;
   background: #02050e;
-  will-change: transform, opacity;
   backface-visibility: hidden;
 }
 
@@ -506,7 +504,6 @@ a {
   opacity: 0;
   pointer-events: none;
   z-index: 5;
-  will-change: opacity;
 }
 
 /* Horizontal Startup Line — celestial white-blue core */
@@ -534,7 +531,6 @@ a {
   opacity: 0;
   z-index: 6;
   pointer-events: none;
-  will-change: transform, opacity;
 }
 
 /* ─── TV SCREEN WORLD (Clean Solid Pure Black Background) ────────────────── */
@@ -556,10 +552,6 @@ a {
   pointer-events: none;
   overflow: hidden;
   opacity: 1;
-  /* NOTE: filter:contrast/saturate removed — a static CSS filter on an element
-     with will-change:filter inside a preserve-3d ancestor creates an expensive
-     stacking context that prevents GPU compositing of child layers. */
-  will-change: opacity, transform;
   background: #050505;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -810,7 +802,6 @@ a {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -820,7 +811,6 @@ a {
   inset: 0;
   width: 100%;
   height: 100%;
-  will-change: transform;
   pointer-events: none;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -864,7 +854,6 @@ a {
   inset: 0;
   pointer-events: none;
   opacity: 0.25;
-  will-change: transform, opacity;
   backface-visibility: hidden;
   transform: translateZ(0);
 }
@@ -897,7 +886,6 @@ a {
   z-index: 7;
   pointer-events: none;
   opacity: 0.75;
-  will-change: transform, opacity;
   animation: crtVHoldSlip 3.4s ease-in-out infinite;
 }
 
@@ -924,7 +912,6 @@ a {
   opacity: 0.35;
   pointer-events: none;
   z-index: 6;
-  will-change: transform, opacity;
   animation: crtSmearDrift 2.8s ease-in-out infinite;
 }
 
@@ -939,7 +926,6 @@ a {
   opacity: 0.45;
   pointer-events: none;
   z-index: 7;
-  will-change: opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
   animation: crtGlitchFlicker 0.9s steps(2, start) infinite;
@@ -1050,7 +1036,6 @@ a {
   transform: scaleX(0);
   z-index: 12;
   pointer-events: none;
-  will-change: transform, opacity;
 }
 
 

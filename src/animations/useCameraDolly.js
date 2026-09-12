@@ -240,6 +240,8 @@ export function useCameraDolly({
       };
 
       /* ─── MASTER TIMELINE — EXTENDED SCROLL DISTANCE (1400vh) ───── */
+      let _lastProgress = 0;
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: scene,
@@ -250,10 +252,14 @@ export function useCameraDolly({
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            if (checkCrtActivation) checkCrtActivation(self.progress);
-            // Pause CSS animations while signal is hidden (progress > 0.22)
-            // to prevent GPU recomposition lag on reverse scroll.
-            if (self.progress >= 0.22) {
+            const p = self.progress;
+            _lastProgress = p;
+
+            if (checkCrtActivation) checkCrtActivation(p);
+
+            // Pause CRT CSS animations while signal is invisible (progress >= 0.22)
+            // to save GPU compositor cycles on both forward and reverse scroll.
+            if (p >= 0.22) {
               pauseSignalAnims();
             } else {
               resumeSignalAnims();
@@ -271,6 +277,7 @@ export function useCameraDolly({
         },
       });
 
+
       /* ─── ABOUT TEXT ─────────────────────────────────────────── */
       tl.fromTo(
         text,
@@ -278,13 +285,13 @@ export function useCameraDolly({
           scale: 1,
           x: 0,
           y: 0,
-          opacity: 1,
+          autoAlpha: 1,
         },
         {
           scale: () => dollyTarget ? dollyTarget.textScale : 3.0,
           x: () => dollyTarget ? dollyTarget.textX : -300,
           y: () => dollyTarget ? dollyTarget.textY : -100,
-          opacity: 0,
+          autoAlpha: 0,
           ease: 'power2.inOut',
           duration: 0.28,
         },
@@ -428,7 +435,7 @@ export function useCameraDolly({
           y: 0,
           rotateX: 0,
           rotateY: 0,
-          opacity: 1,
+          autoAlpha: 1,
           transformOrigin: () => dollyTarget ? `${dollyTarget.originX} ${dollyTarget.originY}` : '50% 50%',
         },
         {
@@ -437,7 +444,7 @@ export function useCameraDolly({
           y: () => dollyTarget ? dollyTarget.y : 0,
           rotateX: 0,
           rotateY: 0,
-          opacity: 1,
+          autoAlpha: 1,
           transformOrigin: () => dollyTarget ? `${dollyTarget.originX} ${dollyTarget.originY}` : '50% 50%',
           ease: 'power2.inOut',
           duration: 0.28,
@@ -448,14 +455,14 @@ export function useCameraDolly({
       /* ─── TV IMAGE — PHASE 2: push through into TV screen ────── */
       tl.to(imageContainer, {
         scale: () => dollyTarget ? dollyTarget.pushThroughScale : 2.4,
-        opacity: 1,
+        autoAlpha: 1,
         ease: 'power1.in',
         duration: 0.09,
       }, 0.28);
 
       /* ─── TV IMAGE — PHASE 3: handoff fade to Deep Void ───────── */
       tl.to(imageContainer, {
-        opacity: 0,
+        autoAlpha: 0,
         ease: 'power1.out',
         duration: 0.03,
       }, 0.37);
@@ -503,9 +510,11 @@ export function useCameraDolly({
         tl.to(reflectionEl, { opacity: 0, ease: 'power1.in', duration: 0.08 }, 0.30);
       }
 
-      /* ─── CRT ACTIVATION — PUSH-THROUGH HANDOFF (0.35 -> 0.38) ─── */
+      /* ─── CRT ACTIVATION — BLANK OUT BEFORE PUSH-THROUGH (0.24 -> 0.27) ─── */
+      // Fades out and hides CRT before 0.28 so zero CRT internal layers are composited
+      // during the 17x push-through scaling into tvScreenAnchor.
       if (crtActivation) {
-        tl.to(crtActivation, { opacity: 0, ease: 'power1.inOut', duration: 0.03 }, 0.36);
+        tl.to(crtActivation, { autoAlpha: 0, ease: 'power1.inOut', duration: 0.03 }, 0.25);
       }
 
       /* ─── 3D COSMIC GALAXY FLIGHT — PURE PERSPECTIVE PHYSICS ──────────
@@ -519,16 +528,16 @@ export function useCameraDolly({
       if (galaxyViewport) {
         const vortexVolume = galaxyViewport.querySelector('.galaxy-vortex-volume');
 
-        /* ── Initial state ──────────────────────────────────────────── */
-        gsap.set(galaxyViewport, { opacity: 0 });
-        if (vortexVolume) gsap.set(vortexVolume, { opacity: 0 });
+        /* ── Initial state: completely hidden from layout & compositor ── */
+        gsap.set(galaxyViewport, { autoAlpha: 0 });
+        if (vortexVolume) gsap.set(vortexVolume, { autoAlpha: 0 });
 
         /* ── 1. Viewport appears as deep void the moment camera enters TV ── */
-        tl.to(galaxyViewport, {
-          opacity: 1,
-          ease: 'none',
-          duration: 0.02,
-        }, 0.36);
+        tl.fromTo(galaxyViewport,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, ease: 'none', duration: 0.02 },
+          0.36
+        );
 
         /* ── 2. Radial Burst Gallery ────────────────────────────────
            Reveal the vortex container, then let setupVortexBurstTimeline
@@ -540,17 +549,17 @@ export function useCameraDolly({
         if (vortexVolume) {
           // Make the container visible so cards inside can animate
           tl.fromTo(vortexVolume,
-            { opacity: 0 },
-            { opacity: 1, ease: 'power1.inOut', duration: 0.04 },
+            { autoAlpha: 0 },
+            { autoAlpha: 1, ease: 'power1.inOut', duration: 0.04 },
             0.37
           );
 
           // Register all per-card radial burst tweens onto the master timeline
           setupVortexBurstTimeline(tl, vortexVolume);
 
-          // Master failsafe: ensure vortex container fades out completely to 0 opacity
+          // Master failsafe: ensure vortex container fades out completely to 0 autoAlpha
           tl.to(vortexVolume, {
-            opacity: 0,
+            autoAlpha: 0,
             ease: 'power2.inOut',
             duration: 0.05,
           }, 0.89);
@@ -560,11 +569,11 @@ export function useCameraDolly({
     }, scene);
 
     return () => {
-      // Resume CSS animations before reverting so they're in a clean state on remount
+      // Resume CSS animations before reverting
       const signalEl = imageContainer?.querySelector('.crt-test-signal');
       if (signalEl) signalEl.classList.remove('crt-animations-paused');
 
-      if (text) gsap.set(text, { clearProps: 'transform,opacity,filter' });
+      if (text) gsap.set(text, { clearProps: 'transform,opacity,visibility,filter' });
       if (nav) gsap.set(nav, { clearProps: 'transform,opacity,filter' });
       const navLogo = nav?.querySelector('.logo');
       if (navLogo) gsap.set(navLogo, { clearProps: 'transform' });
@@ -579,7 +588,8 @@ export function useCameraDolly({
       if (footerCenter) gsap.set(footerCenter, { clearProps: 'transform' });
       const footerRight = footer?.querySelector('.footer-right');
       if (footerRight) gsap.set(footerRight, { clearProps: 'transform' });
-      if (galaxyViewport) gsap.set(galaxyViewport, { clearProps: 'transform,opacity' });
+      if (galaxyViewport) gsap.set(galaxyViewport, { clearProps: 'transform,opacity,visibility' });
+      if (imageContainer) gsap.set(imageContainer, { clearProps: 'transform,opacity,visibility' });
       clearTimeout(refreshTimer);
       ctx.revert();
     };
