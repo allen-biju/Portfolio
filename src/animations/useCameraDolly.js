@@ -159,56 +159,73 @@ export function useCameraDolly({
       const crtPowerOnTl = gsap.timeline({ paused: true });
 
       if (crtActivation && crtFlash && crtHLine && crtRaster) {
-        gsap.set(crtActivation, { opacity: 0 });
+        gsap.set(crtActivation, { opacity: 0, visibility: 'hidden' });
         gsap.set(crtFlash, { opacity: 0 });
         gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
         gsap.set(crtRaster, { scaleY: 0, opacity: 0 });
 
         crtPowerOnTl
-          .to(crtActivation, { opacity: 1, duration: 0.01 })
-          .to(crtFlash, { opacity: 0.95, ease: 'power2.in', duration: 0.12 })
-          .to(crtFlash, { opacity: 0.25, ease: 'power2.out', duration: 0.18 })
+          .set(crtActivation, { visibility: 'visible', opacity: 1 }, 0)
+          .to(crtFlash, { opacity: 0.95, ease: 'power2.in', duration: 0.08 }, 0)
+          .to(crtFlash, { opacity: 0.25, ease: 'power2.out', duration: 0.12 }, 0.08)
           .fromTo(
             crtHLine,
             { opacity: 0, scaleX: 0 },
-            { opacity: 1, scaleX: 1, ease: 'power3.out', duration: 0.18 },
-            0.12
+            { opacity: 1, scaleX: 1, ease: 'power3.out', duration: 0.14 },
+            0.06
           )
           .fromTo(
             crtRaster,
             { scaleY: 0.005, opacity: 0 },
             { scaleY: 0.005, opacity: 1, duration: 0.01 },
-            0.30
+            0.18
           )
-          .to(crtRaster, { scaleY: 1.0, ease: 'power2.inOut', duration: 0.30 }, 0.31)
-          .to(crtHLine, { opacity: 0, duration: 0.12 }, 0.35)
-          .to(crtFlash, { opacity: 0, duration: 0.15 }, 0.31);
+          .to(crtRaster, { scaleY: 1.0, ease: 'power2.inOut', duration: 0.22 }, 0.19)
+          .to(crtHLine, { opacity: 0, duration: 0.08 }, 0.24)
+          .to(crtFlash, { opacity: 0, duration: 0.10 }, 0.20);
       }
 
       let checkCrtActivation = null;
       if (crtActivation) {
         checkCrtActivation = (progress) => {
-          // Automatic power-on: fires once in real-time when scroll reaches ~0.08
-          if (progress >= 0.08 && progress <= 0.32) {
-            if (!hasCrtActivated) {
-              hasCrtActivated = true;
-              crtPowerOnTl.play(0);
-            }
-          } else if (progress < 0.04) {
-            // Scrolled back out: reset cleanly without any inline CSS filter injection
+          // Zone 1: User is at the top (reset CRT to powered-off state)
+          if (progress <= 0.035) {
             if (hasCrtActivated) {
               hasCrtActivated = false;
               crtPowerOnTl.pause(0);
+              gsap.set(crtActivation, { opacity: 0, visibility: 'hidden' });
+              if (crtFlash) gsap.set(crtFlash, { opacity: 0 });
+              if (crtHLine) gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
+              if (crtRaster) gsap.set(crtRaster, { opacity: 0, scaleY: 0 });
+            }
+          }
+          // Zone 2: Push-through / Deep Space (progress >= 0.24)
+          // Smoothly fade out CRT activation before camera plunges through screen into deep space
+          else if (progress >= 0.24) {
+            if (progress >= 0.28) {
               crtActivation.style.opacity = '0';
-              if (crtFlash) crtFlash.style.opacity = '0';
-              if (crtHLine) {
-                crtHLine.style.opacity = '0';
-                crtHLine.style.transform = 'scaleX(0)';
+              crtActivation.style.visibility = 'hidden';
+            } else {
+              // Smooth fade between 0.24 and 0.28
+              const fade = Math.max(0, 1 - (progress - 0.24) / 0.04);
+              crtActivation.style.opacity = fade.toFixed(3);
+              crtActivation.style.visibility = fade <= 0.01 ? 'hidden' : 'visible';
+            }
+          }
+          // Zone 3: Active CRT viewing zone (activates later into the scroll ~0.06)
+          else if (progress >= 0.06) {
+            crtActivation.style.visibility = 'visible';
+            if (!hasCrtActivated) {
+              hasCrtActivated = true;
+              crtPowerOnTl.play(0);
+            } else {
+              if (crtPowerOnTl.progress() === 1) {
+                crtActivation.style.opacity = '1';
               }
-              if (crtRaster) {
-                crtRaster.style.opacity = '0';
-                crtRaster.style.transform = 'scaleY(0)';
-              }
+            }
+            // Fast-forward opening animation if user scrolls quickly past 0.14
+            if (progress >= 0.14 && crtPowerOnTl.progress() < 1) {
+              crtPowerOnTl.progress(1);
             }
           }
         };
@@ -239,16 +256,16 @@ export function useCameraDolly({
         }
       };
 
-      /* ─── MASTER TIMELINE — EXTENDED SCROLL DISTANCE (1400vh) ───── */
+      /* ─── MASTER TIMELINE — EXTENDED SCROLL DISTANCE (2400vh) ───── */
       let _lastProgress = 0;
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: scene,
           start: 'top top',
-          end: '+=1400vh',
+          end: '+=2400vh',
           pin: true,
-          scrub: 0.3,
+          scrub: 0.4,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
@@ -510,13 +527,6 @@ export function useCameraDolly({
         tl.to(reflectionEl, { opacity: 0, ease: 'power1.in', duration: 0.08 }, 0.30);
       }
 
-      /* ─── CRT ACTIVATION — BLANK OUT BEFORE PUSH-THROUGH (0.24 -> 0.27) ─── */
-      // Fades out and hides CRT before 0.28 so zero CRT internal layers are composited
-      // during the 17x push-through scaling into tvScreenAnchor.
-      if (crtActivation) {
-        tl.to(crtActivation, { autoAlpha: 0, ease: 'power1.inOut', duration: 0.03 }, 0.25);
-      }
-
       /* ─── 3D COSMIC GALAXY FLIGHT — PURE PERSPECTIVE PHYSICS ──────────
          Stars are distributed Z=-6000 to Z=-400 in the DOM.
          We drive the SINGLE .galaxy-stars-volume container forward +6500px.
@@ -572,6 +582,11 @@ export function useCameraDolly({
       // Resume CSS animations before reverting
       const signalEl = imageContainer?.querySelector('.crt-test-signal');
       if (signalEl) signalEl.classList.remove('crt-animations-paused');
+
+      if (crtActivation) gsap.set(crtActivation, { clearProps: 'all' });
+      if (crtFlash) gsap.set(crtFlash, { clearProps: 'all' });
+      if (crtHLine) gsap.set(crtHLine, { clearProps: 'all' });
+      if (crtRaster) gsap.set(crtRaster, { clearProps: 'all' });
 
       if (text) gsap.set(text, { clearProps: 'transform,opacity,visibility,filter' });
       if (nav) gsap.set(nav, { clearProps: 'transform,opacity,filter' });

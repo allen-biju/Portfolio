@@ -378,9 +378,9 @@ function App() {
   // Initialize Lenis with responsive continuous liquid lerp smoothing
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.1,
+      lerp: 0.09,
       smoothWheel: true,
-      wheelMultiplier: 1.0,
+      wheelMultiplier: 0.85,
       touchMultiplier: 1.0,
       infinite: false,
       autoRaf: false, // GSAP ticker drives lenis.raf() — disable internal loop to avoid double updates
@@ -406,14 +406,22 @@ function App() {
     };
   }, []);
 
-  // Scroll Orchestration: Pause main scroll when detail overlay or resume is active
+  // Scroll Orchestration: Pause main scroll when detail overlay or resume is active, or during intro
   useEffect(() => {
-    if (selectedSkill || showResume) {
+    if (selectedSkill || showResume || !introComplete) {
       lenisRef.current?.stop();
     } else {
       lenisRef.current?.start();
     }
-  }, [selectedSkill, showResume]);
+  }, [selectedSkill, showResume, introComplete]);
+
+  // Ensure clean start at top on page load/reload
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
 
   // Sound preloading
   useEffect(() => {
