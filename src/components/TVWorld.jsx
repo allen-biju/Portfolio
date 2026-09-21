@@ -17,7 +17,6 @@ import React from 'react';
  *      │     │     ├── .crt-test-scanlines     — CRT scanlines
  *      │     │     ├── .crt-test-slices-wrapper — 7 tearing slices (CSS gradient SMPTE)
  *      │     │     ├── .crt-test-chroma--red/cyan — RGB ghost channels
- *      │     │     ├── .crt-test-vhold-bar     — V-Hold sync slip
  *      │     │     ├── .crt-test-phosphor-smear
  *      │     │     ├── .crt-test-glitch-interference
  *      │     │     └── .crt-test-collapse-beam
@@ -87,18 +86,18 @@ export default function TVWorld({ className = '', style = {} }) {
             */}
             <div className="crt-test-chroma crt-test-chroma--red smpte-bg" />
             <div className="crt-test-chroma crt-test-chroma--cyan smpte-bg" />
-
-            {/* Analog V-Hold Vertical Sync Slip Bar */}
-            <div className="crt-test-vhold-bar">
-              <div className="crt-vhold-noise-band" />
-            </div>
-
             {/* Phosphor Smear & High-Energy Flare Streak */}
             <div className="crt-test-phosphor-smear" />
             <div className="crt-test-glitch-interference" />
 
             {/* Cathode Ray Magnetic Collapse Laser Beam */}
             <div className="crt-test-collapse-beam" />
+
+            {/* ─── CARRIER IDENT TEXT: DIGITAL CREATOR AND EXPLORER ─── */}
+            <div className="crt-test-text-wrapper">
+              <span className="crt-text-line">DIGITAL CREATOR &</span>
+              <span className="crt-text-line crt-text-line--clarsen">EXPLORER</span>
+            </div>
           </div>
 
         </div>

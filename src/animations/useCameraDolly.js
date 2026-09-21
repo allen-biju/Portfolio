@@ -154,82 +154,96 @@ export function useCameraDolly({
       const crtFlash = imageContainer.querySelector('.crt-flash');
       const crtHLine = imageContainer.querySelector('.crt-h-line');
       const crtRaster = imageContainer.querySelector('.crt-raster-container');
+      const testSignalRef = imageContainer.querySelector('.crt-test-signal');
+      const crtCarrierText = imageContainer.querySelector('.crt-test-text-wrapper');
+      const crtTextPlate = crtCarrierText?.querySelector('.crt-test-text-plate');
 
       let hasCrtActivated = false;
       const crtPowerOnTl = gsap.timeline({ paused: true });
 
       if (crtActivation && crtFlash && crtHLine && crtRaster) {
-        gsap.set(crtActivation, { opacity: 0, visibility: 'hidden' });
+        // Initial states
+        gsap.set(crtActivation, { autoAlpha: 0 });
         gsap.set(crtFlash, { opacity: 0 });
         gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
         gsap.set(crtRaster, { scaleY: 0, opacity: 0 });
+        if (crtCarrierText) {
+          gsap.set(crtCarrierText, { autoAlpha: 0 });
+        }
+        if (crtTextPlate) {
+          gsap.set(crtTextPlate, { scale: 0.88 });
+        }
 
         crtPowerOnTl
-          .set(crtActivation, { visibility: 'visible', opacity: 1 }, 0)
+          // ── Phase 1: Phosphor ignition flash + horizontal startup line (0.00 → 0.18s) ──
+          .set(crtActivation, { autoAlpha: 1 }, 0)
           .to(crtFlash, { opacity: 0.95, ease: 'power2.in', duration: 0.08 }, 0)
-          .to(crtFlash, { opacity: 0.25, ease: 'power2.out', duration: 0.12 }, 0.08)
+          .to(crtFlash, { opacity: 0.2, ease: 'power2.out', duration: 0.10 }, 0.08)
           .fromTo(
             crtHLine,
             { opacity: 0, scaleX: 0 },
             { opacity: 1, scaleX: 1, ease: 'power3.out', duration: 0.14 },
-            0.06
+            0.04
           )
+          .to(crtHLine, { opacity: 0, duration: 0.08 }, 0.18)
+          .to(crtFlash, { opacity: 0, duration: 0.08 }, 0.18)
+
+          // ── Phase 2: Raster unfolds vertically → SMPTE color palette revealed (0.16 → 0.38s) ──
           .fromTo(
             crtRaster,
             { scaleY: 0.005, opacity: 0 },
             { scaleY: 0.005, opacity: 1, duration: 0.01 },
-            0.18
+            0.16
           )
-          .to(crtRaster, { scaleY: 1.0, ease: 'power2.inOut', duration: 0.22 }, 0.19)
-          .to(crtHLine, { opacity: 0, duration: 0.08 }, 0.24)
-          .to(crtFlash, { opacity: 0, duration: 0.10 }, 0.20);
+          .to(crtRaster, { scaleY: 1.0, ease: 'power2.inOut', duration: 0.22 }, 0.17);
       }
 
-      let checkCrtActivation = null;
-      if (crtActivation) {
-        checkCrtActivation = (progress) => {
-          // Zone 1: User is at the top (reset CRT to powered-off state)
-          if (progress <= 0.035) {
-            if (hasCrtActivated) {
-              hasCrtActivated = false;
-              crtPowerOnTl.pause(0);
-              gsap.set(crtActivation, { opacity: 0, visibility: 'hidden' });
-              if (crtFlash) gsap.set(crtFlash, { opacity: 0 });
-              if (crtHLine) gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
-              if (crtRaster) gsap.set(crtRaster, { opacity: 0, scaleY: 0 });
+      const checkCrtActivation = (progress) => {
+        if (!crtActivation) return;
+
+        // Zone 1: User is at the top — reset CRT to powered-off state
+        if (progress <= 0.035) {
+          if (hasCrtActivated) {
+            hasCrtActivated = false;
+            crtPowerOnTl.pause(0);
+            testSignalRef?.classList.remove('crt-stabilized');
+            gsap.set(crtActivation, { autoAlpha: 0 });
+            if (crtFlash) gsap.set(crtFlash, { opacity: 0 });
+            if (crtHLine) gsap.set(crtHLine, { opacity: 0, scaleX: 0 });
+            if (crtRaster) gsap.set(crtRaster, { opacity: 0, scaleY: 0 });
+            if (crtCarrierText) gsap.set(crtCarrierText, { autoAlpha: 0 });
+            if (crtTextPlate) gsap.set(crtTextPlate, { scale: 0.88 });
+          }
+        }
+        // Zone 2: Push-through / Deep Space (progress >= 0.25)
+        // Smoothly fade out CRT activation before camera plunges through screen into deep space
+        else if (progress >= 0.25) {
+          if (progress >= 0.28) {
+            crtActivation.style.opacity = '0';
+            crtActivation.style.visibility = 'hidden';
+          } else {
+            const fade = Math.max(0, 1 - (progress - 0.25) / 0.03);
+            crtActivation.style.opacity = fade.toFixed(3);
+            crtActivation.style.visibility = fade <= 0.01 ? 'hidden' : 'visible';
+          }
+        }
+        // Zone 3: Active CRT viewing zone (activates automatically when user reaches ~0.05)
+        else if (progress >= 0.05) {
+          if (!hasCrtActivated) {
+            hasCrtActivated = true;
+            crtPowerOnTl.play(0);
+          } else {
+            if (crtPowerOnTl.progress() > 0.05) {
+              crtActivation.style.opacity = '1';
+              crtActivation.style.visibility = 'visible';
             }
           }
-          // Zone 2: Push-through / Deep Space (progress >= 0.24)
-          // Smoothly fade out CRT activation before camera plunges through screen into deep space
-          else if (progress >= 0.24) {
-            if (progress >= 0.28) {
-              crtActivation.style.opacity = '0';
-              crtActivation.style.visibility = 'hidden';
-            } else {
-              // Smooth fade between 0.24 and 0.28
-              const fade = Math.max(0, 1 - (progress - 0.24) / 0.04);
-              crtActivation.style.opacity = fade.toFixed(3);
-              crtActivation.style.visibility = fade <= 0.01 ? 'hidden' : 'visible';
-            }
+          // Fast-forward opening animation if user scrolls quickly past 0.10
+          if (progress >= 0.10 && crtPowerOnTl.progress() < 1) {
+            crtPowerOnTl.progress(1);
           }
-          // Zone 3: Active CRT viewing zone (activates later into the scroll ~0.06)
-          else if (progress >= 0.06) {
-            crtActivation.style.visibility = 'visible';
-            if (!hasCrtActivated) {
-              hasCrtActivated = true;
-              crtPowerOnTl.play(0);
-            } else {
-              if (crtPowerOnTl.progress() === 1) {
-                crtActivation.style.opacity = '1';
-              }
-            }
-            // Fast-forward opening animation if user scrolls quickly past 0.14
-            if (progress >= 0.14 && crtPowerOnTl.progress() < 1) {
-              crtPowerOnTl.progress(1);
-            }
-          }
-        };
-      }
+        }
+      };
 
       /* ─── CSS ANIMATION PAUSE HELPER ──────────────────────────────
          The CRT test signal has several CSS keyframe animations running
@@ -240,7 +254,6 @@ export function useCameraDolly({
          Fix: add a class that sets animation-play-state:paused on every
          child whenever the signal is hidden, and remove it to resume.
       ──────────────────────────────────────────────────────────────── */
-      const testSignalRef = imageContainer.querySelector('.crt-test-signal');
       let signalAnimsPaused = false;
 
       const pauseSignalAnims = () => {
@@ -272,11 +285,21 @@ export function useCameraDolly({
             const p = self.progress;
             _lastProgress = p;
 
-            if (checkCrtActivation) checkCrtActivation(p);
+            checkCrtActivation(p);
 
-            // Pause CRT CSS animations while signal is invisible (progress >= 0.22)
-            // to save GPU compositor cycles on both forward and reverse scroll.
-            if (p >= 0.22) {
+            // Scroll-driven stabilization:
+            // When p >= 0.11 and p < 0.26, the distortion stabilizes:
+            // slice jitter slows down to a slow subtle drift, chroma and glitch are minimized.
+            if (testSignalRef) {
+              if (p >= 0.11 && p < 0.26) {
+                testSignalRef.classList.add('crt-stabilized');
+              } else {
+                testSignalRef.classList.remove('crt-stabilized');
+              }
+            }
+
+            // Pause CRT CSS animations while signal is invisible (powered off or in deep space)
+            if (p >= 0.28 || p <= 0.03) {
               pauseSignalAnims();
             } else {
               resumeSignalAnims();
@@ -294,6 +317,70 @@ export function useCameraDolly({
         },
       });
 
+      /* ─── CRT TELEVISION DISPLAY: SCROLL-DRIVEN STABILIZATION & TEXT ─── */
+      const crtSlicesWrapper = imageContainer.querySelector('.crt-test-slices-wrapper');
+      const crtChromaRed     = imageContainer.querySelector('.crt-test-chroma--red');
+      const crtChromaCyan    = imageContainer.querySelector('.crt-test-chroma--cyan');
+      const crtSmear         = imageContainer.querySelector('.crt-test-phosphor-smear');
+      const crtGlitch        = imageContainer.querySelector('.crt-test-glitch-interference');
+      const crtPaletteStack  = [crtSlicesWrapper, crtChromaRed, crtChromaCyan, crtSmear, crtGlitch].filter(Boolean);
+
+      // Initial state: palette visible, text hidden
+      if (crtPaletteStack.length) {
+        gsap.set(crtPaletteStack, { opacity: 1 });
+      }
+      if (crtCarrierText) {
+        gsap.set(crtCarrierText, { autoAlpha: 0 });
+      }
+      if (crtTextPlate) {
+        gsap.set(crtTextPlate, { scale: 0.88 });
+      }
+
+      // 1. Color palette stabilizes & disappears via scroll (0.11 → 0.15)
+      if (crtPaletteStack.length) {
+        tl.fromTo(
+          crtPaletteStack,
+          { opacity: 1 },
+          { opacity: 0, ease: 'power2.inOut', duration: 0.04 },
+          0.11
+        );
+      }
+
+      // Phosphor lock flash as palette collapses to black screen (0.145 → 0.16)
+      if (crtFlash) {
+        tl.fromTo(
+          crtFlash,
+          { opacity: 0 },
+          { opacity: 0.50, ease: 'power2.in', duration: 0.01 },
+          0.145
+        )
+        .to(crtFlash, { opacity: 0, ease: 'power2.out', duration: 0.015 }, 0.155);
+      }
+
+      // 2. Text resolves on the dark screen after palette disappears (0.155 → 0.19)
+      if (crtCarrierText) {
+        tl.fromTo(
+          crtCarrierText,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.03, ease: 'power1.out' },
+          0.155
+        );
+        if (crtTextPlate) {
+          tl.fromTo(
+            crtTextPlate,
+            { scale: 0.88 },
+            { scale: 1.0, ease: 'back.out(1.5)', duration: 0.035 },
+            0.155
+          );
+        }
+      }
+
+      // 3. Screen content dissolves before pushing through screen into deep space (0.25 → 0.28)
+      tl.to([testSignalRef, crtActivation].filter(Boolean), {
+        autoAlpha: 0,
+        ease: 'power2.inOut',
+        duration: 0.03
+      }, 0.25);
 
       /* ─── ABOUT TEXT ─────────────────────────────────────────── */
       tl.fromTo(
@@ -490,18 +577,6 @@ export function useCameraDolly({
       // a full CPU Gaussian blur recalculation every scroll frame.
       // Shadow is applied statically via CSS class instead.
 
-      /* ─── CRT TEST SIGNAL: BLANK SCREEN BEFORE PUSH-THROUGH ─── */
-      const testSignal = imageContainer.querySelector('.crt-test-signal');
-      if (testSignal) {
-        // Color palette & distortion smoothly fade to blank before transition into TV
-        // autoAlpha sets visibility: hidden to completely suspend GPU rendering of the palette
-        tl.fromTo(
-          testSignal,
-          { autoAlpha: 1 },
-          { autoAlpha: 0, ease: 'power2.inOut', duration: 0.05 },
-          0.20
-        );
-      }
 
       /* ─── CRT GLASS GLARE ────────────────────────────────────── */
       const glareEl = imageContainer.querySelector('.crt-glass__glare');
@@ -587,6 +662,10 @@ export function useCameraDolly({
       if (crtFlash) gsap.set(crtFlash, { clearProps: 'all' });
       if (crtHLine) gsap.set(crtHLine, { clearProps: 'all' });
       if (crtRaster) gsap.set(crtRaster, { clearProps: 'all' });
+      if (crtPaletteStack && crtPaletteStack.length) gsap.set(crtPaletteStack, { clearProps: 'all' });
+      if (crtCarrierText) gsap.set(crtCarrierText, { clearProps: 'all' });
+      if (crtTextPlate) gsap.set(crtTextPlate, { clearProps: 'all' });
+      if (testSignalRef) testSignalRef.classList.remove('crt-stabilized');
 
       if (text) gsap.set(text, { clearProps: 'transform,opacity,visibility,filter' });
       if (nav) gsap.set(nav, { clearProps: 'transform,opacity,filter' });

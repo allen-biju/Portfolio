@@ -1,3 +1,27 @@
+@font-face {
+  font-family: 'rametto-one';
+  src: url('/assets/Rametto-one.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'delamoore';
+  src: url('/assets/delamoore.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'clarsen';
+  src: url('/assets/clarsen.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-bg-primary: #0D1B2A;
   --color-bg-card: #2E4A6B;
@@ -555,6 +579,7 @@ a {
   background: #050505;
   transform: translateZ(0);
   backface-visibility: hidden;
+  container-type: inline-size;
 }
 
 /* Authentic SMPTE-170M Color Bar Pattern via CSS Multi-Stop Gradients */
@@ -870,36 +895,7 @@ a {
   animation: crtChromaCyan 2.1s steps(2, start) infinite;
 }
 
-/* 6. Analog V-Hold Vertical Sync Slip Bar */
-.crt-test-vhold-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -25%;
-  height: 22%;
-  background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0.95) 0%,
-      rgba(20, 20, 20, 0.98) 40%,
-      rgba(255, 255, 255, 0.35) 50%,
-      rgba(10, 10, 10, 0.95) 100%);
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.9);
-  z-index: 7;
-  pointer-events: none;
-  opacity: 0.75;
-  animation: crtVHoldSlip 3.4s ease-in-out infinite;
-}
-
-.crt-vhold-noise-band {
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(90deg,
-      transparent 0px,
-      transparent 4px,
-      rgba(255, 255, 255, 0.20) 4px,
-      rgba(255, 255, 255, 0.20) 7px);
-}
-
-/* 7. Phosphor Smear & High-Energy Glitch Interference */
+/* 6. Phosphor Smear & High-Energy Glitch Interference */
 .crt-test-phosphor-smear {
   position: absolute;
   inset: 0;
@@ -933,78 +929,233 @@ a {
 
 /* ─── Continuous Living CRT Signal Distortion Keyframes ────────── */
 @keyframes crtSliceJitter1 {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  14% { transform: translate3d(0, 0, 0); }
-  16% { transform: translate3d(-24px, 0, 0); }
-  19% { transform: translate3d(16px, 0, 0); }
-  22% { transform: translate3d(0, 0, 0); }
-  58% { transform: translate3d(0, 0, 0); }
-  60% { transform: translate3d(28px, 0, 0); }
-  63% { transform: translate3d(-12px, 0, 0); }
-  66% { transform: translate3d(0, 0, 0); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  14% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  16% {
+    transform: translate3d(-24px, 0, 0);
+  }
+
+  19% {
+    transform: translate3d(16px, 0, 0);
+  }
+
+  22% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  58% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  60% {
+    transform: translate3d(28px, 0, 0);
+  }
+
+  63% {
+    transform: translate3d(-12px, 0, 0);
+  }
+
+  66% {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes crtSliceJitter2 {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  28% { transform: translate3d(0, 0, 0); }
-  30% { transform: translate3d(32px, 0, 0); }
-  33% { transform: translate3d(-20px, 0, 0); }
-  36% { transform: translate3d(0, 0, 0); }
-  72% { transform: translate3d(0, 0, 0); }
-  74% { transform: translate3d(-35px, 0, 0); }
-  77% { transform: translate3d(18px, 0, 0); }
-  80% { transform: translate3d(0, 0, 0); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  28% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  30% {
+    transform: translate3d(32px, 0, 0);
+  }
+
+  33% {
+    transform: translate3d(-20px, 0, 0);
+  }
+
+  36% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  72% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  74% {
+    transform: translate3d(-35px, 0, 0);
+  }
+
+  77% {
+    transform: translate3d(18px, 0, 0);
+  }
+
+  80% {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes crtSliceJitter3 {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  8% { transform: translate3d(0, 0, 0); }
-  10% { transform: translate3d(20px, 0, 0); }
-  13% { transform: translate3d(-15px, 0, 0); }
-  15% { transform: translate3d(0, 0, 0); }
-  45% { transform: translate3d(0, 0, 0); }
-  47% { transform: translate3d(-26px, 0, 0); }
-  50% { transform: translate3d(12px, 0, 0); }
-  52% { transform: translate3d(0, 0, 0); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  8% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  10% {
+    transform: translate3d(20px, 0, 0);
+  }
+
+  13% {
+    transform: translate3d(-15px, 0, 0);
+  }
+
+  15% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  45% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  47% {
+    transform: translate3d(-26px, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(12px, 0, 0);
+  }
+
+  52% {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-@keyframes crtVHoldSlip {
-  0% { transform: translate3d(0, -120%, 0); opacity: 0; }
-  15% { opacity: 0.85; }
-  75% { opacity: 0.85; }
-  100% { transform: translate3d(0, 480%, 0); opacity: 0; }
-}
 
 @keyframes crtChromaRed {
-  0%, 100% { opacity: 0.15; transform: translate3d(-3px, 0, 0); }
-  22% { opacity: 0.85; transform: translate3d(-26px, 0, 0); }
-  26% { opacity: 0.25; transform: translate3d(-6px, 0, 0); }
-  64% { opacity: 0.90; transform: translate3d(18px, 0, 0); }
-  68% { opacity: 0.10; transform: translate3d(0, 0, 0); }
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  22% {
+    opacity: 0.85;
+    transform: translate3d(-26px, 0, 0);
+  }
+
+  26% {
+    opacity: 0.25;
+    transform: translate3d(-6px, 0, 0);
+  }
+
+  64% {
+    opacity: 0.90;
+    transform: translate3d(18px, 0, 0);
+  }
+
+  68% {
+    opacity: 0.10;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes crtChromaCyan {
-  0%, 100% { opacity: 0.15; transform: translate3d(3px, 0, 0); }
-  22% { opacity: 0.85; transform: translate3d(26px, 0, 0); }
-  26% { opacity: 0.25; transform: translate3d(6px, 0, 0); }
-  64% { opacity: 0.90; transform: translate3d(-18px, 0, 0); }
-  68% { opacity: 0.10; transform: translate3d(0, 0, 0); }
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate3d(3px, 0, 0);
+  }
+
+  22% {
+    opacity: 0.85;
+    transform: translate3d(26px, 0, 0);
+  }
+
+  26% {
+    opacity: 0.25;
+    transform: translate3d(6px, 0, 0);
+  }
+
+  64% {
+    opacity: 0.90;
+    transform: translate3d(-18px, 0, 0);
+  }
+
+  68% {
+    opacity: 0.10;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes crtGlitchFlicker {
-  0%, 100% { opacity: 0.08; }
-  18% { opacity: 0.80; }
-  22% { opacity: 0.12; }
-  54% { opacity: 0.85; }
-  58% { opacity: 0.18; }
-  82% { opacity: 0.70; }
-  85% { opacity: 0.06; }
+
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+
+  18% {
+    opacity: 0.80;
+  }
+
+  22% {
+    opacity: 0.12;
+  }
+
+  54% {
+    opacity: 0.85;
+  }
+
+  58% {
+    opacity: 0.18;
+  }
+
+  82% {
+    opacity: 0.70;
+  }
+
+  85% {
+    opacity: 0.06;
+  }
 }
 
 @keyframes crtSmearDrift {
-  0%, 100% { opacity: 0.1; transform: translate3d(-8px, 0, 0); }
-  35% { opacity: 0.75; transform: translate3d(24px, 0, 0); }
-  40% { opacity: 0.15; transform: translate3d(0, 0, 0); }
+
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: translate3d(-8px, 0, 0);
+  }
+
+  35% {
+    opacity: 0.75;
+    transform: translate3d(24px, 0, 0);
+  }
+
+  40% {
+    opacity: 0.15;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 /* ─── Animation Pause State ─────────────────────────────────────────────────
@@ -1038,10 +1189,404 @@ a {
   pointer-events: none;
 }
 
+/* ─── CRT CARRIER TEXT: DIGITAL CREATOR AND EXPLORER ───────────────────────
+   Renders broadcast station/ident carrier text directly locked onto the SMPTE
+   color palette. Synchronized with the tearing slices and chromatic aberration
+   channels to appear as if the raster palette distortion synthesizes this text.
+   Pure transform/opacity execution — zero lag, zero scroll degradation.
+────────────────────────────────────────────────────────────────────────────── */
+/* Default: text is hidden until GSAP reveals it after CRT stabilizes */
+.crt-test-text-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  width: clamp(100px, 92%, 95%);
+  max-width: 95%;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, opacity;
+  visibility: hidden;
+  opacity: 0;
+  /* Distort animation only runs after signal is locked (GSAP adds visibility:visible) */
+  animation: crtTextDistort 1.8s steps(1) infinite;
+}
+
+/* ─── CRT SIGNAL STABILIZATION STATE ────────────────────────────────────────
+   Applied by GSAP when the power-on sequence reaches lock-in phase (~1.00s).
+   Dramatically reduces palette slice jitter and chroma aberration so the
+   signal appears to stabilize before the carrier text resolves into view.
+────────────────────────────────────────────────────────────────────────────── */
+.crt-stabilized .crt-test-slice--1 {
+  animation-duration: 12s;
+}
+
+.crt-stabilized .crt-test-slice--3 {
+  animation-duration: 10s;
+}
+
+.crt-stabilized .crt-test-slice--5 {
+  animation-duration: 14s;
+}
+
+.crt-stabilized .crt-test-chroma--red {
+  animation-duration: 9s;
+  opacity: 0.08 !important;
+}
+
+.crt-stabilized .crt-test-chroma--cyan {
+  animation-duration: 11s;
+  opacity: 0.08 !important;
+}
+
+.crt-stabilized .crt-test-glitch-interference {
+  animation-duration: 8s;
+  opacity: 0.08;
+}
+
+.crt-stabilized .crt-test-phosphor-smear {
+  opacity: 0.08;
+}
+
+.crt-test-text-plate,
+.crt-test-text-badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(3, 7, 18, 0.88);
+  border-top: 1px solid rgba(0, 240, 255, 0.55);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.55);
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.95),
+    0 0 20px rgba(0, 240, 255, 0.25);
+  padding: 2.5px 6px 3.5px 6px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Glowing side brackets for broadcast carrier plate */
+.crt-test-text-plate::before,
+.crt-test-text-plate::after,
+.crt-test-text-badge::before,
+.crt-test-text-badge::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border: 1px solid rgba(0, 240, 255, 0.75);
+  pointer-events: none;
+}
+
+.crt-test-text-plate::before,
+.crt-test-text-badge::before {
+  left: 2px;
+  border-right: none;
+}
+
+.crt-test-text-plate::after,
+.crt-test-text-badge::after {
+  right: 2px;
+  border-left: none;
+}
+
+.crt-test-text-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 2px;
+  font-family: 'Consolas', 'SF Mono', 'Courier New', monospace;
+  font-size: 6.5px;
+  font-size: clamp(5px, 3.8cqi, 6.5px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.92;
+  padding: 0 3px;
+}
+
+.crt-test-text-dot {
+  display: inline-block;
+  width: 3.5px;
+  height: 3.5px;
+  margin-right: 3px;
+  border-radius: 50%;
+  background: #ff3344;
+  box-shadow: 0 0 5px #ff3344;
+  vertical-align: middle;
+  animation: crtDotBlink 1s steps(2, start) infinite;
+}
+
+.crt-test-text-status {
+  display: flex;
+  align-items: center;
+  color: #39ff14;
+  text-shadow: 0 0 4px #39ff14;
+  font-size: inherit;
+  letter-spacing: 0.08em;
+}
+
+.crt-test-text-channel {
+  color: #00f0ff;
+  text-shadow: 0 0 4px #00f0ff;
+  font-size: inherit;
+  letter-spacing: 0.08em;
+}
+
+.crt-test-text-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.crt-test-text-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 1. DIGITAL CREATOR (Delamoore) - First Line */
+.crt-text-line {
+  display: block;
+  font-family: 'rametto-one', sans-serif;
+  font-weight: 50;
+  /* Adjust Line 1 font-weight */
+  -webkit-text-stroke: 0.15px #ffffff;
+  /* Adjust Line 1 stroke/thickness */
+  font-size: clamp(8px, 5.2cqi, 15px);
+  /* Adjust Line 1 font-size ONLY */
+  line-height: 0.95;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+  transform: scaleY(1.2);
+  transform-origin: bottom center;
+
+  white-space: nowrap;
+}
+
+/* 2. EXPLORER (Clarsen) - Second Line */
+.crt-text-line--clarsen {
+  font-family: 'clarsen', sans-serif;
+  font-weight: 100;
+  /* Adjust Line 2 font-weight */
+  -webkit-text-stroke: 0.8px #ffffff;
+  /* Adjust Line 2 stroke/thickness */
+  font-size: clamp(10px, 5.2cqi, 15px);
+  /* Adjust Line 2 font-size ONLY */
+  transform: scaleY(1);
+}
 
 
 
+.crt-text-sub {
+  font-size: 6px;
+  letter-spacing: 0.14em;
+  color: #e0f2fe;
+  text-shadow:
+    0 0 3px #e0f2fe,
+    0 0 6px #38bdf8,
+    0 0 12px rgba(56, 189, 248, 0.55);
+  margin-top: 1px;
+}
 
+/* Chromatic aberration split channels for the text */
+.crt-test-text-chroma {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0.65;
+  backface-visibility: hidden;
+  z-index: 1;
+}
+
+.crt-test-text-chroma--red {
+  animation: crtTextChromaRed 1.8s steps(1) infinite;
+}
+
+.crt-test-text-chroma--red .crt-text-line {
+  color: #ff0055;
+  text-shadow: 0 0 4px #ff0055, 0 0 8px rgba(255, 0, 85, 0.6);
+}
+
+.crt-test-text-chroma--cyan {
+  animation: crtTextChromaCyan 1.8s steps(1) infinite;
+}
+
+.crt-test-text-chroma--cyan .crt-text-line {
+  color: #00f0ff;
+  text-shadow: 0 0 4px #00f0ff, 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+/* ─── Performance Optimization: Pause Animations When Offscreen ─────────── */
+.crt-animations-paused,
+.crt-animations-paused * {
+  animation-play-state: paused !important;
+}
+
+/* ─── Synchronized CRT Text Distortion Keyframes ─────────────────────────── */
+@keyframes crtDotBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes crtTextDistort {
+
+  0%,
+  100% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  28% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  30% {
+    transform: translate3d(calc(-50% + 2px), -50%, 0) skewX(-0.5deg);
+  }
+
+  33% {
+    transform: translate3d(calc(-50% - 1.5px), -50%, 0) skewX(0.4deg);
+  }
+
+  36% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  72% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  74% {
+    transform: translate3d(calc(-50% - 2.5px), -50%, 0) skewX(0.6deg);
+  }
+
+  77% {
+    transform: translate3d(calc(-50% + 1.2px), -50%, 0) skewX(-0.3deg);
+  }
+
+  80% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+}
+
+@keyframes crtTextChromaRed {
+
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  28% {
+    opacity: 0.15;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  30% {
+    opacity: 0.90;
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  33% {
+    opacity: 0.80;
+    transform: translate3d(2.5px, 0, 0);
+  }
+
+  36% {
+    opacity: 0.15;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  72% {
+    opacity: 0.15;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  74% {
+    opacity: 0.90;
+    transform: translate3d(3px, 0, 0);
+  }
+
+  77% {
+    opacity: 0.75;
+    transform: translate3d(-2px, 0, 0);
+  }
+
+  80% {
+    opacity: 0.12;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+}
+
+@keyframes crtTextChromaCyan {
+
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  28% {
+    opacity: 0.15;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  30% {
+    opacity: 0.90;
+    transform: translate3d(3px, 0, 0);
+  }
+
+  33% {
+    opacity: 0.80;
+    transform: translate3d(-2.5px, 0, 0);
+  }
+
+  36% {
+    opacity: 0.15;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  72% {
+    opacity: 0.15;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  74% {
+    opacity: 0.90;
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  77% {
+    opacity: 0.75;
+    transform: translate3d(2px, 0, 0);
+  }
+
+  80% {
+    opacity: 0.12;
+    transform: translate3d(0.8px, 0, 0);
+  }
+}
 
 /* ─── CRT Glass Overlay ────────────────────────────────────────────────────
    Sits above all screen/world content.
@@ -2588,4 +3133,4 @@ a {
   .detail-content {
     padding: 1.5rem;
   }
-}
+}
