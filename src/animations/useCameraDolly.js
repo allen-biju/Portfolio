@@ -215,14 +215,14 @@ export function useCameraDolly({
             if (crtTextPlate) gsap.set(crtTextPlate, { scale: 0.88 });
           }
         }
-        // Zone 2: Push-through / Deep Space (progress >= 0.25)
+        // Zone 2: Push-through / Deep Space (progress >= 0.26)
         // Smoothly fade out CRT activation before camera plunges through screen into deep space
-        else if (progress >= 0.25) {
+        else if (progress >= 0.26) {
           if (progress >= 0.28) {
             crtActivation.style.opacity = '0';
             crtActivation.style.visibility = 'hidden';
           } else {
-            const fade = Math.max(0, 1 - (progress - 0.25) / 0.03);
+            const fade = Math.max(0, 1 - (progress - 0.26) / 0.02);
             crtActivation.style.opacity = fade.toFixed(3);
             crtActivation.style.visibility = fade <= 0.01 ? 'hidden' : 'visible';
           }
@@ -319,11 +319,11 @@ export function useCameraDolly({
 
       /* ─── CRT TELEVISION DISPLAY: SCROLL-DRIVEN STABILIZATION & TEXT ─── */
       const crtSlicesWrapper = imageContainer.querySelector('.crt-test-slices-wrapper');
-      const crtChromaRed     = imageContainer.querySelector('.crt-test-chroma--red');
-      const crtChromaCyan    = imageContainer.querySelector('.crt-test-chroma--cyan');
-      const crtSmear         = imageContainer.querySelector('.crt-test-phosphor-smear');
-      const crtGlitch        = imageContainer.querySelector('.crt-test-glitch-interference');
-      const crtPaletteStack  = [crtSlicesWrapper, crtChromaRed, crtChromaCyan, crtSmear, crtGlitch].filter(Boolean);
+      const crtChromaRed = imageContainer.querySelector('.crt-test-chroma--red');
+      const crtChromaCyan = imageContainer.querySelector('.crt-test-chroma--cyan');
+      const crtSmear = imageContainer.querySelector('.crt-test-phosphor-smear');
+      const crtGlitch = imageContainer.querySelector('.crt-test-glitch-interference');
+      const crtPaletteStack = [crtSlicesWrapper, crtChromaRed, crtChromaCyan, crtSmear, crtGlitch].filter(Boolean);
 
       // Initial state: palette visible, text hidden
       if (crtPaletteStack.length) {
@@ -354,7 +354,7 @@ export function useCameraDolly({
           { opacity: 0.50, ease: 'power2.in', duration: 0.01 },
           0.145
         )
-        .to(crtFlash, { opacity: 0, ease: 'power2.out', duration: 0.015 }, 0.155);
+          .to(crtFlash, { opacity: 0, ease: 'power2.out', duration: 0.015 }, 0.155);
       }
 
       // 2. Text resolves on the dark screen after palette disappears (0.155 → 0.19)
@@ -375,12 +375,12 @@ export function useCameraDolly({
         }
       }
 
-      // 3. Screen content dissolves before pushing through screen into deep space (0.25 → 0.28)
+      // 3. Screen content dissolves before pushing through screen into deep space (0.26 → 0.28)
       tl.to([testSignalRef, crtActivation].filter(Boolean), {
         autoAlpha: 0,
         ease: 'power2.inOut',
-        duration: 0.03
-      }, 0.25);
+        duration: 0.02
+      }, 0.26);
 
       /* ─── ABOUT TEXT ─────────────────────────────────────────── */
       tl.fromTo(
@@ -612,19 +612,77 @@ export function useCameraDolly({
          ─────────────────────────────────────────────────────────────────── */
       if (galaxyViewport) {
         const vortexVolume = galaxyViewport.querySelector('.galaxy-vortex-volume');
+        const vortexCenterText = galaxyViewport.querySelector('#vortexCenterText');
 
         /* ── Initial state: completely hidden from layout & compositor ── */
         gsap.set(galaxyViewport, { autoAlpha: 0 });
         if (vortexVolume) gsap.set(vortexVolume, { autoAlpha: 0 });
+        if (vortexCenterText) {
+          gsap.set(vortexCenterText, {
+            xPercent: -50,
+            yPercent: -50,
+            x: 0,
+            y: 0,
+            z: 120,
+            scale: 1.25,
+            autoAlpha: 0,
+          });
+        }
 
-        /* ── 1. Viewport appears as deep void the moment camera enters TV ── */
+        /* ── 1. Viewport appears as deep void the moment camera enters TV (0.27) ── */
         tl.fromTo(galaxyViewport,
           { autoAlpha: 0 },
           { autoAlpha: 1, ease: 'none', duration: 0.02 },
-          0.36
+          0.27
         );
 
-        /* ── 2. Radial Burst Gallery ────────────────────────────────
+        /* ── 2. Persistent Center Text: Glides backwards into the Galaxy Vortex ── */
+        if (vortexCenterText) {
+          // Seamless handoff: reveal text as camera enters TV screen opening
+          tl.fromTo(
+            vortexCenterText,
+            { autoAlpha: 0 },
+            { autoAlpha: 1, ease: 'none', duration: 0.02 },
+            0.27
+          );
+
+          // Moves backwards towards inside the screen into 3D vortex depth (0.27 → 0.40)
+          tl.fromTo(
+            vortexCenterText,
+            {
+              xPercent: -50,
+              yPercent: -50,
+              x: 0,
+              y: 0,
+              z: 120,
+              scale: 1.25,
+            },
+            {
+              xPercent: -50,
+              yPercent: -50,
+              x: 0,
+              y: 0,
+              z: -300,
+              scale: 0.95,
+              ease: 'power2.out',
+              duration: 0.13,
+            },
+            0.27
+          );
+
+          // Clean fade out as gallery vortex section concludes (0.88 → 0.93)
+          tl.to(
+            vortexCenterText,
+            {
+              autoAlpha: 0,
+              ease: 'power2.inOut',
+              duration: 0.05,
+            },
+            0.88
+          );
+        }
+
+        /* ── 3. Radial Burst Gallery ────────────────────────────────
            Reveal the vortex container, then let setupVortexBurstTimeline
            register each card's independent radial-burst tween directly
            onto the master scrub timeline.
@@ -636,7 +694,7 @@ export function useCameraDolly({
           tl.fromTo(vortexVolume,
             { autoAlpha: 0 },
             { autoAlpha: 1, ease: 'power1.inOut', duration: 0.04 },
-            0.37
+            0.30
           );
 
           // Register all per-card radial burst tweens onto the master timeline
@@ -682,6 +740,8 @@ export function useCameraDolly({
       if (footerCenter) gsap.set(footerCenter, { clearProps: 'transform' });
       const footerRight = footer?.querySelector('.footer-right');
       if (footerRight) gsap.set(footerRight, { clearProps: 'transform' });
+      const vortexTextEl = galaxyViewport?.querySelector('#vortexCenterText');
+      if (vortexTextEl) gsap.set(vortexTextEl, { clearProps: 'all' });
       if (galaxyViewport) gsap.set(galaxyViewport, { clearProps: 'transform,opacity,visibility' });
       if (imageContainer) gsap.set(imageContainer, { clearProps: 'transform,opacity,visibility' });
       clearTimeout(refreshTimer);

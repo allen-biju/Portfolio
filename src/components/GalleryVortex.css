@@ -162,8 +162,71 @@
     0 0 35px rgba(56, 189, 248, 0.25);
 }
 
+/* ─── Persistent Center Text in Gallery Vortex ───────────────────────────── */
+.vortex-center-text-anchor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  transform-style: preserve-3d;
+  z-index: 3;
+  pointer-events: none;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.vortex-center-text-anchor .vortex-persisted-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  width: max-content;
+  max-width: 90vw;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: crtTextDistort 1.8s steps(1) infinite;
+}
+
+.vortex-center-text-anchor .crt-text-line {
+  font-size: clamp(20px, 3.4vw, 42px);
+  -webkit-text-stroke: 0.45px #ffffff;
+  line-height: 0.95;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+  transform: scaleY(1.2);
+  transform-origin: bottom center;
+  white-space: nowrap;
+}
+
+.vortex-center-text-anchor .crt-text-line--clarsen {
+  font-size: clamp(26px, 4.4vw, 54px);
+  -webkit-text-stroke: 1.0px #ffffff;
+  transform: scaleY(1);
+}
+
 /* ─── Responsive ────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .vortex-center-text-anchor .crt-text-line {
+    font-size: clamp(16px, 4.5vw, 24px);
+    -webkit-text-stroke: 0.3px #ffffff;
+  }
+
+  .vortex-center-text-anchor .crt-text-line--clarsen {
+    font-size: clamp(20px, 5.5vw, 30px);
+    -webkit-text-stroke: 0.6px #ffffff;
+  }
+
   .vortex-img.img-landscape {
     width: 260px;
     height: 165px;
