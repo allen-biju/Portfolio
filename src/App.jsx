@@ -155,11 +155,168 @@ function App() {
   const heroImgRef = useRef(null);
   const tvAnchorRef = useRef(null);
   const tvScreenAnchorRef = useRef(null);
+  const tvWorldRef = useRef(null);
   const navRef = useRef(null);
   const scrollHintRef = useRef(null);
   const globalFooterRef = useRef(null);
   const footerContentRef = useRef(null);
   const galaxyViewportRef = useRef(null);
+
+  // Dynamic Anchor Geometry Tracking:
+  // Dynamically measures the actual rendered hero image rectangle (derived from
+  // container geometry, image natural aspect ratio, and computed object-fit/position)
+  // and positions tv-anchor, tv-screen-anchor, and TVWorld to accurately track the TV in all viewports.
+  const updateAnchorGeometry = () => {
+    const container = heroImageContainerRef.current;
+    const img = heroImgRef.current;
+    const tvAnchor = tvAnchorRef.current;
+    const tvScreenAnchor = tvScreenAnchorRef.current;
+    const tvWorld = tvWorldRef.current || document.getElementById('tvWorld');
+
+    if (!container || !img) return;
+
+    // Use offsetWidth/offsetHeight — these are layout-space dimensions unaffected by CSS transforms.
+    // This avoids having to temporarily nullify GSAP-set transforms (which caused visual jumps).
+    const cW = container.offsetWidth;
+    const cH = container.offsetHeight;
+
+    if (cW === 0 || cH === 0) return;
+
+    const natW = img.naturalWidth || 2440;
+    const natH = img.naturalHeight || 3160;
+    const natAspect = natW / natH; // 0.7721519
+
+    const cAspect = cW / cH;
+
+    const imgStyle = window.getComputedStyle(img);
+    const objFit = imgStyle.objectFit || 'contain';
+    const objPos = imgStyle.objectPosition || 'bottom right';
+
+    let rW, rH, rL, rT;
+
+    if (objFit === 'contain') {
+      if (cAspect > natAspect) {
+        // Height-constrained
+        rH = cH;
+        rW = rH * natAspect;
+        rT = 0;
+        if (objPos.includes('right')) {
+          rL = cW - rW;
+        } else if (objPos.includes('left')) {
+          rL = 0;
+        } else {
+          rL = (cW - rW) / 2;
+        }
+      } else {
+        // Width-constrained
+        rW = cW;
+        rH = rW / natAspect;
+        rL = 0;
+        if (objPos.includes('bottom')) {
+          rT = cH - rH;
+        } else if (objPos.includes('top')) {
+          rT = 0;
+        } else {
+          rT = (cH - rH) / 2;
+        }
+      }
+    } else {
+      rL = 0;
+      rT = 0;
+      rW = cW;
+      rH = cH;
+    }
+
+    // Physical CRT screen opening inside hero.png (2440 x 3160):
+    // x:[1103, 1783], y:[2031, 2558]
+    const TV_SCREEN_NORM = {
+      left: 1500 / 2440,
+      top: 2031 / 3160,
+      width: 730 / 2440,
+      height: 527 / 3160,
+    };
+
+    // Physical TV casing / camera dolly anchor inside hero.png:
+    // x:[848, 2134], y:[1864, 2717]
+    const TV_CASING_NORM = {
+      left: 1180 / 2440,
+      top: 1900 / 3160,
+      width: 1355 / 2440,
+      height: 815 / 3160,
+    };
+
+    const screenLeft = rL + rW * TV_SCREEN_NORM.left;
+    const screenTop = rT + rH * TV_SCREEN_NORM.top;
+    const screenWidth = rW * TV_SCREEN_NORM.width;
+    const screenHeight = rH * TV_SCREEN_NORM.height;
+
+    const anchorLeft = rL + rW * TV_CASING_NORM.left;
+    const anchorTop = rT + rH * TV_CASING_NORM.top;
+    const anchorWidth = rW * TV_CASING_NORM.width;
+    const anchorHeight = rH * TV_CASING_NORM.height;
+
+    // Set CSS Custom Properties on container
+    container.style.setProperty('--tv-anchor-left', `${anchorLeft}px`);
+    container.style.setProperty('--tv-anchor-top', `${anchorTop}px`);
+    container.style.setProperty('--tv-anchor-width', `${anchorWidth}px`);
+    container.style.setProperty('--tv-anchor-height', `${anchorHeight}px`);
+
+    container.style.setProperty('--tv-screen-left', `${screenLeft}px`);
+    container.style.setProperty('--tv-screen-top', `${screenTop}px`);
+    container.style.setProperty('--tv-screen-width', `${screenWidth}px`);
+    container.style.setProperty('--tv-screen-height', `${screenHeight}px`);
+
+    // Directly apply inline geometry to all target elements
+    if (tvAnchor) {
+      tvAnchor.style.left = `${anchorLeft}px`;
+      tvAnchor.style.top = `${anchorTop}px`;
+      tvAnchor.style.width = `${anchorWidth}px`;
+      tvAnchor.style.height = `${anchorHeight}px`;
+    }
+
+    if (tvScreenAnchor) {
+      tvScreenAnchor.style.left = `${screenLeft}px`;
+      tvScreenAnchor.style.top = `${screenTop}px`;
+      tvScreenAnchor.style.width = `${screenWidth}px`;
+      tvScreenAnchor.style.height = `${screenHeight}px`;
+    }
+
+    if (tvWorld) {
+      tvWorld.style.left = `${screenLeft}px`;
+      tvWorld.style.top = `${screenTop}px`;
+      tvWorld.style.width = `${screenWidth}px`;
+      tvWorld.style.height = `${screenHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    // Delay the initial measurement to allow GSAP + Framer Motion to finish their
+    // first-frame layout pass before we read offsetWidth / offsetHeight.
+    const initialTimer = setTimeout(updateAnchorGeometry, 200);
+
+    const img = heroImgRef.current;
+    if (img && !img.complete) {
+      img.addEventListener('load', updateAnchorGeometry);
+    }
+
+    // Debounce resize so we never fire mid-GSAP-refresh.
+    // F11 fullscreen fires 'resize', not 'fullscreenchange' — one listener is enough.
+    let resizeTimer = null;
+    const onResize = () => {
+      clearTimeout(resizeTimer);
+      // 250 ms gives GSAP's ScrollTrigger.refresh() time to complete its own
+      // layout invalidation before we re-measure the container.
+      resizeTimer = setTimeout(updateAnchorGeometry, 250);
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearTimeout(resizeTimer);
+      if (img) img.removeEventListener('load', updateAnchorGeometry);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
 
   // Hook up isolated GSAP ScrollTrigger camera dolly animation
   useCameraDolly({
@@ -173,6 +330,7 @@ function App() {
     footerRef: globalFooterRef,
     footerContentRef,
     galaxyViewportRef,
+    onUpdateAnchors: updateAnchorGeometry,
     enabled: introComplete,
   });
 
@@ -534,12 +692,7 @@ function App() {
             id="scene-0"
             ref={scene0Ref}
             onViewportEnter={() => setActiveScene(0)}
-            viewport={{ amount: 0.3 }}
             key="scene0"
-            initial="initial"
-            whileInView="in"
-            variants={pageVariants}
-            transition={pageTransition}
             className="frame-container padded-left hero-editorial-frame"
             style={{ pointerEvents: 'auto' }}
           >
@@ -612,7 +765,7 @@ function App() {
                   onMouseLeave={handleCursorLeave}
                 >
                   {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
-                  <TVWorld />
+                  <TVWorld ref={tvWorldRef} />
 
                   {/* Invisible TV Anchor element that precisely covers the TV screen in the image */}
                   <div ref={tvAnchorRef} className="tv-anchor" />

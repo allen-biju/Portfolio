@@ -30,9 +30,10 @@ import React from 'react';
  *   blend-mode container — a primary source of compositor stalls.
  */
 
-export default function TVWorld({ className = '', style = {} }) {
+const TVWorld = React.forwardRef(function TVWorld({ className = '', style = {} }, ref) {
   return (
     <div
+      ref={ref}
       className={`tv-world ${className}`}
       id="tvWorld"
       style={style}
@@ -113,4 +114,6 @@ export default function TVWorld({ className = '', style = {} }) {
       </div>
     </div>
   );
-}
+});
+
+export default TVWorld;

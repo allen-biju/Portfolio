@@ -423,15 +423,15 @@ a {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  margin-right: 8vw;
-  margin-top: 6vh;
+  margin-right: min(8vw, 120px);
+  margin-top: min(6vh, 48px);
   align-self: flex-end;
 }
 
 .hero-image-container-3d {
   position: relative;
   width: min(620px, 48vw);
-  height: min(740px, 78vh);
+  height: clamp(480px, 76vh, 600px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -442,38 +442,40 @@ a {
 /* TV Anchor element precisely aligned to TV screen */
 .tv-anchor {
   position: absolute;
-  left: 48%;
-  top: 59%;
-  width: 42%;
-  height: 27%;
-  z-index: 10;
+  left: var(--tv-anchor-left, 48%);
+  top: var(--tv-anchor-top, 59%);
+  width: var(--tv-anchor-width, 42%);
+  height: var(--tv-anchor-height, 27%);
+  z-index: 5;
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
+  background: rgba(255, 0, 0, 0.3);
+  border: 2px solid red;
 }
 
 /* Passive TV Screen Anchor marking the transparent CRT screen opening */
 .tv-screen-anchor {
   position: absolute;
-  left: 57.95%;
-  top: 63.95%;
-  width: 22.11%;
-  height: 17.5%;
+  left: var(--tv-screen-left, 57.95%);
+  top: var(--tv-screen-top, 63.95%);
+  width: var(--tv-screen-width, 22.11%);
+  height: var(--tv-screen-height, 17.5%);
   z-index: 15;
   pointer-events: none;
   border: 2px dashed #00ffcc;
   background: rgba(0, 255, 204, 0.25);
   box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
   border-radius: 4px;
-  opacity: 0;
+  opacity: 1;
 }
 
 /* Dedicated TVWorld element — positioned using tvScreenAnchor as geometry reference */
 .tv-world {
   position: absolute;
-  left: 57.95%;
-  top: 63.95%;
-  width: 22.11%;
-  height: 17.5%;
+  left: var(--tv-screen-left, 57.95%);
+  top: var(--tv-screen-top, 63.95%);
+  width: var(--tv-screen-width, 22.11%);
+  height: var(--tv-screen-height, 17.5%);
   z-index: 1;
   pointer-events: none;
   overflow: hidden !important;
