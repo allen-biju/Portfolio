@@ -192,6 +192,25 @@ function App() {
     const objFit = imgStyle.objectFit || 'contain';
     const objPos = imgStyle.objectPosition || 'bottom right';
 
+    // Robustly parse object-position (handles "100% 100%", "bottom right", "right bottom", "50% 50%", etc.)
+    let posX = 1; // Default to right (100%) as per stylesheet
+    let posY = 1; // Default to bottom (100%) as per stylesheet
+
+    if (objPos) {
+      const parts = objPos.toLowerCase().trim().split(/\s+/);
+      parts.forEach((p) => {
+        if (p === 'right' || p === '100%') posX = 1;
+        else if (p === 'left' || p === '0%') posX = 0;
+        else if (p === 'center' || p === '50%') posX = 0.5;
+        else if (p === 'bottom') posY = 1;
+        else if (p === 'top') posY = 0;
+      });
+      if (parts.length === 2) {
+        if (parts[0].endsWith('%')) posX = parseFloat(parts[0]) / 100;
+        if (parts[1].endsWith('%')) posY = parseFloat(parts[1]) / 100;
+      }
+    }
+
     let rW, rH, rL, rT;
 
     if (objFit === 'contain') {
@@ -199,27 +218,13 @@ function App() {
         // Height-constrained
         rH = cH;
         rW = rH * natAspect;
-        rT = 0;
-        if (objPos.includes('right')) {
-          rL = cW - rW;
-        } else if (objPos.includes('left')) {
-          rL = 0;
-        } else {
-          rL = (cW - rW) / 2;
-        }
       } else {
         // Width-constrained
         rW = cW;
         rH = rW / natAspect;
-        rL = 0;
-        if (objPos.includes('bottom')) {
-          rT = cH - rH;
-        } else if (objPos.includes('top')) {
-          rT = 0;
-        } else {
-          rT = (cH - rH) / 2;
-        }
       }
+      rL = (cW - rW) * posX;
+      rT = (cH - rH) * posY;
     } else {
       rL = 0;
       rT = 0;
@@ -230,19 +235,19 @@ function App() {
     // Physical CRT screen opening inside hero.png (2440 x 3160):
     // x:[1103, 1783], y:[2031, 2558]
     const TV_SCREEN_NORM = {
-      left: 1500 / 2440,
+      left: 1103 / 2440,
       top: 2031 / 3160,
-      width: 730 / 2440,
+      width: 690 / 2440,
       height: 527 / 3160,
     };
 
     // Physical TV casing / camera dolly anchor inside hero.png:
     // x:[848, 2134], y:[1864, 2717]
     const TV_CASING_NORM = {
-      left: 1180 / 2440,
-      top: 1900 / 3160,
-      width: 1355 / 2440,
-      height: 815 / 3160,
+      left: 810 / 2440,
+      top: 1864 / 3160,
+      width: 1286 / 2440,
+      height: 853 / 3160,
     };
 
     const screenLeft = rL + rW * TV_SCREEN_NORM.left;
