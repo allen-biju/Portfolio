@@ -58,17 +58,17 @@ export const GALLERY_IMAGES = [
   { id: 'g18', title: 'SIGNAL DRIFT', img: img18, accent: '#A855F7' },
   { id: 'g19', title: 'CORE MANIFEST', img: img19, accent: '#34D399' },
   { id: 'g20', title: 'PHANTOM MOTION', img: img20, accent: '#FB923C' },
-  { id: 'g21', title: 'SYNAPSE NODE',  img: img21, accent: '#38BDF8' },
-  { id: 'g22', title: 'HELIX WAVE',    img: img22, accent: '#E8A020' },
+  { id: 'g21', title: 'SYNAPSE NODE', img: img21, accent: '#38BDF8' },
+  { id: 'g22', title: 'HELIX WAVE', img: img22, accent: '#E8A020' },
   { id: 'g23', title: 'STELLAR DRIFT', img: img23, accent: '#A855F7' },
-  { id: 'g24', title: 'ECHO CHAMBER',  img: img24, accent: '#34D399' },
-  { id: 'g25', title: 'VOID RUNNER',   img: img25, accent: '#F472B6' },
-  { id: 'g26', title: 'DARK MATTER',   img: img26, accent: '#38BDF8' },
-  { id: 'g27', title: 'NOVA CORE',     img: img27, accent: '#FB923C' },
-  { id: 'g28', title: 'GRID FLUX',     img: img28, accent: '#C084FC' },
-  { id: 'g29', title: 'WARP SIGNAL',   img: img29, accent: '#34D399' },
-  { id: 'g30', title: 'RIFT ENGINE',   img: img30, accent: '#E8A020' },
-  { id: 'g31', title: 'PULSE ARRAY',   img: img31, accent: '#38BDF8' },
+  { id: 'g24', title: 'ECHO CHAMBER', img: img24, accent: '#34D399' },
+  { id: 'g25', title: 'VOID RUNNER', img: img25, accent: '#F472B6' },
+  { id: 'g26', title: 'DARK MATTER', img: img26, accent: '#38BDF8' },
+  { id: 'g27', title: 'NOVA CORE', img: img27, accent: '#FB923C' },
+  { id: 'g28', title: 'GRID FLUX', img: img28, accent: '#C084FC' },
+  { id: 'g29', title: 'WARP SIGNAL', img: img29, accent: '#34D399' },
+  { id: 'g30', title: 'RIFT ENGINE', img: img30, accent: '#E8A020' },
+  { id: 'g31', title: 'PULSE ARRAY', img: img31, accent: '#38BDF8' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -196,6 +196,14 @@ export default function GalleryVortex({ images = GALLERY_IMAGES }) {
 
   return (
     <div className="galaxy-vortex-volume" id="galaxy-vortex-root">
+      {/* ─── Persistent Center Ident Text (Emerges from TV screen and floats in vortex center) ─── */}
+      <div className="vortex-center-text-anchor" id="vortexCenterText">
+        <div className="crt-test-text-wrapper vortex-persisted-text">
+          <span className="crt-text-line">DIGITAL CREATOR &</span>
+          <span className="crt-text-line crt-text-line--clarsen">EXPLORER</span>
+        </div>
+      </div>
+
       {images.map((image, i) => (
         <BurstImage
           key={image.id}
