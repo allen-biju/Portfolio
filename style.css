@@ -287,14 +287,16 @@ a {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: 4rem;
+  gap: clamp(1.5rem, 3.5vw, 4rem);
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .intro-text-content {
   text-align: left;
+  flex: 0 1 560px;
   max-width: 560px;
+  min-width: 0;
   pointer-events: auto;
   z-index: 2;
   position: relative;
@@ -432,7 +434,7 @@ a {
 
 .hero-image-container-3d {
   position: relative;
-  width: min(620px, 48vw);
+  width: min(620px, 40vw);
   max-width: 620px;
   height: auto;
   aspect-ratio: 2440 / 3160;
@@ -440,7 +442,7 @@ a {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  left: -50px;
+  left: 10px;
   will-change: transform;
 }
 
@@ -2752,6 +2754,7 @@ a {
    ========================================================================== */
 
 @media (max-width: 1200px) {
+
   .frame-container.hero-editorial-frame,
   .hero-editorial-frame {
     flex-direction: column;
