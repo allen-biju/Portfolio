@@ -786,6 +786,12 @@ function App() {
                   onMouseEnter={handleCursorHover('OPERATOR_ID')}
                   onMouseLeave={handleCursorLeave}
                 >
+                  {/* Dedicated Mobile Background Text behind image */}
+                  <div className="hero-mobile-bg-name" aria-hidden="true">
+                    <span className="hero-bg-name-line">ALLEN</span>
+                    <span className="hero-bg-name-line">BIJU.</span>
+                  </div>
+
                   {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
                   <TVWorld ref={tvWorldRef} />
 

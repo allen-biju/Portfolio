@@ -318,6 +318,10 @@ a {
   width: max-content;
 }
 
+.hero-mobile-bg-name {
+  display: none;
+}
+
 .intro-role-styled {
   font-family: 'Rammetto One', 'clash-display', sans-serif;
   font-size: clamp(1.1rem, 1.9vw, 1.75rem);
@@ -2868,6 +2872,50 @@ a {
     align-items: center;
     display: flex;
     flex-direction: column;
+  }
+
+  .hero-bg-headline {
+    display: none !important;
+  }
+
+  /* Backdrop Name for Mobile (Positioned in background behind the subject cutout & TV) */
+  .hero-mobile-bg-name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    text-align: center;
+    line-height: 0.86;
+  }
+
+  .hero-bg-name-line {
+    font-family: 'Rammetto One', cursive, sans-serif;
+    font-size: clamp(3.2rem, 16vw, 5.2rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.5));
+    white-space: nowrap;
+    display: block;
+  }
+
+  .intro-role-styled {
+    font-size: clamp(0.95rem, 3.8vw, 1.3rem);
+    max-width: 90%;
+    white-space: normal;
+    text-align: center;
+    margin-top: 0.4rem;
+    margin-bottom: 0.8rem;
   }
 
   .intro-name {
