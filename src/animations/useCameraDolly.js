@@ -16,15 +16,11 @@ function computeDollyTarget(container, anchor, text) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  const wrapper = container.parentElement;
-
-  const prevWrapperTransform = wrapper ? wrapper.style.transform : '';
   const prevContainerTransform = container.style.transform;
   const prevContainerOrigin = container.style.transformOrigin;
   const prevTextTransform = text ? text.style.transform : '';
   const prevTextOrigin = text ? text.style.transformOrigin : '';
 
-  if (wrapper) wrapper.style.transform = 'none';
   container.style.transform = 'none';
   if (text) {
     text.style.transform = 'none';
@@ -35,7 +31,6 @@ function computeDollyTarget(container, anchor, text) {
   const anchorRect = anchor.getBoundingClientRect();
   const textRect = text ? text.getBoundingClientRect() : null;
 
-  if (wrapper) wrapper.style.transform = prevWrapperTransform;
   container.style.transform = prevContainerTransform;
   container.style.transformOrigin = prevContainerOrigin;
   if (text) {
@@ -103,6 +98,7 @@ export function useCameraDolly({
   footerRef,
   footerContentRef,
   galaxyViewportRef,
+  onUpdateAnchors,
   enabled = true,
 }) {
   useEffect(() => {
@@ -306,9 +302,6 @@ export function useCameraDolly({
             }
           },
           onRefreshInit: () => {
-            if (imageContainer.parentElement) {
-              gsap.set(imageContainer.parentElement, { clearProps: 'transform' });
-            }
             gsap.set(imageContainer, { clearProps: 'transform' });
             gsap.set(text, { clearProps: 'transform' });
             if (scrollHint) gsap.set(scrollHint, { clearProps: 'transform' });
@@ -714,38 +707,13 @@ export function useCameraDolly({
     return () => {
       // Resume CSS animations before reverting
       const signalEl = imageContainer?.querySelector('.crt-test-signal');
-      if (signalEl) signalEl.classList.remove('crt-animations-paused');
+      if (signalEl) {
+        signalEl.classList.remove('crt-animations-paused');
+        signalEl.classList.remove('crt-stabilized');
+      }
 
-      if (crtActivation) gsap.set(crtActivation, { clearProps: 'all' });
-      if (crtFlash) gsap.set(crtFlash, { clearProps: 'all' });
-      if (crtHLine) gsap.set(crtHLine, { clearProps: 'all' });
-      if (crtRaster) gsap.set(crtRaster, { clearProps: 'all' });
-      if (crtPaletteStack && crtPaletteStack.length) gsap.set(crtPaletteStack, { clearProps: 'all' });
-      if (crtCarrierText) gsap.set(crtCarrierText, { clearProps: 'all' });
-      if (crtTextPlate) gsap.set(crtTextPlate, { clearProps: 'all' });
-      if (testSignalRef) testSignalRef.classList.remove('crt-stabilized');
-
-      if (text) gsap.set(text, { clearProps: 'transform,opacity,visibility,filter' });
-      if (nav) gsap.set(nav, { clearProps: 'transform,opacity,filter' });
-      const navLogo = nav?.querySelector('.logo');
-      if (navLogo) gsap.set(navLogo, { clearProps: 'transform' });
-      const navLinks = nav?.querySelector('.nav-links');
-      if (navLinks) gsap.set(navLinks, { clearProps: 'transform' });
-      if (scrollHint) gsap.set(scrollHint, { clearProps: 'transform,opacity,filter' });
-      if (footer) gsap.set(footer, { clearProps: 'transform,opacity,filter,background' });
-      if (footerContent) gsap.set(footerContent, { clearProps: 'transform' });
-      const footerLeft = footer?.querySelector('.footer-left');
-      if (footerLeft) gsap.set(footerLeft, { clearProps: 'transform' });
-      const footerCenter = footer?.querySelector('.footer-center');
-      if (footerCenter) gsap.set(footerCenter, { clearProps: 'transform' });
-      const footerRight = footer?.querySelector('.footer-right');
-      if (footerRight) gsap.set(footerRight, { clearProps: 'transform' });
-      const vortexTextEl = galaxyViewport?.querySelector('#vortexCenterText');
-      if (vortexTextEl) gsap.set(vortexTextEl, { clearProps: 'all' });
-      if (galaxyViewport) gsap.set(galaxyViewport, { clearProps: 'transform,opacity,visibility' });
-      if (imageContainer) gsap.set(imageContainer, { clearProps: 'transform,opacity,visibility' });
       clearTimeout(refreshTimer);
       ctx.revert();
     };
-  }, [sceneRef, textRef, imageContainerRef, imageRef, anchorRef, navRef, scrollHintRef, footerRef, footerContentRef, galaxyViewportRef, enabled]);
+  }, [sceneRef, textRef, imageContainerRef, imageRef, anchorRef, navRef, scrollHintRef, footerRef, footerContentRef, galaxyViewportRef, onUpdateAnchors, enabled]);
 }
