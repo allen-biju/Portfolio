@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Loader } from '@react-three/drei';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import HeroScene from './components/HeroScene';
 import IntroOverlay from './components/IntroOverlay';
 import SkillDetailPage from './components/SkillDetailPage';
 import ResumeModal from './components/ResumeModal';
+import TVWorld from './components/TVWorld';
+import CosmicGalaxy3D from './components/CosmicGalaxy3D';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
+import heroImg from './assets/hero.png';
 import emailjs from '@emailjs/browser';
+import { useCameraDolly } from './animations/useCameraDolly';
 
-const TOTAL_SCENES = 4;
+gsap.registerPlugin(ScrollTrigger);
 
 function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
   const cardRef = useRef(null);
@@ -145,26 +147,214 @@ function ProjectCard3D({ proj, i, scrollProgress, cursorHandlers }) {
 function App() {
   const [activeScene, setActiveScene] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
-  const [captionText, setCaptionText] = useState('');
-  const fullCaption = "Turning ideas into fast, modern, and immersive web experiences";
+
+  // Phase 1 Camera Dolly DOM Refs
+  const scene0Ref = useRef(null);
+  const introTextRef = useRef(null);
+  const heroImageContainerRef = useRef(null);
+  const heroImgRef = useRef(null);
+  const tvAnchorRef = useRef(null);
+  const tvScreenAnchorRef = useRef(null);
+  const tvWorldRef = useRef(null);
+  const navRef = useRef(null);
+  const scrollHintRef = useRef(null);
+  const globalFooterRef = useRef(null);
+  const footerContentRef = useRef(null);
+  const galaxyViewportRef = useRef(null);
+
+  // Dynamic Anchor Geometry Tracking:
+  // Dynamically measures the actual rendered hero image rectangle (derived from
+  // container geometry, image natural aspect ratio, and computed object-fit/position)
+  // and positions tv-anchor, tv-screen-anchor, and TVWorld to accurately track the TV in all viewports.
+  const updateAnchorGeometry = () => {
+    const container = heroImageContainerRef.current;
+    const img = heroImgRef.current;
+    const tvAnchor = tvAnchorRef.current;
+    const tvScreenAnchor = tvScreenAnchorRef.current;
+    const tvWorld = tvWorldRef.current || document.getElementById('tvWorld');
+
+    if (!container || !img) return;
+
+    // Use offsetWidth/offsetHeight — these are layout-space dimensions unaffected by CSS transforms.
+    const cW = container.offsetWidth;
+    const cH = container.offsetHeight;
+
+    if (cW === 0 || cH === 0) return;
+
+    const natW = img.naturalWidth || 2440;
+    const natH = img.naturalHeight || 3160;
+    const natAspect = natW / natH; // 0.7721519
+    const cAspect = cW / cH;
+
+    const imgStyle = window.getComputedStyle(img);
+    const objFit = imgStyle.objectFit || 'contain';
+    const objPos = (imgStyle.objectPosition || 'bottom right').toLowerCase().trim();
+
+    let rW = cW;
+    let rH = cH;
+
+    if (objFit === 'contain') {
+      if (cAspect > natAspect) {
+        // Height-constrained: image takes full container height
+        rH = cH;
+        rW = rH * natAspect;
+      } else {
+        // Width-constrained: image takes full container width
+        rW = cW;
+        rH = rW / natAspect;
+      }
+    }
+
+    // Parse object-position accurately (supporting "50% 100%", "center bottom", "bottom right", etc.)
+    let posX = 1; // default right
+    let posY = 1; // default bottom
+
+    const parts = objPos.split(/\s+/);
+    if (parts.length === 1) {
+      if (parts[0] === 'center') { posX = 0.5; posY = 0.5; }
+      else if (parts[0] === 'top') { posX = 0.5; posY = 0; }
+      else if (parts[0] === 'bottom') { posX = 0.5; posY = 1; }
+      else if (parts[0] === 'left') { posX = 0; posY = 0.5; }
+      else if (parts[0] === 'right') { posX = 1; posY = 0.5; }
+    } else if (parts.length >= 2) {
+      let hToken = parts[0];
+      let vToken = parts[1];
+
+      // Handle vertical first if specified like "bottom right"
+      if (['top', 'bottom'].includes(parts[0]) && ['left', 'right', 'center'].includes(parts[1])) {
+        vToken = parts[0];
+        hToken = parts[1];
+      }
+
+      if (hToken === 'left' || hToken === '0%') posX = 0;
+      else if (hToken === 'center' || hToken === '50%') posX = 0.5;
+      else if (hToken === 'right' || hToken === '100%') posX = 1;
+      else if (hToken.endsWith('%')) posX = parseFloat(hToken) / 100;
+
+      if (vToken === 'top' || vToken === '0%') posY = 0;
+      else if (vToken === 'center' || vToken === '50%') posY = 0.5;
+      else if (vToken === 'bottom' || vToken === '100%') posY = 1;
+      else if (vToken.endsWith('%')) posY = parseFloat(vToken) / 100;
+    }
+
+    const rL = (cW - rW) * posX;
+    const rT = (cH - rH) * posY;
+
+    // Physical CRT screen opening inside hero.png (2440 x 3160):
+    // x:[1103, 1783], y:[2031, 2558]
+    const TV_SCREEN_NORM = {
+      left: 1103 / 2440,
+      top: 2031 / 3160,
+      width: 690 / 2440,
+      height: 527 / 3160,
+    };
+
+    // Physical TV casing / camera dolly anchor inside hero.png:
+    // x:[810, 2096], y:[1864, 2717]
+    const TV_CASING_NORM = {
+      left: 810 / 2440,
+      top: 1864 / 3160,
+      width: 1286 / 2440,
+      height: 853 / 3160,
+    };
+
+    const screenLeft = rL + rW * TV_SCREEN_NORM.left;
+    const screenTop = rT + rH * TV_SCREEN_NORM.top;
+    const screenWidth = rW * TV_SCREEN_NORM.width;
+    const screenHeight = rH * TV_SCREEN_NORM.height;
+
+    const anchorLeft = rL + rW * TV_CASING_NORM.left;
+    const anchorTop = rT + rH * TV_CASING_NORM.top;
+    const anchorWidth = rW * TV_CASING_NORM.width;
+    const anchorHeight = rH * TV_CASING_NORM.height;
+
+    // Set CSS Custom Properties on container
+    container.style.setProperty('--tv-anchor-left', `${anchorLeft}px`);
+    container.style.setProperty('--tv-anchor-top', `${anchorTop}px`);
+    container.style.setProperty('--tv-anchor-width', `${anchorWidth}px`);
+    container.style.setProperty('--tv-anchor-height', `${anchorHeight}px`);
+
+    container.style.setProperty('--tv-screen-left', `${screenLeft}px`);
+    container.style.setProperty('--tv-screen-top', `${screenTop}px`);
+    container.style.setProperty('--tv-screen-width', `${screenWidth}px`);
+    container.style.setProperty('--tv-screen-height', `${screenHeight}px`);
+
+    // Directly apply inline geometry to all target elements
+    if (tvAnchor) {
+      tvAnchor.style.left = `${anchorLeft}px`;
+      tvAnchor.style.top = `${anchorTop}px`;
+      tvAnchor.style.width = `${anchorWidth}px`;
+      tvAnchor.style.height = `${anchorHeight}px`;
+    }
+
+    if (tvScreenAnchor) {
+      tvScreenAnchor.style.left = `${screenLeft}px`;
+      tvScreenAnchor.style.top = `${screenTop}px`;
+      tvScreenAnchor.style.width = `${screenWidth}px`;
+      tvScreenAnchor.style.height = `${screenHeight}px`;
+    }
+
+    if (tvWorld) {
+      tvWorld.style.left = `${screenLeft}px`;
+      tvWorld.style.top = `${screenTop}px`;
+      tvWorld.style.width = `${screenWidth}px`;
+      tvWorld.style.height = `${screenHeight}px`;
+    }
+  };
 
   useEffect(() => {
-    if (introComplete) {
-      // Wait for image slide-in to finish (1.8s) before starting typewriter
-      const timer = setTimeout(() => {
-        let i = 0;
-        const interval = setInterval(() => {
-          setCaptionText(fullCaption.substring(0, i + 1));
-          i++;
-          if (i === fullCaption.length) clearInterval(interval);
-        }, 30);
-      }, 1800);
+    // Initial measurement
+    updateAnchorGeometry();
+    const initialTimer = setTimeout(() => {
+      updateAnchorGeometry();
+      ScrollTrigger.refresh();
+    }, 200);
 
-      return () => {
-        clearTimeout(timer);
-      };
+    const img = heroImgRef.current;
+    const handleImgLoad = () => {
+      updateAnchorGeometry();
+      ScrollTrigger.refresh();
+    };
+
+    if (img && !img.complete) {
+      img.addEventListener('load', handleImgLoad);
     }
-  }, [introComplete]);
+
+    // Debounce resize to handle breakpoint transitions cleanly
+    let resizeTimer = null;
+    const onResize = () => {
+      updateAnchorGeometry();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        updateAnchorGeometry();
+        ScrollTrigger.refresh();
+      }, 150);
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearTimeout(resizeTimer);
+      if (img) img.removeEventListener('load', handleImgLoad);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
+  // Hook up isolated GSAP ScrollTrigger camera dolly animation
+  useCameraDolly({
+    sceneRef: scene0Ref,
+    textRef: introTextRef,
+    imageContainerRef: heroImageContainerRef,
+    imageRef: heroImgRef,
+    anchorRef: tvAnchorRef,
+    navRef,
+    scrollHintRef,
+    footerRef: globalFooterRef,
+    footerContentRef,
+    galaxyViewportRef,
+    onUpdateAnchors: updateAnchorGeometry,
+    enabled: introComplete,
+  });
 
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [showEntryFlash, setShowEntryFlash] = useState(false);
@@ -365,89 +555,53 @@ function App() {
     }
   });
 
-  // Initialize Lenis
+  // Initialize Lenis with responsive continuous liquid lerp smoothing
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 2.5,
+      lerp: 0.09,
       smoothWheel: true,
-      wheelMultiplier: 0.9,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Clean cinematic curve
+      wheelMultiplier: 0.85,
+      touchMultiplier: 1.0,
+      infinite: false,
+      autoRaf: false, // GSAP ticker drives lenis.raf() — disable internal loop to avoid double updates
     });
 
     lenisRef.current = lenis;
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
 
-    requestAnimationFrame(raf);
+    // Synchronize Lenis raf loop with GSAP ticker
+    const tickerHandler = (time) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(tickerHandler);
+    gsap.ticker.lagSmoothing(500, 33);
+
     return () => {
+      gsap.ticker.remove(tickerHandler);
       lenis.destroy();
       lenisRef.current = null;
     };
   }, []);
 
-  // Scroll Orchestration: Pause main scroll when detail overlay or resume is active
+  // Scroll Orchestration: Pause main scroll when detail overlay or resume is active, or during intro
   useEffect(() => {
-    if (selectedSkill || showResume) {
+    if (selectedSkill || showResume || !introComplete) {
       lenisRef.current?.stop();
     } else {
       lenisRef.current?.start();
     }
-  }, [selectedSkill, showResume]);
+  }, [selectedSkill, showResume, introComplete]);
 
-  // Active Scene tracked via IntersectionObserver later on the sections themselves.
-
-  // Transform values handled per-section via whileInView now.
-
-  // ---------- Scroll Snap Logic ----------
-  // After the user stops scrolling for 350ms, snap to the nearest section.
+  // Ensure clean start at top on page load/reload
   useEffect(() => {
-    const SECTION_IDS = ['scene-0', 'scene-1', 'scene-2', 'scene-3'];
-    let snapTimer = null;
-    let isSnapping = false;
-
-    const snapToNearest = () => {
-      if (!lenisRef.current) return;
-      if (selectedSkill || showResume) return; // disable during overlays
-
-      const scrollTop = window.scrollY;
-      let closest = null;
-      let minDist = Infinity;
-
-      SECTION_IDS.forEach((id) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const elTop = window.scrollY + rect.top;
-        const dist = Math.abs(elTop - scrollTop);
-        if (dist < minDist) { minDist = dist; closest = el; }
-      });
-
-      if (closest && !isSnapping) {
-        isSnapping = true;
-        lenisRef.current.scrollTo(closest, {
-          duration: 1.2,
-          easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-          onComplete: () => { isSnapping = false; }
-        });
-      }
-    };
-
-    const onScroll = () => {
-      if (isSnapping) return;
-      clearTimeout(snapTimer);
-      snapTimer = setTimeout(snapToNearest, 350);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      clearTimeout(snapTimer);
-    };
-  }, [selectedSkill, showResume]);
-  // ----------------------------------------
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
 
   // Sound preloading
   useEffect(() => {
@@ -455,27 +609,27 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!cursorOutline.current) return;
+    const xToOutline = gsap.quickTo(cursorOutline.current, 'x', { duration: 0.15, ease: 'power2.out' });
+    const yToOutline = gsap.quickTo(cursorOutline.current, 'y', { duration: 0.15, ease: 'power2.out' });
+    const xToText = cursorTextRef.current ? gsap.quickTo(cursorTextRef.current, 'x', { duration: 0.15, ease: 'power2.out' }) : null;
+    const yToText = cursorTextRef.current ? gsap.quickTo(cursorTextRef.current, 'y', { duration: 0.15, ease: 'power2.out' }) : null;
+
     const handleMouseMove = (e) => {
-      gsap.set(cursorDot.current, { x: e.clientX, y: e.clientY });
-      gsap.to(cursorOutline.current, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.15,
-        ease: 'power2.out',
-      });
-      if (cursorTextRef.current) {
-        gsap.to(cursorTextRef.current, {
-          x: e.clientX,
-          y: e.clientY,
-          duration: 0.15,
-          ease: 'power2.out'
-        });
+      if (cursorDot.current) {
+        cursorDot.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      }
+      xToOutline(e.clientX);
+      yToOutline(e.clientY);
+      if (xToText && yToText) {
+        xToText(e.clientX);
+        yToText(e.clientY);
       }
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     // Audio unlocker: Resume context on first real interaction
     const unlockAudio = () => {
-      preloadSounds(); // ensure sounds are decoeded
+      preloadSounds(); // ensure sounds are decoded
       window.removeEventListener('click', unlockAudio);
       window.removeEventListener('keydown', unlockAudio);
     };
@@ -490,9 +644,9 @@ function App() {
   }, []);
 
   const pageVariants = {
-    initial: { opacity: 0, scale: 1.05, filter: "blur(10px)" },
-    in: { opacity: 1, scale: 1, filter: "blur(0px)" },
-    out: { opacity: 0, scale: 0.95, filter: "blur(10px)" }
+    initial: { opacity: 0, scale: 1.02 },
+    in: { opacity: 1, scale: 1 },
+    out: { opacity: 0, scale: 0.98 }
   };
 
   const pageTransition = { type: "spring", stiffness: 60, damping: 20, duration: 1.2 };
@@ -535,42 +689,9 @@ function App() {
       <IntroOverlay onComplete={() => setIntroComplete(true)} />
 
       <div className="scene-sticky-container" style={{ opacity: introComplete ? 1 : 0, transition: 'opacity 0.6s ease' }}>
-        {/* 3D Preloader */}
-        <Loader
-          containerStyles={{ background: '#0A192F' }}
-          innerStyles={{ background: 'rgba(100, 255, 218, 0.2)', height: '4px', width: '250px' }}
-          barStyles={{ background: '#64FFDA', height: '4px' }}
-          dataInterpolation={(p) => `INITIALIZING WEBGL CORE ${p.toFixed(0)}%`}
-          dataStyles={{ fontFamily: 'clash-display', color: '#64FFDA', fontSize: '1.5rem', letterSpacing: '2px' }}
-        />
-
-        {/* Neural Edge Detection Filter Definitions */}
-        <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
-          <filter id="neural-edge-detect">
-            <feColorMatrix type="saturate" values="0" />
-            <feConvolveMatrix
-              order="3"
-              kernelMatrix="-1 -1 -1 
-                            -1  8 -1 
-                            -1 -1 -1"
-              preserveAlpha="true"
-            />
-            {/* Map Gray intensity to Neon Green (#39FF14) */}
-            <feColorMatrix type="matrix" values="0.22 0 0 0 0 
-                                                 1.00 0 0 0 0 
-                                                 0.08 0 0 0 0 
-                                                 0    0 0 1 0" />
-            <feComponentTransfer>
-              <feFuncR type="gamma" exponent="0.5" amplitude="0.7" />
-              <feFuncG type="gamma" exponent="0.5" amplitude="0.7" />
-              <feFuncB type="gamma" exponent="0.5" amplitude="0.7" />
-            </feComponentTransfer>
-          </filter>
-        </svg>
-
-        <nav className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
+        <nav ref={navRef} className="main-nav" style={{ position: 'fixed', mixBlendMode: 'difference', display: selectedSkill ? 'none' : 'block' }}>
           <div className="nav-content">
-            <div className="logo magnetic" onClick={() => scrollToSection(0)} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
+            <div className="logo magnetic" onClick={() => scrollToSection('scene-0')} onMouseEnter={handleCursorHover('HOME')} onMouseLeave={handleCursorLeave}>ALLEN.</div>
             <div className="nav-links">
               {NAV_LINKS.map((link) => (
                 <button
@@ -583,213 +704,205 @@ function App() {
                   {link.name}
                 </button>
               ))}
-              <span className="scene-counter" style={{ color: 'var(--color-accent)', marginLeft: '1rem' }}>FRAME {activeScene + 1}/{TOTAL_SCENES}</span>
             </div>
           </div>
         </nav>
-
-        {/* WebGL Background */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
-          <Canvas eventSource={document.body} eventPrefix="client" camera={{ position: [0, 0, 10], fov: 45 }}>
-            <React.Suspense fallback={null}>
-              <HeroScene activeScene={activeScene} />
-            </React.Suspense>
-          </Canvas>
-        </div>
 
         <div className="scroll-sections">
           {/* Frame 0: Cinematic Introduction */}
           <motion.div
             id="scene-0"
+            ref={scene0Ref}
             onViewportEnter={() => setActiveScene(0)}
-            viewport={{ amount: 0.3 }}
             key="scene0"
-            initial="initial"
-            whileInView="in"
-            variants={pageVariants}
-            transition={pageTransition}
-            className="frame-container padded-left"
+            className="frame-container padded-left hero-editorial-frame"
             style={{ pointerEvents: 'auto' }}
           >
-              <div className="intro-split-layout">
-                <div className="intro-text-content">
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.8 }}
-                  >
-                    <h1
-                      className="intro-name"
-                      onMouseEnter={handleCursorHover('SAY HI')}
-                      onMouseLeave={handleCursorLeave}
-                    >
-                      ALLEN BIJU.
-                    </h1>
-                  </motion.div>
+            {/* 3D Cosmic Galaxy Viewport — Fullscreen 3D Spatial Environment */}
+            <CosmicGalaxy3D ref={galaxyViewportRef} />
+            <div className="intro-split-layout">
+              <div className="intro-text-content" ref={introTextRef}>
+                {/* Background Editorial Title in Flow */}
+                <motion.h1
+                  className="hero-bg-headline"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.9 }}
+                  onMouseEnter={handleCursorHover('SAY HI')}
+                  onMouseLeave={handleCursorLeave}
+                >
+                  ALLEN BIJU.
+                </motion.h1>
 
-                  <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4, duration: 0.8 }}
-                    className="intro-role-wrapper"
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="intro-role-wrapper"
+                >
+                  <h2 className="intro-role-styled">WEB DEVELOPER & DIGITAL ARCHITECT</h2>
+                  <button
+                    className="intro-resume-btn-cyber"
+                    onClick={() => { playClick(); setShowResume(true); }}
+                    onMouseEnter={handleCursorHover('VIEW_RESUME')}
+                    onMouseLeave={handleCursorLeave}
                   >
-                    <h2 className="intro-role">Full Stack Developer & Digital Architect</h2>
-                    <button
-                      className="intro-resume-btn"
-                      onClick={() => { playClick(); setShowResume(true); }}
-                      onMouseEnter={handleCursorHover('VIEW_RESUME')}
-                      onMouseLeave={handleCursorLeave}
-                    >
-                      <span className="btn-tag">[SYSTEM_RECORD]</span>
-                      <span className="btn-label">VIEW_RESUME</span>
-                    </button>
-                  </motion.div>
+                    <span className="btn-tag">[SYSTEM _RECORD]</span>
+                    <span className="btn-label">VIEW_RESUME</span>
+                  </button>
+                </motion.div>
 
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6, duration: 0.8 }}
-                  >
-                    <p className="intro-bio">
-                      I craft seamless digital ecosystems. From high-performance full-stack applications
-                      and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
-                      the gap between complex engineering and creative storytelling.
-                    </p>
-                  </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.8 }}
+                >
+                  <p className="intro-bio">
+                    I craft seamless digital ecosystems. From high-performance full-stack applications
+                    and immersive frontends to cinematic video editing and AI-driven solutions—I bridge
+                    the gap between complex engineering and creative storytelling.
+                  </p>
 
-                  <motion.div
-                    className="scroll-hint"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1, duration: 0.5 }}
+                  <div
+                    ref={scrollHintRef}
+                    className="scroll-hint hero-text-scroll-hint"
                   >
                     <div className="scroll-line"></div>
                     <span>SCROLL TO EXPLORE</span>
-                  </motion.div>
-                </div>
-
-                <motion.div
-                  className="hero-image-container"
-                  initial={{ opacity: 0, scale: 0.9, x: 400 }}
-                  animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 400 }}
-                  transition={{ delay: 0.3, duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ zIndex: 100, position: 'relative' }}
-                >
-                  <img
-                    src="./assets/hero.png"
-                    alt="Allen Biju Portrait"
-                    className="hero-portrait-image"
-                    onMouseEnter={handleCursorHover('OPERATOR_ID')}
-                    onMouseLeave={handleCursorLeave}
-                  />
-                  <p className="hero-caption" style={{
-                    position: 'absolute',
-                    bottom: '-40px',
-                    right: '10%',
-                    color: '#CCD6F6',
-                    textAlign: 'center',
-                    width: '100%',
-                    maxWidth: '400px',
-                    fontSize: '1.1rem',
-                    lineHeight: '1.6',
-                    opacity: 0.9,
-                    zIndex: 10
-                  }}>
-                    {captionText}
-                    <span style={{ opacity: captionText.length > 0 && captionText.length < fullCaption.length ? 1 : 0 }}>_</span>
-                  </p>
+                  </div>
                 </motion.div>
               </div>
-            </motion.div>
+
+              {/* Framer Motion Intro Animation Wrapper */}
+              <motion.div
+                className="hero-image-intro-wrapper"
+                initial={{ opacity: 0, scale: 0.9, x: 150 }}
+                animate={introComplete ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.9, x: 150 }}
+                transition={{ delay: 0.3, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div
+                  className="hero-image-container-3d"
+                  ref={heroImageContainerRef}
+                  onMouseEnter={handleCursorHover('OPERATOR_ID')}
+                  onMouseLeave={handleCursorLeave}
+                >
+                  {/* Dedicated Mobile Background Text behind image */}
+                  <div className="hero-mobile-bg-name" aria-hidden="true">
+                    <span className="hero-bg-name-line">ALLEN</span>
+                    <span className="hero-bg-name-line">BIJU.</span>
+                  </div>
+
+                  {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
+                  <TVWorld ref={tvWorldRef} />
+
+                  {/* Invisible TV Anchor element that precisely covers the TV screen in the image */}
+                  <div ref={tvAnchorRef} className="tv-anchor" />
+
+                  {/* Passive TV Screen Anchor marking the transparent CRT screen opening */}
+                  <div ref={tvScreenAnchorRef} className="tv-screen-anchor" id="tvScreenAnchor" />
+
+                  {/* Pre-aligned Single Merged Hero Image */}
+                  <img
+                    src={heroImg}
+                    ref={heroImgRef}
+                    alt="Allen Biju Sitting on Vintage TV"
+                    className="hero-composite-img"
+                  />
+                </div>
+
+
+              </motion.div>
+            </div>
+          </motion.div>
 
           {/* Frame 1: Skills HUD — Game-like */}
-            <motion.div
-              id="scene-1"
-              onViewportEnter={() => setActiveScene(1)}
-              viewport={{ amount: 0.3 }}
-              key="scene1"
-              initial={{ opacity: 0, scale: 0.8, filter: "blur(15px)" }}
-              whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              transition={{ duration: 0.8 }}
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0 5vw',
-                pointerEvents: 'auto',
-                transformStyle: 'preserve-3d',
-                zIndex: 10,
-                minHeight: '100vh'
-              }}
-            >
-              {/* Scanline overlay */}
-              <div style={{
-                position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10,
-                background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px)',
-              }} />
+          <motion.div
+            id="scene-1"
+            onViewportEnter={() => setActiveScene(1)}
+            viewport={{ amount: 0.3 }}
+            key="scene1"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 5vw',
+              pointerEvents: 'auto',
+              transformStyle: 'preserve-3d',
+              zIndex: 10,
+              minHeight: '100vh'
+            }}
+          >
+            {/* Scanline overlay */}
+            <div style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10,
+              background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px)',
+            }} />
 
-              {/* Corner HUD brackets */}
-              {[
-                { top: 16, left: 16, borderTop: '2px solid', borderLeft: '2px solid' },
-                { top: 16, right: 16, borderTop: '2px solid', borderRight: '2px solid' },
-                { bottom: 16, left: 16, borderBottom: '2px solid', borderLeft: '2px solid' },
-                { bottom: 16, right: 16, borderBottom: '2px solid', borderRight: '2px solid' },
-              ].map((style, i) => (
-                <motion.div key={i} initial={{ opacity: 0, scale: 1.3 }} animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 * i, duration: 0.5 }}
-                  style={{ position: 'absolute', width: 28, height: 28, borderColor: 'var(--color-accent)', pointerEvents: 'none', zIndex: 11, ...style }} />
-              ))}
+            {/* Corner HUD brackets */}
+            {[
+              { top: 16, left: 16, borderTop: '2px solid', borderLeft: '2px solid' },
+              { top: 16, right: 16, borderTop: '2px solid', borderRight: '2px solid' },
+              { bottom: 16, left: 16, borderBottom: '2px solid', borderLeft: '2px solid' },
+              { bottom: 16, right: 16, borderBottom: '2px solid', borderRight: '2px solid' },
+            ].map((style, i) => (
+              <motion.div key={i} initial={{ opacity: 0, scale: 1.3 }} animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 * i, duration: 0.5 }}
+                style={{ position: 'absolute', width: 28, height: 28, borderColor: 'var(--color-accent)', pointerEvents: 'none', zIndex: 11, ...style }} />
+            ))}
 
-              <div className="skills-wrapper" style={{ position: 'relative', zIndex: 5, maxWidth: '1100px', width: '100%' }}>
+            <div className="skills-wrapper" style={{ position: 'relative', zIndex: 5, maxWidth: '1100px', width: '100%' }}>
 
-                Glitch heading
-                <motion.h2 className="title-font"
-                  initial={{ opacity: 0, x: -80 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ position: 'relative', display: 'inline-block', fontSize: '2.8rem', fontWeight: 700, marginBottom: '0.2rem', color: 'var(--color-text-main)' }}
-                >
-                  ARSENAL
-                  {/* Glitch ghost layers */}
-                  <motion.span aria-hidden style={{
-                    position: 'absolute', top: 0, left: 0, color: '#E8A020',
-                    fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit',
-                    clipPath: 'polygon(0 20%, 100% 20%, 100% 40%, 0 40%)',
-                    pointerEvents: 'none',
-                  }}
-                    animate={{ x: [-3, 3, -2, 0], opacity: [0, 0.7, 0, 0] }}
-                    transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 2.5 }}
-                  >ARSENAL</motion.span>
-                  <motion.span aria-hidden style={{
-                    position: 'absolute', top: 0, left: 0, color: '#4A90D9',
-                    fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit',
-                    clipPath: 'polygon(0 55%, 100% 55%, 100% 75%, 0 75%)',
-                    pointerEvents: 'none',
-                  }}
-                    animate={{ x: [3, -3, 2, 0], opacity: [0, 0.7, 0, 0] }}
-                    transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 2.5, delay: 0.05 }}
-                  >ARSENAL</motion.span>
+              Adress_node:4ll3n007
+              <motion.h2 className="title-font"
+                initial={{ opacity: 0, x: -80 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                style={{ position: 'relative', display: 'inline-block', fontSize: '2.8rem', fontWeight: 700, marginBottom: '0.2rem', color: 'var(--color-text-main)' }}
+              >
+                ARSENAL
+                {/* Glitch ghost layers */}
+                <motion.span aria-hidden style={{
+                  position: 'absolute', top: 0, left: 0, color: '#E8A020',
+                  fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit',
+                  clipPath: 'polygon(0 20%, 100% 20%, 100% 40%, 0 40%)',
+                  pointerEvents: 'none',
+                }}
+                  animate={{ x: [-3, 3, -2, 0], opacity: [0, 0.7, 0, 0] }}
+                  transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 2.5 }}
+                >ARSENAL</motion.span>
+                <motion.span aria-hidden style={{
+                  position: 'absolute', top: 0, left: 0, color: '#4A90D9',
+                  fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit',
+                  clipPath: 'polygon(0 55%, 100% 55%, 100% 75%, 0 75%)',
+                  pointerEvents: 'none',
+                }}
+                  animate={{ x: [3, -3, 2, 0], opacity: [0, 0.7, 0, 0] }}
+                  transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 2.5, delay: 0.05 }}
+                >ARSENAL</motion.span>
 
-                  {/* Blinking status */}
-                  <motion.span
-                    animate={{ opacity: [1, 0, 1] }}
-                    transition={{ duration: 0.9, repeat: Infinity }}
-                    style={{ display: 'inline-block', width: 9, height: 9, borderRadius: '50%', background: 'var(--color-accent)', marginLeft: '0.6rem', verticalAlign: 'middle' }}
-                  />
-                </motion.h2>
+                {/* Blinking status */}
+                <motion.span
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.9, repeat: Infinity }}
+                  style={{ display: 'inline-block', width: 9, height: 9, borderRadius: '50%', background: 'var(--color-accent)', marginLeft: '0.6rem', verticalAlign: 'middle' }}
+                />
+              </motion.h2>
 
-                {/* HUD label */}
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-                  style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', letterSpacing: '0.3em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', marginTop: '0.2rem' }}
-                >
-                  &gt; SKILL_MATRIX v2.4.1 — ONLINE
-                </motion.p>
-                <motion.div
-                  onViewportEnter={() => setBentoInView(true)}
-                  onViewportLeave={() => setBentoInView(false)}
-                  viewport={{ once: false, amount: 0.1 }}
-                >
+              {/* HUD label */}
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', letterSpacing: '0.3em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', marginTop: '0.2rem' }}
+              >
+                &gt; SKILL_MATRIX v2.4.1 — ONLINE
+              </motion.p>
+              <motion.div
+                onViewportEnter={() => setBentoInView(true)}
+                onViewportLeave={() => setBentoInView(false)}
+                viewport={{ once: false, amount: 0.1 }}
+              >
                 <div className="bento-grid">
                   {[
                     {
@@ -832,425 +945,417 @@ function App() {
                     // 3-col × 2-row grid entry directions (moderate px values avoid body overflow-x clip)
                     const entryMap = [
                       { x: -500, y: -400 }, // 0: top-left corner
-                      { x: 0,    y: -500 }, // 1: top-center
-                      { x: 500,  y: -400 }, // 2: top-right corner
-                      { x: -500, y:  400 }, // 3: bottom-left corner
-                      { x: 0,    y:  500 }, // 4: bottom-center
-                      { x: 500,  y:  400 }, // 5: bottom-right corner
+                      { x: 0, y: -500 }, // 1: top-center
+                      { x: 500, y: -400 }, // 2: top-right corner
+                      { x: -500, y: 400 }, // 3: bottom-left corner
+                      { x: 0, y: 500 }, // 4: bottom-center
+                      { x: 500, y: 400 }, // 5: bottom-right corner
                     ];
                     const entry = entryMap[i] || { x: 0, y: 40 };
 
                     return (
-                    <motion.div
-                      key={skill.name}
-                      className="bento-card"
-                      initial={{ opacity: 0, x: entry.x, y: entry.y, scale: 0.85 }}
-                      animate={bentoInView
-                        ? { opacity: 1, x: 0, y: 0, scale: 1 }
-                        : { opacity: 0, x: entry.x, y: entry.y, scale: 0.85 }
-                      }
-                      transition={{ 
-                        duration: 0.9, 
-                        delay: bentoInView ? i * 0.08 : (5 - i) * 0.05, 
-                        ease: [0.22, 1, 0.36, 1] 
-                      }}
-                      onMouseEnter={() => { handleCursorHover('INSPECT')(); playHover(); }}
-                      onMouseLeave={handleCursorLeave}
-                      onClick={() => { playClick(); setSelectedSkill(skill); }}
-                      whileHover={{ scale: 1.04, y: -5, rotateY: i % 2 === 0 ? 4 : -4 }}
-                      style={{ cursor: 'none', transformStyle: 'preserve-3d', perspective: 800, overflow: 'hidden' }}
-                    >
-                      {/* Radial hover glow */}
-                      <motion.div initial={{ opacity: 0 }} whileHover={{ opacity: 1 }} transition={{ duration: 0.3 }}
-                        style={{
-                          position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 12,
-                          background: `radial-gradient(ellipse at top left, ${skill.color}18, transparent 65%)`
-                        }} />
-
-                      {/* Card scan line animation on hover */}
-                      <motion.div initial={{ top: '-100%' }} whileHover={{ top: '150%' }}
-                        transition={{ duration: 0.6, ease: 'linear' }}
-                        style={{
-                          position: 'absolute', left: 0, width: '100%', height: '3px', pointerEvents: 'none',
-                          background: `linear-gradient(90deg, transparent, ${skill.color}60, transparent)`
-                        }} />
-
-                      {/* Header row */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <motion.span style={{ fontSize: '1.5rem' }}
-                            animate={{ rotate: [0, -8, 8, 0] }}
-                            transition={{ duration: 3.5, delay: i * 0.6, repeat: Infinity, ease: 'easeInOut' }}
-                          >{skill.icon}</motion.span>
-                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-main)', margin: 0 }}>
-                            {skill.name}
-                          </h3>
-                        </div>
-                        {/* Rank badge */}
-                        <motion.div
-                          initial={{ scale: 0, rotate: -20 }}
-                          animate={bentoInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -20 }}
-                          transition={{ delay: 0.5 + i * 0.08, type: 'spring', stiffness: 400 }}
+                      <motion.div
+                        key={skill.name}
+                        className="bento-card"
+                        initial={{ opacity: 0, x: entry.x, y: entry.y, scale: 0.85 }}
+                        animate={bentoInView
+                          ? { opacity: 1, x: 0, y: 0, scale: 1 }
+                          : { opacity: 0, x: entry.x, y: entry.y, scale: 0.85 }
+                        }
+                        transition={{
+                          duration: 0.9,
+                          delay: bentoInView ? i * 0.08 : (5 - i) * 0.05,
+                          ease: [0.22, 1, 0.36, 1]
+                        }}
+                        onMouseEnter={() => { handleCursorHover('INSPECT')(); playHover(); }}
+                        onMouseLeave={handleCursorLeave}
+                        onClick={() => { playClick(); setSelectedSkill(skill); }}
+                        whileHover={{ scale: 1.04, y: -5, rotateY: i % 2 === 0 ? 4 : -4 }}
+                        style={{ cursor: 'none', transformStyle: 'preserve-3d', perspective: 800, overflow: 'hidden' }}
+                      >
+                        {/* Radial hover glow */}
+                        <motion.div initial={{ opacity: 0 }} whileHover={{ opacity: 1 }} transition={{ duration: 0.3 }}
                           style={{
-                            fontFamily: 'var(--font-heading)', fontSize: '0.75rem', fontWeight: 700,
-                            color: skill.color, border: `1px solid ${skill.color}60`,
-                            padding: '2px 8px', borderRadius: 4, letterSpacing: '0.05em',
-                            background: `${skill.color}12`
-                          }}
-                        >
-                          {skill.rank}
-                        </motion.div>
-                      </div>
+                            position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 12,
+                            background: `radial-gradient(ellipse at top left, ${skill.color}18, transparent 65%)`
+                          }} />
 
-                      {/* XP Bar */}
-                      <div style={{ marginBottom: '0.85rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                          <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                            XP LEVEL
-                          </span>
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={bentoInView ? { opacity: 1 } : { opacity: 0 }}
-                            transition={{ delay: 0.6 + i * 0.08 }}
-                            style={{ fontSize: '0.7rem', fontFamily: 'var(--font-heading)', color: skill.color, fontWeight: 700 }}>
-                            {skill.xp}/100
-                          </motion.span>
-                        </div>
-                        {/* Track */}
-                        <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+                        {/* Card scan line animation on hover */}
+                        <motion.div initial={{ top: '-100%' }} whileHover={{ top: '150%' }}
+                          transition={{ duration: 0.6, ease: 'linear' }}
+                          style={{
+                            position: 'absolute', left: 0, width: '100%', height: '3px', pointerEvents: 'none',
+                            background: `linear-gradient(90deg, transparent, ${skill.color}60, transparent)`
+                          }} />
+
+                        {/* Header row */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <motion.span style={{ fontSize: '1.5rem' }}
+                              animate={{ rotate: [0, -8, 8, 0] }}
+                              transition={{ duration: 3.5, delay: i * 0.6, repeat: Infinity, ease: 'easeInOut' }}
+                            >{skill.icon}</motion.span>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-main)', margin: 0 }}>
+                              {skill.name}
+                            </h3>
+                          </div>
+                          {/* Rank badge */}
                           <motion.div
-                            style={{ height: '100%', borderRadius: 3, background: `linear-gradient(90deg, ${skill.color}90, ${skill.color})`, position: 'relative' }}
-                            initial={{ width: '0%' }}
-                            animate={bentoInView ? { width: `${skill.xp}%` } : { width: '0%' }}
-                            transition={{ duration: 1.2, delay: 0.7 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                            initial={{ scale: 0, rotate: -20 }}
+                            animate={bentoInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -20 }}
+                            transition={{ delay: 0.5 + i * 0.08, type: 'spring', stiffness: 400 }}
+                            style={{
+                              fontFamily: 'var(--font-heading)', fontSize: '0.75rem', fontWeight: 700,
+                              color: skill.color, border: `1px solid ${skill.color}60`,
+                              padding: '2px 8px', borderRadius: 4, letterSpacing: '0.05em',
+                              background: `${skill.color}12`
+                            }}
                           >
-                            {/* Shimmer */}
-                            <motion.div
-                              style={{
-                                position: 'absolute', top: 0, right: 0, width: 12, height: '100%',
-                                background: 'rgba(255,255,255,0.7)', borderRadius: 3
-                              }}
-                              animate={{ opacity: [0, 1, 0] }}
-                              transition={{ duration: 0.5, delay: 2 + i * 0.08, repeat: Infinity, repeatDelay: 3 }}
-                            />
+                            {skill.rank}
                           </motion.div>
                         </div>
-                      </div>
 
-                      {/* Tags */}
-                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        {skill.tags.map((tag, ti) => (
-                          <motion.span key={tag}
-                            initial={{ opacity: 0, x: -8 }}
-                            animate={bentoInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-                            transition={{ delay: 1 + i * 0.08 + ti * 0.06 }}
-                            style={{
-                              fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-                              padding: '2px 7px', borderRadius: 3, color: skill.color,
-                              border: `1px solid ${skill.color}30`, background: `${skill.color}08`
-                            }}
-                          >{tag}</motion.span>
-                        ))}
-                      </div>
+                        {/* XP Bar */}
+                        <div style={{ marginBottom: '0.85rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                            <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+                              XP LEVEL
+                            </span>
+                            <motion.span
+                              initial={{ opacity: 0 }}
+                              animate={bentoInView ? { opacity: 1 } : { opacity: 0 }}
+                              transition={{ delay: 0.6 + i * 0.08 }}
+                              style={{ fontSize: '0.7rem', fontFamily: 'var(--font-heading)', color: skill.color, fontWeight: 700 }}>
+                              {skill.xp}/100
+                            </motion.span>
+                          </div>
+                          {/* Track */}
+                          <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+                            <motion.div
+                              style={{ height: '100%', borderRadius: 3, background: `linear-gradient(90deg, ${skill.color}90, ${skill.color})`, position: 'relative' }}
+                              initial={{ width: '0%' }}
+                              animate={bentoInView ? { width: `${skill.xp}%` } : { width: '0%' }}
+                              transition={{ duration: 1.2, delay: 0.7 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                            >
+                              {/* Shimmer */}
+                              <motion.div
+                                style={{
+                                  position: 'absolute', top: 0, right: 0, width: 12, height: '100%',
+                                  background: 'rgba(255,255,255,0.7)', borderRadius: 3
+                                }}
+                                animate={{ opacity: [0, 1, 0] }}
+                                transition={{ duration: 0.5, delay: 2 + i * 0.08, repeat: Infinity, repeatDelay: 3 }}
+                              />
+                            </motion.div>
+                          </div>
+                        </div>
 
-                      <div className="glow-bar" style={{ background: skill.color }} />
-                    </motion.div>
-                  );})}
+                        {/* Tags */}
+                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                          {skill.tags.map((tag, ti) => (
+                            <motion.span key={tag}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={bentoInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
+                              transition={{ delay: 1 + i * 0.08 + ti * 0.06 }}
+                              style={{
+                                fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+                                padding: '2px 7px', borderRadius: 3, color: skill.color,
+                                border: `1px solid ${skill.color}30`, background: `${skill.color}08`
+                              }}
+                            >{tag}</motion.span>
+                          ))}
+                        </div>
+
+                        <div className="glow-bar" style={{ background: skill.color }} />
+                      </motion.div>
+                    );
+                  })}
                 </div>
-                </motion.div>
+              </motion.div>
 
-                {/* Stats row */}
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.85 }}
-                  style={{ display: 'flex', gap: '1.5rem', marginTop: '0.9rem', paddingLeft: '0.1rem', alignItems: 'center' }}
-                >
-                  {[
-                    { val: '3+', label: 'YRS XP', color: '#E8A020' },
-                    { val: '15+', label: 'PROJECTS', color: '#4A90D9' },
-                    { val: '6', label: 'SKILLS', color: '#C084FC' },
-                  ].map(({ val, label, color }) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{ width: 3, height: 28, background: color, borderRadius: 2 }} />
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
-                        <div style={{ fontSize: '0.58rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginTop: 2 }}>{label}</div>
-                      </div>
+              {/* Stats row */}
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.85 }}
+                style={{ display: 'flex', gap: '1.5rem', marginTop: '0.9rem', paddingLeft: '0.1rem', alignItems: 'center' }}
+              >
+                {[
+                  { val: '3+', label: 'YRS XP', color: '#E8A020' },
+                  { val: '15+', label: 'PROJECTS', color: '#4A90D9' },
+                  { val: '6', label: 'SKILLS', color: '#C084FC' },
+                ].map(({ val, label, color }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: 3, height: 28, background: color, borderRadius: 2 }} />
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
+                      <div style={{ fontSize: '0.58rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginTop: 2 }}>{label}</div>
                     </div>
-                  ))}
+                  </div>
+                ))}
 
-                  {/* Blinking READY indicator */}
-                  <motion.div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
-                    <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
-                      style={{ width: 7, height: 7, borderRadius: '50%', background: '#34D399' }} />
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', letterSpacing: '0.2em', color: '#34D399', textTransform: 'uppercase' }}>ONLINE</span>
-                  </motion.div>
+                {/* Blinking READY indicator */}
+                <motion.div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+                  <motion.div animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
+                    style={{ width: 7, height: 7, borderRadius: '50%', background: '#34D399' }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', letterSpacing: '0.2em', color: '#34D399', textTransform: 'uppercase' }}>ONLINE</span>
                 </motion.div>
+              </motion.div>
 
-              </div>
-            </motion.div>
+            </div>
+          </motion.div>
 
           {/* Frame 2: Stabilized 3D Project Showcase */}
-            <motion.div
-              id="scene-2"
-              onViewportEnter={() => setActiveScene(2)}
-              viewport={{ amount: 0.3 }}
-              key="scene2"
-              initial={{ opacity: 0, scale: 0.8, filter: "blur(15px)" }}
-              whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              transition={{ duration: 0.8 }}
-              style={{
-                transformStyle: 'preserve-3d',
-                pointerEvents: 'auto',
-                zIndex: 10,
-                minHeight: '100vh'
-              }}
-              className="frame-container centered"
-            >
-              <div className="gallery-wrapper">
-                <div style={{ textAlign: 'center', marginBottom: '4vh' }}>
-                  <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="title-font"
-                    style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: '#fff', letterSpacing: '0.1em', marginBottom: '1.2rem' }}
-                  >
-                    SELECTED WORKS
-                  </motion.h2>
-                  <motion.div
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    style={{ width: '80px', height: '1px', background: 'var(--color-accent)', margin: '0 auto' }}
-                  />
-                </div>
-
-                <motion.div
-                  className="gallery-track"
-                  style={{ x: marqueeX }}
-                  onMouseEnter={() => { isMarqueeHovered.current = true; }}
-                  onMouseLeave={() => { isMarqueeHovered.current = false; }}
+          <motion.div
+            id="scene-2"
+            onViewportEnter={() => setActiveScene(2)}
+            viewport={{ amount: 0.3 }}
+            key="scene2"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            style={{
+              transformStyle: 'preserve-3d',
+              pointerEvents: 'auto',
+              zIndex: 10,
+              minHeight: '100vh'
+            }}
+            className="frame-container centered"
+          >
+            <div className="gallery-wrapper">
+              <div style={{ textAlign: 'center', marginBottom: '4vh' }}>
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="title-font"
+                  style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', color: '#fff', letterSpacing: '0.1em', marginBottom: '1.2rem' }}
                 >
-                  {[
-                    {
-                      name: "CEV Connect",
-                      desc: "A centralized digital ecosystem bridging the gap between campus commerce and housing data.",
-                      link: "https://cev-connect.vercel.app",
-                      tags: ["React", "FastAPI", "Postgres"],
-                      img: "https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1200&auto=format&fit=crop"
-                    },
-                    {
-                      name: "Cinematic Reels",
-                      desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
-                      tags: ["Premiere", "After Effects", "AI"],
-                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop",
-                      video: "/assets/videos/cinematic_reel.mp4"
-                    },
-                    {
-                      name: "Neural Identity",
-                      desc: "Synthesizing traditional design principles with generative AI neural networks.",
-                      tags: ["Figma", "Stable Diffusion", "Brand"],
-                      img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
-                    }
-                  ].concat([ // Repeat list for seamless loop
-                    {
-                      name: "CEV Connect",
-                      desc: "A centralized digital ecosystem bridging the gap between campus commerce and housing data.",
-                      link: "https://cev-connect.vercel.app",
-                      tags: ["React", "FastAPI", "Postgres"],
-                      img: "https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1200&auto=format&fit=crop"
-                    },
-                    {
-                      name: "Cinematic Reels",
-                      desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
-                      tags: ["Premiere", "After Effects", "AI"],
-                      img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop",
-                      video: "/assets/videos/cinematic_reel.mp4"
-                    },
-                    {
-                      name: "Neural Identity",
-                      desc: "Synthesizing traditional design principles with generative AI neural networks.",
-                      tags: ["Figma", "Stable Diffusion", "Brand"],
-                      img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
-                    }
-                  ]).map((proj, i) => (
-                    <ProjectCard3D
-                      key={`${proj.name}-${i}`}
-                      proj={proj}
-                      i={i % 3} // Use modulo to keep entry animation synced for both sets
-                      scrollProgress={scrollYProgress}
-                      cursorHandlers={{ hover: handleCursorHover, leave: handleCursorLeave }}
-                    />
-                  ))}
-                </motion.div>
+                  SELECTED WORKS
+                </motion.h2>
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  style={{ width: '80px', height: '1px', background: 'var(--color-accent)', margin: '0 auto' }}
+                />
               </div>
-            </motion.div>
+
+              <motion.div
+                className="gallery-track"
+                style={{ x: marqueeX }}
+                onMouseEnter={() => { isMarqueeHovered.current = true; }}
+                onMouseLeave={() => { isMarqueeHovered.current = false; }}
+              >
+                {[
+                  {
+                    name: "CEV Connect",
+                    desc: "A centralized digital ecosystem bridging the gap between campus commerce and housing data.",
+                    link: "https://cev-connect.vercel.app",
+                    tags: ["React", "FastAPI", "Postgres"],
+                    img: "https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1200&auto=format&fit=crop"
+                  },
+                  {
+                    name: "Cinematic Reels",
+                    desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
+                    tags: ["Premiere", "After Effects", "AI"],
+                    img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop",
+                    video: "/assets/videos/cinematic_reel.mp4"
+                  },
+                  {
+                    name: "Neural Identity",
+                    desc: "Synthesizing traditional design principles with generative AI neural networks.",
+                    tags: ["Figma", "Stable Diffusion", "Brand"],
+                    img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
+                  }
+                ].concat([ // Repeat list for seamless loop
+                  {
+                    name: "CEV Connect",
+                    desc: "A centralized digital ecosystem bridging the gap between campus commerce and housing data.",
+                    link: "https://cev-connect.vercel.app",
+                    tags: ["React", "FastAPI", "Postgres"],
+                    img: "https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1200&auto=format&fit=crop"
+                  },
+                  {
+                    name: "Cinematic Reels",
+                    desc: "High-fidelity video production and AI-augmented motion graphics for global brands.",
+                    tags: ["Premiere", "After Effects", "AI"],
+                    img: "https://images.unsplash.com/photo-1492691523567-6170c24dac3a?q=80&w=1200&auto=format&fit=crop",
+                    video: "/assets/videos/cinematic_reel.mp4"
+                  },
+                  {
+                    name: "Neural Identity",
+                    desc: "Synthesizing traditional design principles with generative AI neural networks.",
+                    tags: ["Figma", "Stable Diffusion", "Brand"],
+                    img: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1200&auto=format&fit=crop"
+                  }
+                ]).map((proj, i) => (
+                  <ProjectCard3D
+                    key={`${proj.name}-${i}`}
+                    proj={proj}
+                    i={i % 3} // Use modulo to keep entry animation synced for both sets
+                    scrollProgress={scrollYProgress}
+                    cursorHandlers={{ hover: handleCursorHover, leave: handleCursorLeave }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
 
           {/* Frame 3: Contact Form - Terminal Overhaul */}
-            <motion.div 
-              id="scene-3"
-              onViewportEnter={() => setActiveScene(3)}
-              viewport={{ amount: 0.3 }}
-              key="scene3" 
-              initial="initial" 
-              whileInView="in" 
-              variants={pageVariants} 
-              transition={pageTransition} 
-              className="frame-container centered"
-              style={{ pointerEvents: 'auto', minHeight: '100vh' }}
-            >
-              <div className="terminal-wrapper">
-                {/* HUD Brackets */}
-                <div className="card-hud-brackets">
-                  <div className="bracket tl" />
-                  <div className="bracket tr" />
-                  <div className="bracket bl" />
-                  <div className="bracket br" />
-                </div>
+          <motion.div
+            id="scene-3"
+            onViewportEnter={() => setActiveScene(3)}
+            viewport={{ amount: 0.1 }}
+            key="scene3"
+            initial="initial"
+            whileInView="in"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="frame-container centered"
+            style={{ pointerEvents: 'auto', minHeight: '100vh' }}
+          >
+            <div className="terminal-wrapper">
+              {/* HUD Brackets */}
+              <div className="card-hud-brackets">
+                <div className="bracket tl" />
+                <div className="bracket tr" />
+                <div className="bracket bl" />
+                <div className="bracket br" />
+              </div>
 
-                <div className="terminal-header">
-                  <div className="terminal-status-light pulse" />
-                  <span className="terminal-title">RECV_NODE: ALPHA-7 // UPLINK_READY</span>
-                </div>
+              <div className="terminal-header">
+                <div className="terminal-status-light pulse" />
+                <span className="terminal-title">RECV_NODE: ALPHA-7 // UPLINK_READY</span>
+              </div>
 
-                <div className="terminal-content">
-                  <div className="terminal-form-side">
-                    <h2 className="title-font section-heading-modern">INITIATE TRANSMISSION</h2>
-                    <form className="modern-form-terminal" onSubmit={handleFormSubmit}>
-                      {verificationStep === 'IDENTIFY' && (
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
-                          <div className="form-group-glass">
-                            <input
-                              type="text"
-                              required
-                              placeholder=" "
-                              value={formData.name}
-                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                              onMouseEnter={handleCursorHover('IDENTIFY')}
-                              onMouseLeave={handleCursorLeave}
-                            />
-                            <label>OPERATOR_ID (NAME)</label>
-                            <div className="input-glow" />
-                          </div>
+              <div className="terminal-content">
+                <div className="terminal-form-side">
+                  <h2 className="title-font section-heading-modern">INITIATE TRANSMISSION</h2>
+                  <form className="modern-form-terminal" onSubmit={handleFormSubmit}>
+                    {verificationStep === 'IDENTIFY' && (
+                      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                        <div className="form-group-glass">
+                          <input
+                            type="text"
+                            required
+                            placeholder=" "
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            onMouseEnter={handleCursorHover('IDENTIFY')}
+                            onMouseLeave={handleCursorLeave}
+                          />
+                          <label>OPERATOR_ID (NAME)</label>
+                          <div className="input-glow" />
+                        </div>
 
-                          <div className="form-group-glass" style={{ marginTop: '1.5rem' }}>
-                            <input
-                              type="email"
-                              required
-                              placeholder=" "
-                              value={formData.email}
-                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                              onMouseEnter={handleCursorHover('SIGNAL')}
-                              onMouseLeave={handleCursorLeave}
-                            />
-                            <label>SIGNAL_NODE (EMAIL)</label>
-                            <div className="input-glow" />
-                          </div>
-                        </motion.div>
-                      )}
+                        <div className="form-group-glass" style={{ marginTop: '1.5rem' }}>
+                          <input
+                            type="email"
+                            required
+                            placeholder=" "
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onMouseEnter={handleCursorHover('SIGNAL')}
+                            onMouseLeave={handleCursorLeave}
+                          />
+                          <label>SIGNAL_NODE (EMAIL)</label>
+                          <div className="input-glow" />
+                        </div>
+                      </motion.div>
+                    )}
 
-                      {verificationStep === 'CHALLENGE' && (
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
-                          <div className="form-group-glass">
-                            <input
-                              type="text"
-                              required
-                              maxLength="6"
-                              placeholder=" "
-                              value={userInputCode}
-                              onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ''))}
-                              onMouseEnter={handleCursorHover('INPUT CODE')}
-                              onMouseLeave={handleCursorLeave}
-                            />
-                            <label>ENCRYPTED_CHALLENGE_CODE</label>
-                            <div className="input-glow" />
-                          </div>
-                          <p style={{ fontSize: '0.65rem', color: 'var(--color-accent)', marginTop: '1rem', opacity: 0.8 }}>
-                            &gt; A 6-DIGIT VERIFICATION KEY HAS BEEN DISPATCHED TO YOUR SIGNAL_NODE.
-                          </p>
-                        </motion.div>
-                      )}
+                    {verificationStep === 'CHALLENGE' && (
+                      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                        <div className="form-group-glass">
+                          <input
+                            type="text"
+                            required
+                            maxLength="6"
+                            placeholder=" "
+                            value={userInputCode}
+                            onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ''))}
+                            onMouseEnter={handleCursorHover('INPUT CODE')}
+                            onMouseLeave={handleCursorLeave}
+                          />
+                          <label>ENCRYPTED_CHALLENGE_CODE</label>
+                          <div className="input-glow" />
+                        </div>
+                        <p style={{ fontSize: '0.65rem', color: 'var(--color-accent)', marginTop: '1rem', opacity: 0.8 }}>
+                          &gt; A 6-DIGIT VERIFICATION KEY HAS BEEN DISPATCHED TO YOUR SIGNAL_NODE.
+                        </p>
+                      </motion.div>
+                    )}
 
-                      {verificationStep === 'UPLINK' && (
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
-                          <div className="form-group-glass">
-                            <textarea
-                              required
-                              placeholder=" "
-                              rows="4"
-                              value={formData.message}
-                              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                              onMouseEnter={handleCursorHover('MESSAGE')}
-                              onMouseLeave={handleCursorLeave}
-                            ></textarea>
-                            <label>ENCRYPTED_PAYLOAD (MESSAGE)</label>
-                            <div className="input-glow" />
-                          </div>
-                        </motion.div>
-                      )}
+                    {verificationStep === 'UPLINK' && (
+                      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="form-step-wrapper">
+                        <div className="form-group-glass">
+                          <textarea
+                            required
+                            placeholder=" "
+                            rows="4"
+                            value={formData.message}
+                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                            onMouseEnter={handleCursorHover('MESSAGE')}
+                            onMouseLeave={handleCursorLeave}
+                          ></textarea>
+                          <label>ENCRYPTED_PAYLOAD (MESSAGE)</label>
+                          <div className="input-glow" />
+                        </div>
+                      </motion.div>
+                    )}
 
-                      <motion.button
-                        type="submit"
-                        className={`terminal-submit-btn ${isSending ? 'disabled' : ''}`}
-                        disabled={isSending}
-                        onMouseEnter={() => { !isSending && handleCursorHover(verificationStep === 'IDENTIFY' ? 'INITIATE HANDSHAKE' : verificationStep === 'CHALLENGE' ? 'SUBMIT CODE' : 'EXECUTE UPLINK')(); !isSending && playUILong(); }}
+                    <motion.button
+                      type="submit"
+                      className={`terminal-submit-btn ${isSending ? 'disabled' : ''}`}
+                      disabled={isSending}
+                      onMouseEnter={() => { !isSending && handleCursorHover(verificationStep === 'IDENTIFY' ? 'INITIATE HANDSHAKE' : verificationStep === 'CHALLENGE' ? 'SUBMIT CODE' : 'EXECUTE UPLINK')(); !isSending && playUILong(); }}
+                      onMouseLeave={handleCursorLeave}
+                      whileHover={!isSending ? { scale: 1.02 } : {}}
+                      whileTap={!isSending ? { scale: 0.98 } : {}}
+                      style={{ marginTop: '2rem' }}
+                    >
+                      <span className="btn-text">
+                        {isSending ? 'PROCESSING...' :
+                          verificationStep === 'IDENTIFY' ? 'INITIATE_HANDSHAKE' :
+                            verificationStep === 'CHALLENGE' ? 'VALIDATE_HANDSHAKE' :
+                              'EXECUTE_UPLINK'}
+                      </span>
+                      <div className="btn-glitch-layer" />
+                    </motion.button>
+
+                    {verificationStep !== 'IDENTIFY' && !isSending && (
+                      <button
+                        type="button"
+                        onClick={() => { setVerificationStep('IDENTIFY'); setIsVerified(false); }}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.6rem', marginTop: '1rem', cursor: 'none', letterSpacing: '0.1em' }}
+                        onMouseEnter={handleCursorHover('RESTART')}
                         onMouseLeave={handleCursorLeave}
-                        whileHover={!isSending ? { scale: 1.02 } : {}}
-                        whileTap={!isSending ? { scale: 0.98 } : {}}
-                        style={{ marginTop: '2rem' }}
                       >
-                        <span className="btn-text">
-                          {isSending ? 'PROCESSING...' :
-                            verificationStep === 'IDENTIFY' ? 'INITIATE_HANDSHAKE' :
-                              verificationStep === 'CHALLENGE' ? 'VALIDATE_HANDSHAKE' :
-                                'EXECUTE_UPLINK'}
-                        </span>
-                        <div className="btn-glitch-layer" />
-                      </motion.button>
+                        [ ABORT_AND_RESTART ]
+                      </button>
+                    )}
+                  </form>
+                </div>
 
-                      {verificationStep !== 'IDENTIFY' && !isSending && (
-                        <button
-                          type="button"
-                          onClick={() => { setVerificationStep('IDENTIFY'); setIsVerified(false); }}
-                          style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.6rem', marginTop: '1rem', cursor: 'none', letterSpacing: '0.1em' }}
-                          onMouseEnter={handleCursorHover('RESTART')}
-                          onMouseLeave={handleCursorLeave}
-                        >
-                          [ ABORT_AND_RESTART ]
-                        </button>
-                      )}
-                    </form>
-                  </div>
-
-                  <div className="terminal-log-side">
-                    <div className="log-header">SESSION_LOG</div>
-                    <div className="log-entries">
-                      {terminalLogs.map((log, i) => (
-                        <div key={i} className="log-entry">&gt; {log}</div>
-                      ))}
-                      <div ref={logEndRef} />
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 1 }}
-                        className="log-entry cursor"
-                      >_</motion.div>
-                    </div>
+                <div className="terminal-log-side">
+                  <div className="log-header">SESSION_LOG</div>
+                  <div className="log-entries">
+                    {terminalLogs.map((log, i) => (
+                      <div key={i} className="log-entry">&gt; {log}</div>
+                    ))}
+                    <div ref={logEndRef} />
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ repeat: Infinity, duration: 1 }}
+                      className="log-entry cursor"
+                    >_</motion.div>
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
         </div>
 
-        <div style={{ position: 'fixed', bottom: '40px', right: '40px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {[0, 1, 2, 3].map((scene) => (
-            <div key={scene} style={{
-              width: '4px', height: activeScene === scene ? '40px' : '20px',
-              backgroundColor: activeScene === scene ? 'var(--color-accent)' : 'rgba(255,255,255,0.2)',
-              transition: 'all 0.5s cubic-bezier(0.77, 0, 0.175, 1)'
-            }}
-            />
-          ))}
-        </div>
+
 
         {/* Full-page Skill Detail */}
         <AnimatePresence>
@@ -1263,16 +1368,17 @@ function App() {
           )}
         </AnimatePresence>
 
-      <ResumeModal
-        isOpen={showResume}
-        onClose={() => setShowResume(false)}
-        handleCursorHover={handleCursorHover}
-        handleCursorLeave={handleCursorLeave}
-        playClick={playClick}
-      />
+        <ResumeModal
+          isOpen={showResume}
+          onClose={() => setShowResume(false)}
+          handleCursorHover={handleCursorHover}
+          handleCursorLeave={handleCursorLeave}
+          playClick={playClick}
+        />
 
         {/* Global Social Footer */}
         <motion.footer
+          ref={globalFooterRef}
           className="global-footer"
           initial={{ opacity: 0, y: 50 }}
           animate={{
@@ -1281,7 +1387,7 @@ function App() {
           }}
           transition={{ duration: 0.8 }}
         >
-          <div className="footer-content">
+          <div className="footer-content" ref={footerContentRef}>
             <div className="footer-left">
               <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
 

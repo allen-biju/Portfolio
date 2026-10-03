@@ -1,3 +1,27 @@
+@font-face {
+  font-family: 'rametto-one';
+  src: url('/assets/Rametto-one.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'delamoore';
+  src: url('/assets/delamoore.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'clarsen';
+  src: url('/assets/clarsen.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-bg-primary: #0D1B2A;
   --color-bg-card: #2E4A6B;
@@ -18,19 +42,28 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow-x: hidden;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-main);
   font-family: var(--font-body);
   line-height: 1.6;
-  /* Native scrollbar hidden for Lenis */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   cursor: none;
-}
-
-body::-webkit-scrollbar {
-  display: none;
 }
 
 .main-content-wrapper {
@@ -235,41 +268,118 @@ a {
   pointer-events: auto;
 }
 
-/* Intro (Frame 0) */
+/* Intro (Frame 0 - Editorial Hero Redesign) */
+.hero-editorial-frame {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8vh 5vw 4vh;
+  overflow: visible;
+}
+
+.intro-split-layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .intro-text-content {
   text-align: left;
-  max-width: 800px;
+  flex: 1 1 720px;
+  max-width: 720px;
+  min-width: 0;
   pointer-events: auto;
-  mix-blend-mode: difference;
+  z-index: 2;
+  position: relative;
 }
 
-.intro-name {
-  font-family: var(--font-heading);
-  font-size: clamp(3rem, 10vw, 8rem);
-  font-weight: 700;
-  line-height: 0.9;
-  margin-bottom: 1rem;
-  color: var(--color-text-main);
-}
-
-.intro-role {
-  font-family: var(--font-heading);
-  font-size: clamp(1rem, 2.5vw, 1.8rem);
-  color: var(--color-accent);
-  letter-spacing: 0.2em;
+.hero-bg-headline {
+  font-family: 'Rammetto One', cursive, sans-serif;
+  font-size: clamp(3.6rem, 9.8vw, 11rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+  color: #FFFFFF;
   text-transform: uppercase;
-  margin-bottom: 2rem;
+  white-space: nowrap;
+  margin: 0 0 1.5rem 0;
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.4));
+  pointer-events: auto;
+  user-select: none;
+  width: max-content;
+}
+
+.hero-mobile-bg-name {
+  display: none;
+}
+
+.intro-role-styled {
+  font-family: 'Rammetto One', 'clash-display', sans-serif;
+  font-size: clamp(1.1rem, 1.9vw, 1.75rem);
+  font-weight: 400;
+  color: #F5A623;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  line-height: 1.35;
+  max-width: 480px;
+  white-space: nowrap;
+}
+
+.intro-resume-btn-cyber {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(8, 20, 36, 0.85);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  padding: 0.65rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  backdrop-filter: blur(10px);
+  margin-bottom: 0.8rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.intro-resume-btn-cyber:hover {
+  border-color: #F5A623;
+  background: rgba(8, 20, 36, 0.98);
+  box-shadow: 0 0 25px rgba(245, 166, 35, 0.35);
+  transform: translateY(-2px);
+}
+
+.intro-resume-btn-cyber .btn-tag {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  font-family: var(--font-mono, monospace);
+}
+
+.intro-resume-btn-cyber .btn-label {
+  color: #F5A623;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
 }
 
 .intro-bio {
-  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
   color: rgba(204, 214, 246, 0.85);
-  /* Lightened for better contrast */
-  max-width: 600px;
+  max-width: 100%;
   line-height: 1.8;
-  margin-bottom: 3rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  /* Subtle depth to separate from background */
+  margin-bottom: 2.5rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .scroll-hint {
@@ -279,15 +389,21 @@ a {
   font-family: var(--font-heading);
   font-size: 0.7rem;
   letter-spacing: 0.3em;
-  color: var(--color-accent);
+  color: #F5A623;
   opacity: 0.9;
-  /* Increased visibility */
+}
+
+.hero-text-scroll-hint {
+  margin-top: 2rem;
+  pointer-events: auto;
+  will-change: transform, opacity, filter;
+  transform-style: preserve-3d;
 }
 
 .scroll-line {
   width: 40px;
   height: 1px;
-  background: var(--color-accent);
+  background: #F5A623;
   transform-origin: left;
   animation: scroll-line-anim 2s infinite var(--transition-smooth);
 }
@@ -308,6 +424,1274 @@ a {
     opacity: 0;
     transform-origin: right;
   }
+}
+
+/* 3D Composite Hero Image Stack */
+.hero-image-intro-wrapper {
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-right: 0;
+  margin-top: min(6vh, 48px);
+  margin-bottom: 10px;
+  align-self: flex-end;
+}
+
+.hero-image-container-3d {
+  position: relative;
+  width: min(620px, 40vw);
+  max-width: 620px;
+  height: auto;
+  aspect-ratio: 2440 / 3160;
+  max-height: clamp(480px, 76vh, 600px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  left: 20px;
+  will-change: transform;
+}
+
+/* TV Anchor element precisely aligned to TV casing */
+.tv-anchor {
+  position: absolute;
+  left: var(--tv-anchor-left, 33.2%);
+  top: var(--tv-anchor-top, 59.0%);
+  width: var(--tv-anchor-width, 52.7%);
+  height: var(--tv-anchor-height, 27.0%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Passive TV Screen Anchor marking the transparent CRT screen opening */
+.tv-screen-anchor {
+  position: absolute;
+  left: var(--tv-screen-left, 45.2%);
+  top: var(--tv-screen-top, 64.3%);
+  width: var(--tv-screen-width, 28.3%);
+  height: var(--tv-screen-height, 16.7%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Dedicated TVWorld element — positioned using tvScreenAnchor as geometry reference */
+.tv-world {
+  position: absolute;
+  left: var(--tv-screen-left, 45.2%);
+  top: var(--tv-screen-top, 64.3%);
+  width: var(--tv-screen-width, 28.3%);
+  height: var(--tv-screen-height, 16.7%);
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden !important;
+  border-radius: 4px;
+  isolation: isolate;
+  contain: paint;
+  transform: translateZ(0);
+}
+
+.tv-world-screen-off {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 48%, #08111e 0%, #03070f 60%, #010205 100%);
+  overflow: hidden !important;
+}
+
+/* ─── CRT Activation & Signal Content (underneath glass) ─────────────────── */
+
+.crt-activation {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden !important;
+  opacity: 0;
+  isolation: isolate;
+  contain: paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Container for vertical opening raster expand */
+.crt-raster-container {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform: scaleY(0);
+  overflow: hidden !important;
+  background: #02050e;
+  backface-visibility: hidden;
+}
+
+/* Electrical response flash — celestial pale blue-white ignition */
+.crt-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(224, 242, 254, 0.85) 30%,
+      rgba(56, 189, 248, 0.40) 65%,
+      transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Horizontal Startup Line — celestial white-blue core */
+.crt-h-line {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(56, 189, 248, 0.8) 12%,
+      rgba(255, 255, 255, 1) 45%,
+      rgba(224, 242, 254, 1) 55%,
+      rgba(56, 189, 248, 0.8) 88%,
+      transparent 100%);
+  box-shadow:
+    0 0 14px 4px rgba(255, 255, 255, 1),
+    0 0 28px 8px rgba(56, 189, 248, 0.85),
+    0 0 50px 18px rgba(14, 165, 233, 0.5);
+  border-radius: 2px;
+  transform-origin: 50% 50%;
+  transform: scaleX(0);
+  opacity: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* ─── TV SCREEN WORLD (Clean Solid Pure Black Background) ────────────────── */
+.tv-light-world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+  background: #000000;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+/* ─── ADVANCED SMPTE COLOR PALETTE & CRT SIGNAL DISTORTION ENGINE ─────────── */
+.crt-test-signal {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 1;
+  background: #050505;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  container-type: inline-size;
+}
+
+/* Authentic SMPTE-170M Color Bar Pattern via CSS Multi-Stop Gradients */
+.smpte-bg {
+  background-image:
+    /* Tier 1: Top 67% Color Bars (7 equal columns) */
+    linear-gradient(90deg,
+      #bfbfbf 0%, #bfbfbf 14.286%,
+      #bfbf00 14.286%, #bfbf00 28.571%,
+      #00bfbf 28.571%, #00bfbf 42.857%,
+      #00bf00 42.857%, #00bf00 57.143%,
+      #bf00bf 57.143%, #bf00bf 71.429%,
+      #bf0000 71.429%, #bf0000 85.714%,
+      #0000bf 85.714%, #0000bf 100%),
+    /* Tier 2: Middle 8% Castellation Band */
+    linear-gradient(90deg,
+      #0000bf 0%, #0000bf 14.286%,
+      #131313 14.286%, #131313 28.571%,
+      #bf00bf 28.571%, #bf00bf 42.857%,
+      #131313 42.857%, #131313 57.143%,
+      #00bfbf 57.143%, #00bfbf 71.429%,
+      #131313 71.429%, #131313 85.714%,
+      #bfbfbf 85.714%, #bfbfbf 100%),
+    /* Tier 3: Bottom 25% I/Q/PLUGE Baseline */
+    linear-gradient(90deg,
+      #00284e 0%, #00284e 16.666%,
+      #ffffff 16.666%, #ffffff 33.333%,
+      #3b0054 33.333%, #3b0054 50%,
+      #131313 50%, #131313 66.666%,
+      #000000 66.666%, #000000 72.222%,
+      #131313 72.222%, #131313 77.777%,
+      #262626 77.777%, #262626 83.333%,
+      #131313 83.333%, #131313 100%);
+  background-size: 100% 67%, 100% 8.5%, 100% 25%;
+  background-position: left top, left 67%, left bottom;
+  background-repeat: no-repeat;
+  background-color: #131313;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 1. Sub-pixel Phosphor Aperture Grille & Fine CRT Scanlines */
+.crt-test-phosphor-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg,
+      rgba(255, 0, 0, 0.06) 0px,
+      rgba(255, 0, 0, 0.06) 1px,
+      rgba(0, 255, 0, 0.06) 1px,
+      rgba(0, 255, 0, 0.06) 2px,
+      rgba(0, 100, 255, 0.06) 2px,
+      rgba(0, 100, 255, 0.06) 3px);
+  opacity: 0.35;
+}
+
+.crt-test-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, 0.38) 0px,
+      rgba(0, 0, 0, 0.38) 1.5px,
+      transparent 1.5px,
+      transparent 3px);
+  opacity: 0.85;
+}
+
+/* 2. Authentic Vintage CRT OSD (On-Screen Display) */
+.crt-test-osd {
+  position: absolute;
+  inset: 12px 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  font-family: 'Consolas', 'Courier New', 'SF Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #39ff14;
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.8), 0 0 12px rgba(57, 255, 20, 0.4);
+  will-change: opacity, transform;
+  opacity: 0.92;
+}
+
+.crt-osd-top,
+.crt-osd-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.crt-osd-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #ff3344;
+  text-shadow: 0 0 6px rgba(255, 51, 68, 0.85);
+}
+
+.crt-osd-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff3344;
+  box-shadow: 0 0 8px #ff3344;
+  animation: crtDotBlink 1s steps(2, start) infinite;
+}
+
+.crt-osd-badge {
+  padding: 1px 5px;
+  background: rgba(57, 255, 20, 0.18);
+  border: 1px solid rgba(57, 255, 20, 0.5);
+  border-radius: 2px;
+  font-size: 9px;
+}
+
+@keyframes crtDotBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 3. SMPTE-170M Color Pattern Architecture */
+.smpte-pattern {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.smpte-top {
+  display: flex;
+  flex: 67;
+  width: 100%;
+}
+
+.smpte-mid {
+  display: flex;
+  flex: 8;
+  width: 100%;
+}
+
+.smpte-bot {
+  display: flex;
+  flex: 25;
+  width: 100%;
+}
+
+.smpte-bar {
+  flex: 1;
+  height: 100%;
+}
+
+/* Authentic SMPTE-170M 75% Amplitude Color Reference */
+.smpte-bar--gray {
+  background: #bfbfbf;
+}
+
+.smpte-bar--yellow {
+  background: #bfbf00;
+}
+
+.smpte-bar--cyan {
+  background: #00bfbf;
+}
+
+.smpte-bar--green {
+  background: #00bf00;
+}
+
+.smpte-bar--magenta {
+  background: #bf00bf;
+}
+
+.smpte-bar--red {
+  background: #bf0000;
+}
+
+.smpte-bar--blue {
+  background: #0000bf;
+}
+
+.smpte-bar--black {
+  background: #131313;
+}
+
+/* Tier 3: Calibration Blocks */
+.smpte-block--navy {
+  flex: 1;
+  background: #00284e;
+}
+
+.smpte-block--white {
+  flex: 1;
+  background: #ffffff;
+}
+
+.smpte-block--purple {
+  flex: 1;
+  background: #3b0054;
+}
+
+.smpte-block--black-0 {
+  flex: 1;
+  background: #111111;
+}
+
+.smpte-block--pluge {
+  flex: 2;
+  display: flex;
+  height: 100%;
+}
+
+.pluge-sub-black {
+  flex: 1;
+  background: #000000;
+}
+
+.pluge-black {
+  flex: 1;
+  background: #131313;
+}
+
+.pluge-super-black {
+  flex: 1;
+  background: #262626;
+}
+
+/* 4. Multi-Slice Tearing Slices (7 Independent Raster Bands) */
+.crt-test-slices-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.crt-test-slice {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Precision Inset Clip Paths for each horizontal band — with active living retro jitter */
+.crt-test-slice--1 {
+  clip-path: inset(0 0 85% 0);
+  animation: crtSliceJitter1 2.2s steps(1) infinite;
+}
+
+.crt-test-slice--2 {
+  clip-path: inset(15% 0 70% 0);
+}
+
+.crt-test-slice--3 {
+  clip-path: inset(30% 0 52% 0);
+  animation: crtSliceJitter2 1.8s steps(1) infinite;
+}
+
+.crt-test-slice--4 {
+  clip-path: inset(48% 0 34% 0);
+}
+
+.crt-test-slice--5 {
+  clip-path: inset(66% 0 24% 0);
+  animation: crtSliceJitter3 2.5s steps(1) infinite;
+}
+
+.crt-test-slice--6 {
+  clip-path: inset(76% 0 12% 0);
+}
+
+.crt-test-slice--7 {
+  clip-path: inset(88% 0 0 0);
+}
+
+/* 5. Chromatic Aberration RGB Misconvergence Ghost Channels */
+.crt-test-chroma {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.25;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.crt-test-chroma--red {
+  opacity: 0.25;
+  background-color: rgba(255, 0, 85, 0.22);
+  animation: crtChromaRed 1.7s steps(2, start) infinite;
+}
+
+.crt-test-chroma--cyan {
+  opacity: 0.25;
+  background-color: rgba(0, 240, 255, 0.22);
+  animation: crtChromaCyan 2.1s steps(2, start) infinite;
+}
+
+/* 6. Phosphor Smear & High-Energy Glitch Interference */
+.crt-test-phosphor-smear {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(0, 240, 255, 0.25) 50%,
+      rgba(255, 0, 85, 0.25) 80%,
+      transparent 100%);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 6;
+  animation: crtSmearDrift 2.8s ease-in-out infinite;
+}
+
+.crt-test-glitch-interference {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 2px,
+      transparent 2px,
+      transparent 6px);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 7;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  animation: crtGlitchFlicker 0.9s steps(2, start) infinite;
+}
+
+/* ─── Continuous Living CRT Signal Distortion Keyframes ────────── */
+@keyframes crtSliceJitter1 {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  14% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  16% {
+    transform: translate3d(-24px, 0, 0);
+  }
+
+  19% {
+    transform: translate3d(16px, 0, 0);
+  }
+
+  22% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  58% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  60% {
+    transform: translate3d(28px, 0, 0);
+  }
+
+  63% {
+    transform: translate3d(-12px, 0, 0);
+  }
+
+  66% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes crtSliceJitter2 {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  28% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  30% {
+    transform: translate3d(32px, 0, 0);
+  }
+
+  33% {
+    transform: translate3d(-20px, 0, 0);
+  }
+
+  36% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  72% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  74% {
+    transform: translate3d(-35px, 0, 0);
+  }
+
+  77% {
+    transform: translate3d(18px, 0, 0);
+  }
+
+  80% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes crtSliceJitter3 {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  8% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  10% {
+    transform: translate3d(20px, 0, 0);
+  }
+
+  13% {
+    transform: translate3d(-15px, 0, 0);
+  }
+
+  15% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  45% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  47% {
+    transform: translate3d(-26px, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(12px, 0, 0);
+  }
+
+  52% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+
+@keyframes crtChromaRed {
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  22% {
+    opacity: 0.85;
+    transform: translate3d(-26px, 0, 0);
+  }
+
+  26% {
+    opacity: 0.25;
+    transform: translate3d(-6px, 0, 0);
+  }
+
+  64% {
+    opacity: 0.90;
+    transform: translate3d(18px, 0, 0);
+  }
+
+  68% {
+    opacity: 0.10;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes crtChromaCyan {
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate3d(3px, 0, 0);
+  }
+
+  22% {
+    opacity: 0.85;
+    transform: translate3d(26px, 0, 0);
+  }
+
+  26% {
+    opacity: 0.25;
+    transform: translate3d(6px, 0, 0);
+  }
+
+  64% {
+    opacity: 0.90;
+    transform: translate3d(-18px, 0, 0);
+  }
+
+  68% {
+    opacity: 0.10;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes crtGlitchFlicker {
+
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+
+  18% {
+    opacity: 0.80;
+  }
+
+  22% {
+    opacity: 0.12;
+  }
+
+  54% {
+    opacity: 0.85;
+  }
+
+  58% {
+    opacity: 0.18;
+  }
+
+  82% {
+    opacity: 0.70;
+  }
+
+  85% {
+    opacity: 0.06;
+  }
+}
+
+@keyframes crtSmearDrift {
+
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: translate3d(-8px, 0, 0);
+  }
+
+  35% {
+    opacity: 0.75;
+    transform: translate3d(24px, 0, 0);
+  }
+
+  40% {
+    opacity: 0.15;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ─── Animation Pause State ─────────────────────────────────────────────────
+   Applied by JS when the crt-test-signal is hidden (autoAlpha:0 / scroll > 0.22).
+   Pausing all child CSS animations prevents the GPU from running background
+   keyframe compositing, which eliminates the lag spike when restoring visibility
+   on reverse scroll.
+────────────────────────────────────────────────────────────────────────────── */
+.crt-animations-paused,
+.crt-animations-paused * {
+  animation-play-state: paused !important;
+}
+
+/* 8. Cathode Ray Laser Collapse Beam */
+.crt-test-collapse-beam {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  background: #ffffff;
+  box-shadow:
+    0 0 12px 4px #ffffff,
+    0 0 28px 8px #00f0ff,
+    0 0 60px 20px #38bdf8;
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleX(0);
+  z-index: 12;
+  pointer-events: none;
+}
+
+/* ─── CRT CARRIER TEXT: DIGITAL CREATOR AND EXPLORER ───────────────────────
+   Renders broadcast station/ident carrier text directly locked onto the SMPTE
+   color palette. Synchronized with the tearing slices and chromatic aberration
+   channels to appear as if the raster palette distortion synthesizes this text.
+   Pure transform/opacity execution — zero lag, zero scroll degradation.
+────────────────────────────────────────────────────────────────────────────── */
+/* Default: text is hidden until GSAP reveals it after CRT stabilizes */
+.crt-test-text-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  width: clamp(100px, 92%, 95%);
+  max-width: 95%;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, opacity;
+  visibility: hidden;
+  opacity: 0;
+  /* Distort animation only runs after signal is locked (GSAP adds visibility:visible) */
+  animation: crtTextDistort 1.8s steps(1) infinite;
+}
+
+/* ─── CRT SIGNAL STABILIZATION STATE ────────────────────────────────────────
+   Applied by GSAP when the power-on sequence reaches lock-in phase (~1.00s).
+   Dramatically reduces palette slice jitter and chroma aberration so the
+   signal appears to stabilize before the carrier text resolves into view.
+────────────────────────────────────────────────────────────────────────────── */
+.crt-stabilized .crt-test-slice--1 {
+  animation-duration: 12s;
+}
+
+.crt-stabilized .crt-test-slice--3 {
+  animation-duration: 10s;
+}
+
+.crt-stabilized .crt-test-slice--5 {
+  animation-duration: 14s;
+}
+
+.crt-stabilized .crt-test-chroma--red {
+  animation-duration: 9s;
+  opacity: 0.08 !important;
+}
+
+.crt-stabilized .crt-test-chroma--cyan {
+  animation-duration: 11s;
+  opacity: 0.08 !important;
+}
+
+.crt-stabilized .crt-test-glitch-interference {
+  animation-duration: 8s;
+  opacity: 0.08;
+}
+
+.crt-stabilized .crt-test-phosphor-smear {
+  opacity: 0.08;
+}
+
+.crt-test-text-plate,
+.crt-test-text-badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(3, 7, 18, 0.88);
+  border-top: 1px solid rgba(0, 240, 255, 0.55);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.55);
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.95),
+    0 0 20px rgba(0, 240, 255, 0.25);
+  padding: 2.5px 6px 3.5px 6px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Glowing side brackets for broadcast carrier plate */
+.crt-test-text-plate::before,
+.crt-test-text-plate::after,
+.crt-test-text-badge::before,
+.crt-test-text-badge::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border: 1px solid rgba(0, 240, 255, 0.75);
+  pointer-events: none;
+}
+
+.crt-test-text-plate::before,
+.crt-test-text-badge::before {
+  left: 2px;
+  border-right: none;
+}
+
+.crt-test-text-plate::after,
+.crt-test-text-badge::after {
+  right: 2px;
+  border-left: none;
+}
+
+.crt-test-text-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 2px;
+  font-family: 'Consolas', 'SF Mono', 'Courier New', monospace;
+  font-size: 6.5px;
+  font-size: clamp(5px, 3.8cqi, 6.5px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.92;
+  padding: 0 3px;
+}
+
+.crt-test-text-dot {
+  display: inline-block;
+  width: 3.5px;
+  height: 3.5px;
+  margin-right: 3px;
+  border-radius: 50%;
+  background: #ff3344;
+  box-shadow: 0 0 5px #ff3344;
+  vertical-align: middle;
+  animation: crtDotBlink 1s steps(2, start) infinite;
+}
+
+.crt-test-text-status {
+  display: flex;
+  align-items: center;
+  color: #39ff14;
+  text-shadow: 0 0 4px #39ff14;
+  font-size: inherit;
+  letter-spacing: 0.08em;
+}
+
+.crt-test-text-channel {
+  color: #00f0ff;
+  text-shadow: 0 0 4px #00f0ff;
+  font-size: inherit;
+  letter-spacing: 0.08em;
+}
+
+.crt-test-text-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.crt-test-text-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 1. DIGITAL CREATOR (Delamoore) - First Line */
+.crt-text-line {
+  display: block;
+  font-family: 'rametto-one', sans-serif;
+  font-weight: 50;
+  /* Adjust Line 1 font-weight */
+  -webkit-text-stroke: 0.15px #ffffff;
+  /* Adjust Line 1 stroke/thickness */
+  font-size: clamp(8px, 5.2cqi, 15px);
+  /* Adjust Line 1 font-size ONLY */
+  line-height: 0.95;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+  transform: scaleY(1.2);
+  transform-origin: bottom center;
+
+  white-space: nowrap;
+}
+
+/* 2. EXPLORER (Clarsen) - Second Line */
+.crt-text-line--clarsen {
+  font-family: 'clarsen', sans-serif;
+  font-weight: 100;
+  /* Adjust Line 2 font-weight */
+  -webkit-text-stroke: 0.8px #ffffff;
+  /* Adjust Line 2 stroke/thickness */
+  font-size: clamp(10px, 5.2cqi, 15px);
+  /* Adjust Line 2 font-size ONLY */
+  transform: scaleY(1);
+}
+
+
+
+.crt-text-sub {
+  font-size: 6px;
+  letter-spacing: 0.14em;
+  color: #e0f2fe;
+  text-shadow:
+    0 0 3px #e0f2fe,
+    0 0 6px #38bdf8,
+    0 0 12px rgba(56, 189, 248, 0.55);
+  margin-top: 1px;
+}
+
+/* Chromatic aberration split channels for the text */
+.crt-test-text-chroma {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0.65;
+  backface-visibility: hidden;
+  z-index: 1;
+}
+
+.crt-test-text-chroma--red {
+  animation: crtTextChromaRed 1.8s steps(1) infinite;
+}
+
+.crt-test-text-chroma--red .crt-text-line {
+  color: #ff0055;
+  text-shadow: 0 0 4px #ff0055, 0 0 8px rgba(255, 0, 85, 0.6);
+}
+
+.crt-test-text-chroma--cyan {
+  animation: crtTextChromaCyan 1.8s steps(1) infinite;
+}
+
+.crt-test-text-chroma--cyan .crt-text-line {
+  color: #00f0ff;
+  text-shadow: 0 0 4px #00f0ff, 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+/* ─── Performance Optimization: Pause Animations When Offscreen ─────────── */
+.crt-animations-paused,
+.crt-animations-paused * {
+  animation-play-state: paused !important;
+}
+
+/* ─── Synchronized CRT Text Distortion Keyframes ─────────────────────────── */
+@keyframes crtDotBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes crtTextDistort {
+
+  0%,
+  100% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  28% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  30% {
+    transform: translate3d(calc(-50% + 2px), -50%, 0) skewX(-0.5deg);
+  }
+
+  33% {
+    transform: translate3d(calc(-50% - 1.5px), -50%, 0) skewX(0.4deg);
+  }
+
+  36% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  72% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  74% {
+    transform: translate3d(calc(-50% - 2.5px), -50%, 0) skewX(0.6deg);
+  }
+
+  77% {
+    transform: translate3d(calc(-50% + 1.2px), -50%, 0) skewX(-0.3deg);
+  }
+
+  80% {
+    transform: translate3d(-50%, -50%, 0);
+  }
+}
+
+@keyframes crtTextChromaRed {
+
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  28% {
+    opacity: 0.15;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  30% {
+    opacity: 0.90;
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  33% {
+    opacity: 0.80;
+    transform: translate3d(2.5px, 0, 0);
+  }
+
+  36% {
+    opacity: 0.15;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  72% {
+    opacity: 0.15;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+
+  74% {
+    opacity: 0.90;
+    transform: translate3d(3px, 0, 0);
+  }
+
+  77% {
+    opacity: 0.75;
+    transform: translate3d(-2px, 0, 0);
+  }
+
+  80% {
+    opacity: 0.12;
+    transform: translate3d(-0.8px, 0, 0);
+  }
+}
+
+@keyframes crtTextChromaCyan {
+
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  28% {
+    opacity: 0.15;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  30% {
+    opacity: 0.90;
+    transform: translate3d(3px, 0, 0);
+  }
+
+  33% {
+    opacity: 0.80;
+    transform: translate3d(-2.5px, 0, 0);
+  }
+
+  36% {
+    opacity: 0.15;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  72% {
+    opacity: 0.15;
+    transform: translate3d(0.8px, 0, 0);
+  }
+
+  74% {
+    opacity: 0.90;
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  77% {
+    opacity: 0.75;
+    transform: translate3d(2px, 0, 0);
+  }
+
+  80% {
+    opacity: 0.12;
+    transform: translate3d(0.8px, 0, 0);
+  }
+}
+
+/* ─── CRT Glass Overlay ────────────────────────────────────────────────────
+   Sits above all screen/world content.
+   Provides physical-glass illusion: edge depth, curvature, reflection, glare.
+   Contains no animation and no screen-state logic.
+   Must remain in place across all future TVWorld content states.
+──────────────────────────────────────────────────────────────────────────── */
+
+.crt-glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 4px;
+  overflow: hidden;
+  clip-path: inset(0);
+  isolation: isolate;
+
+  /* Edge depth / barrel curvature illusion —
+     four-sided inset shadow to darken corners and borders,
+     giving the impression the glass curves away from center. */
+  box-shadow:
+    inset 0 0 18px 6px rgba(0, 0, 0, 0.72),
+    inset 4px 0 10px 0 rgba(0, 0, 0, 0.35),
+    inset -4px 0 10px 0 rgba(0, 0, 0, 0.35),
+    inset 0 6px 12px 0 rgba(0, 0, 0, 0.40),
+    inset 0 -8px 14px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* Subtle central lift — the very middle of the glass is fractionally
+   lighter than the dark surround, mimicking convex CRT glass curvature. */
+.crt-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: radial-gradient(ellipse 70% 55% at 50% 45%,
+      rgba(255, 255, 255, 0.025) 0%,
+      transparent 80%);
+}
+
+/* Broad diagonal reflection —
+   a soft band of low-opacity translucent light passing across the upper-left
+   of the glass, suggesting ambient room light caught in the curved surface.
+   Not a sharp stripe. Gradients on both axes for softness. */
+/* Oversized beyond TVWorld — GSAP translates this element so the band
+   sweeps visibly across the glass. Parent .crt-glass has overflow:hidden
+   so the rounded-corner clip is handled there, not here.
+   width:250% / left:-75% → band is centered on TVWorld at rest.
+   A 12% element-translation = 30% TVWorld sweep = clearly visible shift. */
+.crt-glass__reflection {
+  position: absolute;
+  width: 250%;
+  height: 200%;
+  left: -75%;
+  top: -50%;
+  pointer-events: none;
+  background:
+    linear-gradient(128deg,
+      transparent 20%,
+      rgba(200, 215, 235, 0.055) 34%,
+      rgba(210, 225, 245, 0.095) 44%,
+      rgba(200, 215, 235, 0.060) 54%,
+      transparent 68%);
+}
+
+/* Localised upper glare —
+   Oversized beyond TVWorld so translation sweeps the hotspot clearly
+   across the face of the glass rather than clipping it off-screen.
+   width:280% / left:-80% → hotspot at 37%×280%−80% = ~24% TVWorld at rest.
+   A 16% element-translation = ~45% TVWorld sweep. */
+.crt-glass__glare {
+  position: absolute;
+  width: 280%;
+  height: 220%;
+  left: -80%;
+  top: -55%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 32% 30% at 37% 36%,
+      rgba(230, 240, 255, 0.085) 0%,
+      rgba(210, 225, 245, 0.035) 45%,
+      transparent 68%);
+}
+
+.hero-composite-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom right;
+  z-index: 2;
+  pointer-events: auto;
+  /* NOTE: drop-shadow filter removed — animating a filter on a 4MB PNG scaled
+     to ~22x forces a CPU Gaussian blur recalculation on every scroll frame.
+     Shadow is replaced by a static box-shadow on the parent container. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Skills Bento Grid (Frame 1) */
@@ -359,8 +1743,10 @@ a {
 .gallery-wrapper {
   width: 100%;
   overflow: hidden;
-  padding: 80px 0; /* Balanced padding */
-  min-height: 70vh; /* Reduced to keep it within viewport */
+  padding: 80px 0;
+  /* Balanced padding */
+  min-height: 70vh;
+  /* Reduced to keep it within viewport */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -412,6 +1798,8 @@ a {
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: border-color 0.4s;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .gallery-card:hover {
@@ -866,7 +2254,7 @@ a {
   bottom: 0;
   left: 0;
   width: 100%;
-  padding: 30px 60px;
+  padding: 10px 60px 18px;
   z-index: 100;
   background: linear-gradient(to top, rgba(13, 27, 42, 0.9), transparent);
   pointer-events: none;
@@ -1011,387 +2399,6 @@ a {
   font-size: 1.2rem;
   letter-spacing: 2px;
   cursor: none;
-}
-
-/* --- HERO PORTRAIT GLITCH SYSTEM --- */
-.intro-split-layout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 4rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.hero-image-container {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  position: relative;
-  z-index: 5;
-}
-
-.hero-image-container::before {
-  content: '';
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(60, 130, 246, 0.45) 0%, transparent 60%);
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  pointer-events: none;
-}
-
-.hero-portrait-image {
-  width: 100%;
-  max-width: 800px;
-  height: auto;
-  object-fit: contain;
-  display: block;
-  transform: scale(1.6) translate(45px, -70px);
-  transform-origin: center right;
-  filter: drop-shadow(0 -40px 70px rgba(60, 130, 246, 0.6));
-}
-
-.portrait-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
-}
-
-/* PHASE-BASED MATERIALIZATION SYSTEM */
-.portrait-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* 1. Initial State */
-.phase-hidden .portrait-layer {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* 2. Neural Sketch Phase - Pulling out facial/hoodie features */
-.phase-sketch .portrait-outline {
-  opacity: 1;
-  visibility: visible;
-  /* Darker Neon Green Neural Edge Detection with subtle illumination */
-  filter: url(#neural-edge-detect) drop-shadow(0 0 8px #39FF14);
-  transform: scale(1);
-  /* Ultra-slow holographic development */
-  animation: outline-reveal-wipe 5s cubic-bezier(0.19, 1, 0.22, 1) forwards, holographic-pulse 4s infinite ease-in-out;
-}
-
-@keyframes outline-reveal-wipe {
-  0% {
-    opacity: 0;
-    transform: translate(-10px, 5px) skew(5deg);
-    clip-path: inset(40% 0 40% 0);
-  }
-
-  10% {
-    opacity: 0.5;
-    transform: translate(10px, -5px) skew(-5deg);
-    clip-path: inset(10% 0 80% 0);
-  }
-
-  20% {
-    opacity: 0.2;
-    transform: translate(0, 0) skew(0);
-    clip-path: none;
-  }
-
-  30% {
-    opacity: 0.8;
-    transform: translate(-5px, 2px);
-  }
-
-  40% {
-    opacity: 0.3;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(0, 0);
-    clip-path: none;
-  }
-}
-
-@keyframes holographic-pulse {
-
-  0%,
-  100% {
-    filter: url(#neural-edge-detect) drop-shadow(0 0 8px #39FF14) brightness(1.0);
-  }
-
-  50% {
-    filter: url(#neural-edge-detect) drop-shadow(0 0 12px #39FF14) brightness(1.2);
-  }
-}
-
-/* New: Persistent Glitch Layers - RGB Split Logic */
-.glitch-layer {
-  mix-blend-mode: lighten;
-  z-index: 2;
-  opacity: 0;
-}
-
-.phase-solid .glitch-layer.red {
-  filter: brightness(1.2) sepia(1) hue-rotate(-50deg) saturate(5);
-  /* Reddish */
-  animation: ultra-combined-glitch 4s infinite steps(1);
-}
-
-.phase-solid .glitch-layer.blue {
-  filter: brightness(1.2) sepia(1) hue-rotate(180deg) saturate(5);
-  /* Bluish */
-  animation: ultra-combined-glitch 4s infinite reverse steps(1);
-}
-
-
-/* 2.5 Glitch Transition Burst */
-.phase-glitch .glitch-portrait-wrapper {
-  animation: ultra-glitch-shake 0.3s steps(2, end) infinite;
-}
-
-.phase-glitch .portrait-outline {
-  opacity: 1;
-  visibility: visible;
-  filter: url(#neural-edge-detect) drop-shadow(0 0 15px #39FF14) brightness(5);
-  animation: glitch-slice 0.3s infinite;
-}
-
-.phase-glitch .portrait-main {
-  opacity: 0.5 !important;
-  visibility: visible !important;
-  filter: saturate(0) brightness(10) !important;
-  clip-path: none !important;
-  mix-blend-mode: color-dodge !important;
-}
-
-/* 3. Solid Physical Lockdown - RAW IMAGE */
-.phase-solid .portrait-outline {
-  opacity: 0.1;
-  visibility: visible !important;
-  filter: url(#neural-edge-detect) drop-shadow(0 0 5px #39FF14);
-  /* Independent outline jitter (The Echo) */
-  animation: ultra-combined-glitch 8s infinite steps(1) 0.5s;
-}
-
-.phase-solid .portrait-main {
-  opacity: 1 !important;
-  visibility: visible !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  transform: scale(1);
-  /* Materialization + Persistent Jitter */
-  animation: portrait-reveal-wipe 5s cubic-bezier(0.19, 1, 0.22, 1) forwards,
-    portrait-fade-in 1.5s ease-out forwards,
-    ultra-combined-glitch 6s infinite steps(1) 5s;
-}
-
-/* Hyper-Frequency Ultra Combined Glitch */
-@keyframes ultra-combined-glitch {
-
-  0%,
-  10%,
-  20%,
-  30.1%,
-  40%,
-  50%,
-  60.1%,
-  70%,
-  80%,
-  90%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0;
-    clip-path: none;
-  }
-
-  30% {
-    transform: translate(-18px, 8px) skew(3deg);
-    opacity: 0.7;
-    clip-path: inset(20% 0 60% 0);
-  }
-
-  60% {
-    transform: translate(18px, -8px) skew(-3deg);
-    opacity: 0.7;
-    clip-path: inset(50% 0 10% 0);
-  }
-
-  61% {
-    transform: translate(-10px, 0);
-    opacity: 0.5;
-  }
-}
-
-
-/* Glitch Animations */
-@keyframes ultra-glitch-shake {
-  0% {
-    transform: translate(10px, -10px) skew(8deg);
-    box-shadow: -8px 0 red, 8px 0 cyan;
-  }
-
-  25% {
-    transform: translate(-10px, 10px) skew(-8deg);
-    box-shadow: 8px 0 red, -8px 0 cyan;
-  }
-
-  50% {
-    transform: translate(15px, 0) skew(12deg);
-    filter: hue-rotate(90deg);
-  }
-
-  75% {
-    transform: translate(-15px, -5px) skew(-12deg);
-    filter: contrast(150%);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-@keyframes glitch-slice {
-  0% {
-    clip-path: inset(10% 0 80% 0);
-    transform: translateX(-25px);
-  }
-
-  20% {
-    clip-path: inset(50% 0 30% 0);
-    transform: translateX(25px);
-  }
-
-  40% {
-    clip-path: inset(20% 0 70% 0);
-    transform: translateX(-15px);
-  }
-
-  60% {
-    clip-path: inset(80% 0 5% 0);
-    transform: translateX(20px);
-  }
-
-  80% {
-    clip-path: inset(40% 0 40% 0);
-    transform: translateX(-20px);
-  }
-}
-
-@keyframes portrait-fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes portrait-reveal-wipe {
-  0% {
-    opacity: 0;
-    transform: translate(20px, -10px);
-    filter: brightness(5) contrast(2) saturate(0);
-    clip-path: inset(80% 0 0 0);
-  }
-
-  15% {
-    opacity: 0.8;
-    transform: translate(-20px, 10px);
-    filter: brightness(3) contrast(1.5) saturate(0.5);
-    clip-path: inset(10% 0 60% 0);
-  }
-
-  30% {
-    opacity: 0.4;
-    transform: translate(0, 0);
-    filter: brightness(1) contrast(1) saturate(1);
-    clip-path: none;
-  }
-
-  45% {
-    opacity: 0.9;
-    transform: translateX(10px);
-    clip-path: inset(40% 0 40% 0);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(0, 0);
-    filter: brightness(1) contrast(1) saturate(1);
-    clip-path: none;
-  }
-}
-
-/* Global scanline visibility */
-.phase-sketch .portrait-scanline,
-.phase-solid .portrait-scanline {
-  opacity: 1;
-}
-
-@keyframes final-solid-lock {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Scanline for portrait */
-.portrait-scanline {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent);
-  opacity: 0.1;
-  box-shadow: 0 0 10px var(--color-accent);
-  animation: scanline 4s linear infinite;
-  z-index: 20;
-  pointer-events: none;
-}
-
-@keyframes scanline {
-  0% {
-    top: -2%;
-  }
-
-  100% {
-    top: 102%;
-  }
-}
-
-@keyframes scanline {
-  0% {
-    top: -2%;
-  }
-
-  100% {
-    top: 102%;
-  }
 }
 
 .intro-role-wrapper {
@@ -1740,6 +2747,72 @@ a {
   }
 }
 
+/* ==========================================================================
+   RESPONSIVE HERO ARCHITECTURE (TABLET / NARROW VIEWPORTS: <= 1200px)
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+
+  .frame-container.hero-editorial-frame,
+  .hero-editorial-frame {
+    flex-direction: column;
+    padding: 100px 5vw 40px !important;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-bg-headline-wrapper {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .hero-bg-headline {
+    font-size: clamp(3rem, 10vw, 6rem);
+    white-space: normal;
+    width: 100%;
+  }
+
+  .intro-split-layout {
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2.5rem;
+    margin-top: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .intro-text-content {
+    max-width: 680px;
+    width: 100%;
+    text-align: left;
+  }
+
+  .hero-image-intro-wrapper {
+    width: 100%;
+    max-width: 480px;
+    margin-right: 0;
+    margin-top: 0;
+    align-self: center;
+  }
+
+  .hero-image-container-3d {
+    width: min(480px, 80vw);
+    height: auto;
+    aspect-ratio: 2440 / 3160;
+    left: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    will-change: transform;
+  }
+
+  .hero-composite-img {
+    object-position: center bottom;
+  }
+}
 
 /* ==========================================================================
    RESPONSIVE OVERRIDES (MOBILE ONLY)
@@ -1787,11 +2860,10 @@ a {
   .intro-split-layout {
     flex-direction: column-reverse;
     justify-content: center;
-    gap: 0.2rem;
+    gap: 1.5rem;
     padding-top: 65px;
     padding-bottom: 1rem;
     text-align: center;
-    height: 100%;
     width: 100%;
   }
 
@@ -1800,6 +2872,50 @@ a {
     align-items: center;
     display: flex;
     flex-direction: column;
+  }
+
+  .hero-bg-headline {
+    display: none !important;
+  }
+
+  /* Backdrop Name for Mobile (Positioned in background behind the subject cutout & TV) */
+  .hero-mobile-bg-name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    text-align: center;
+    line-height: 0.86;
+  }
+
+  .hero-bg-name-line {
+    font-family: 'Rammetto One', cursive, sans-serif;
+    font-size: clamp(3.2rem, 16vw, 5.2rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.5));
+    white-space: nowrap;
+    display: block;
+  }
+
+  .intro-role-styled {
+    font-size: clamp(0.95rem, 3.8vw, 1.3rem);
+    max-width: 90%;
+    white-space: normal;
+    text-align: center;
+    margin-top: 0.4rem;
+    margin-bottom: 0.8rem;
   }
 
   .intro-name {
@@ -1819,6 +2935,23 @@ a {
     margin-bottom: 1rem;
     max-width: 300px;
     opacity: 0.9;
+  }
+
+  .hero-image-intro-wrapper {
+    width: 100%;
+    max-width: 340px;
+    margin-right: 0;
+    margin-top: 0;
+    align-self: center;
+  }
+
+  .hero-image-container-3d {
+    width: min(340px, 85vw);
+    height: auto;
+    aspect-ratio: 2440 / 3160;
+    left: 0;
+    margin: 0 auto;
+    max-width: 340px;
   }
 
   .hero-image-container {
