@@ -660,7 +660,7 @@ function App() {
   const NAV_LINKS = [
     { name: 'ABOUT', id: 'scene-0', scene: 0 },
     { name: 'SKILLS', id: 'scene-1', scene: 1 },
-    { name: 'WORKS', id: 'scene-2', scene: 2 },
+    { name: 'WORK', id: 'scene-2', scene: 2 },
     { name: 'CONTACT', id: 'scene-3', scene: 3 }
   ];
 
@@ -786,6 +786,18 @@ function App() {
                   onMouseEnter={handleCursorHover('OPERATOR_ID')}
                   onMouseLeave={handleCursorLeave}
                 >
+                  {/* Dedicated Mobile Background Text behind image (Solid) */}
+                  <div className="hero-mobile-bg-name" style={{ zIndex: 1 }} aria-hidden="true">
+                    <span className="hero-bg-name-line name-solid">ALLEN</span>
+                    <span className="hero-bg-name-line name-solid">BIJU.</span>
+                  </div>
+
+                  {/* Dedicated Mobile Foreground Text in front of image (Outline) */}
+                  <div className="hero-mobile-bg-name hero-mobile-fg-name" style={{ zIndex: 3 }} aria-hidden="true">
+                    <span className="hero-bg-name-line name-transparent">ALLEN</span>
+                    <span className="hero-bg-name-line name-outline">BIJU.</span>
+                  </div>
+
                   {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
                   <TVWorld ref={tvWorldRef} />
 
