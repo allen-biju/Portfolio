@@ -176,7 +176,6 @@ function App() {
     if (!container || !img) return;
 
     // Use offsetWidth/offsetHeight — these are layout-space dimensions unaffected by CSS transforms.
-    // This avoids having to temporarily nullify GSAP-set transforms (which caused visual jumps).
     const cW = container.offsetWidth;
     const cH = container.offsetHeight;
 
@@ -185,52 +184,61 @@ function App() {
     const natW = img.naturalWidth || 2440;
     const natH = img.naturalHeight || 3160;
     const natAspect = natW / natH; // 0.7721519
-
     const cAspect = cW / cH;
 
     const imgStyle = window.getComputedStyle(img);
     const objFit = imgStyle.objectFit || 'contain';
-    const objPos = imgStyle.objectPosition || 'bottom right';
+    const objPos = (imgStyle.objectPosition || 'bottom right').toLowerCase().trim();
 
-    // Robustly parse object-position (handles "100% 100%", "bottom right", "right bottom", "50% 50%", etc.)
-    let posX = 1; // Default to right (100%) as per stylesheet
-    let posY = 1; // Default to bottom (100%) as per stylesheet
-
-    if (objPos) {
-      const parts = objPos.toLowerCase().trim().split(/\s+/);
-      parts.forEach((p) => {
-        if (p === 'right' || p === '100%') posX = 1;
-        else if (p === 'left' || p === '0%') posX = 0;
-        else if (p === 'center' || p === '50%') posX = 0.5;
-        else if (p === 'bottom') posY = 1;
-        else if (p === 'top') posY = 0;
-      });
-      if (parts.length === 2) {
-        if (parts[0].endsWith('%')) posX = parseFloat(parts[0]) / 100;
-        if (parts[1].endsWith('%')) posY = parseFloat(parts[1]) / 100;
-      }
-    }
-
-    let rW, rH, rL, rT;
+    let rW = cW;
+    let rH = cH;
 
     if (objFit === 'contain') {
       if (cAspect > natAspect) {
-        // Height-constrained
+        // Height-constrained: image takes full container height
         rH = cH;
         rW = rH * natAspect;
       } else {
-        // Width-constrained
+        // Width-constrained: image takes full container width
         rW = cW;
         rH = rW / natAspect;
       }
-      rL = (cW - rW) * posX;
-      rT = (cH - rH) * posY;
-    } else {
-      rL = 0;
-      rT = 0;
-      rW = cW;
-      rH = cH;
     }
+
+    // Parse object-position accurately (supporting "50% 100%", "center bottom", "bottom right", etc.)
+    let posX = 1; // default right
+    let posY = 1; // default bottom
+
+    const parts = objPos.split(/\s+/);
+    if (parts.length === 1) {
+      if (parts[0] === 'center') { posX = 0.5; posY = 0.5; }
+      else if (parts[0] === 'top') { posX = 0.5; posY = 0; }
+      else if (parts[0] === 'bottom') { posX = 0.5; posY = 1; }
+      else if (parts[0] === 'left') { posX = 0; posY = 0.5; }
+      else if (parts[0] === 'right') { posX = 1; posY = 0.5; }
+    } else if (parts.length >= 2) {
+      let hToken = parts[0];
+      let vToken = parts[1];
+
+      // Handle vertical first if specified like "bottom right"
+      if (['top', 'bottom'].includes(parts[0]) && ['left', 'right', 'center'].includes(parts[1])) {
+        vToken = parts[0];
+        hToken = parts[1];
+      }
+
+      if (hToken === 'left' || hToken === '0%') posX = 0;
+      else if (hToken === 'center' || hToken === '50%') posX = 0.5;
+      else if (hToken === 'right' || hToken === '100%') posX = 1;
+      else if (hToken.endsWith('%')) posX = parseFloat(hToken) / 100;
+
+      if (vToken === 'top' || vToken === '0%') posY = 0;
+      else if (vToken === 'center' || vToken === '50%') posY = 0.5;
+      else if (vToken === 'bottom' || vToken === '100%') posY = 1;
+      else if (vToken.endsWith('%')) posY = parseFloat(vToken) / 100;
+    }
+
+    const rL = (cW - rW) * posX;
+    const rT = (cH - rH) * posY;
 
     // Physical CRT screen opening inside hero.png (2440 x 3160):
     // x:[1103, 1783], y:[2031, 2558]
@@ -242,7 +250,7 @@ function App() {
     };
 
     // Physical TV casing / camera dolly anchor inside hero.png:
-    // x:[848, 2134], y:[1864, 2717]
+    // x:[810, 2096], y:[1864, 2717]
     const TV_CASING_NORM = {
       left: 810 / 2440,
       top: 1864 / 3160,
@@ -295,30 +303,39 @@ function App() {
   };
 
   useEffect(() => {
-    // Delay the initial measurement to allow GSAP + Framer Motion to finish their
-    // first-frame layout pass before we read offsetWidth / offsetHeight.
-    const initialTimer = setTimeout(updateAnchorGeometry, 200);
+    // Initial measurement
+    updateAnchorGeometry();
+    const initialTimer = setTimeout(() => {
+      updateAnchorGeometry();
+      ScrollTrigger.refresh();
+    }, 200);
 
     const img = heroImgRef.current;
+    const handleImgLoad = () => {
+      updateAnchorGeometry();
+      ScrollTrigger.refresh();
+    };
+
     if (img && !img.complete) {
-      img.addEventListener('load', updateAnchorGeometry);
+      img.addEventListener('load', handleImgLoad);
     }
 
-    // Debounce resize so we never fire mid-GSAP-refresh.
-    // F11 fullscreen fires 'resize', not 'fullscreenchange' — one listener is enough.
+    // Debounce resize to handle breakpoint transitions cleanly
     let resizeTimer = null;
     const onResize = () => {
+      updateAnchorGeometry();
       clearTimeout(resizeTimer);
-      // 250 ms gives GSAP's ScrollTrigger.refresh() time to complete its own
-      // layout invalidation before we re-measure the container.
-      resizeTimer = setTimeout(updateAnchorGeometry, 250);
+      resizeTimer = setTimeout(() => {
+        updateAnchorGeometry();
+        ScrollTrigger.refresh();
+      }, 150);
     };
     window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       clearTimeout(initialTimer);
       clearTimeout(resizeTimer);
-      if (img) img.removeEventListener('load', updateAnchorGeometry);
+      if (img) img.removeEventListener('load', handleImgLoad);
       window.removeEventListener('resize', onResize);
     };
   }, []);
@@ -643,7 +660,7 @@ function App() {
   const NAV_LINKS = [
     { name: 'ABOUT', id: 'scene-0', scene: 0 },
     { name: 'SKILLS', id: 'scene-1', scene: 1 },
-    { name: 'WORKS', id: 'scene-2', scene: 2 },
+    { name: 'WORK', id: 'scene-2', scene: 2 },
     { name: 'CONTACT', id: 'scene-3', scene: 3 }
   ];
 
@@ -769,6 +786,18 @@ function App() {
                   onMouseEnter={handleCursorHover('OPERATOR_ID')}
                   onMouseLeave={handleCursorLeave}
                 >
+                  {/* Dedicated Mobile Background Text behind image (Solid) */}
+                  <div className="hero-mobile-bg-name" style={{ zIndex: 1 }} aria-hidden="true">
+                    <span className="hero-bg-name-line name-solid">ALLEN</span>
+                    <span className="hero-bg-name-line name-solid">BIJU.</span>
+                  </div>
+
+                  {/* Dedicated Mobile Foreground Text in front of image (Outline) */}
+                  <div className="hero-mobile-bg-name hero-mobile-fg-name" style={{ zIndex: 3 }} aria-hidden="true">
+                    <span className="hero-bg-name-line name-transparent">ALLEN</span>
+                    <span className="hero-bg-name-line name-outline">BIJU.</span>
+                  </div>
+
                   {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
                   <TVWorld ref={tvWorldRef} />
 

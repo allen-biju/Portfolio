@@ -16,20 +16,31 @@ function computeDollyTarget(container, anchor, text) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
+  // Temporarily clear GSAP transforms to read unscaled layout rects
   const prevContainerTransform = container.style.transform;
   const prevContainerOrigin = container.style.transformOrigin;
   const prevTextTransform = text ? text.style.transform : '';
   const prevTextOrigin = text ? text.style.transformOrigin : '';
 
   container.style.transform = 'none';
+  container.style.transformOrigin = '';
   if (text) {
     text.style.transform = 'none';
     text.style.transformOrigin = 'center center';
   }
 
+  // Force layout flush so getBoundingClientRect is accurate
+  void container.offsetWidth;
+
   const containerRect = container.getBoundingClientRect();
-  const anchorRect = anchor.getBoundingClientRect();
   const textRect = text ? text.getBoundingClientRect() : null;
+
+  // Use container-local offset measurements for the anchor (eliminates scroll drift).
+  // anchor.offsetLeft/offsetTop are relative to the nearest positioned ancestor = container.
+  const anchorOffsetLeft = anchor.offsetLeft;
+  const anchorOffsetTop = anchor.offsetTop;
+  const anchorOffsetWidth = anchor.offsetWidth;
+  const anchorOffsetHeight = anchor.offsetHeight;
 
   container.style.transform = prevContainerTransform;
   container.style.transformOrigin = prevContainerOrigin;
@@ -38,16 +49,17 @@ function computeDollyTarget(container, anchor, text) {
     text.style.transformOrigin = prevTextOrigin;
   }
 
-  if (containerRect.width === 0 || anchorRect.width === 0) return null;
+  if (containerRect.width === 0 || anchorOffsetWidth === 0) return null;
 
-  const anchorCenterX = anchorRect.left + anchorRect.width / 2;
-  const anchorCenterY = anchorRect.top + anchorRect.height / 2;
+  // Convert anchor container-local center to viewport coordinates
+  const anchorCenterX = containerRect.left + anchorOffsetLeft + anchorOffsetWidth / 2;
+  const anchorCenterY = containerRect.top + anchorOffsetTop + anchorOffsetHeight / 2;
 
-  const originXPercent = ((anchorCenterX - containerRect.left) / containerRect.width) * 100;
-  const originYPercent = ((anchorCenterY - containerRect.top) / containerRect.height) * 100;
+  const originXPercent = ((anchorOffsetLeft + anchorOffsetWidth / 2) / containerRect.width) * 100;
+  const originYPercent = ((anchorOffsetTop + anchorOffsetHeight / 2) / containerRect.height) * 100;
 
-  const scaleX = vw / anchorRect.width;
-  const scaleY = vh / anchorRect.height;
+  const scaleX = vw / anchorOffsetWidth;
+  const scaleY = vh / anchorOffsetHeight;
   const fitScale = Math.max(scaleX, scaleY);
   const pushThroughScale = fitScale * 2.4;
 
@@ -124,6 +136,9 @@ export function useCameraDolly({
 
       /* ─── SETUP ─────────────────────────────────────────────── */
       const applyTarget = () => {
+        if (typeof onUpdateAnchors === 'function') {
+          onUpdateAnchors();
+        }
         dollyTarget = computeDollyTarget(imageContainer, anchor, text);
         if (dollyTarget) {
           gsap.set(imageContainer, {

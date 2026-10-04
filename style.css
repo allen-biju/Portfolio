@@ -287,15 +287,15 @@ a {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: clamp(1.5rem, 3.5vw, 4rem);
+  gap: 0;
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .intro-text-content {
   text-align: left;
-  flex: 0 1 560px;
-  max-width: 560px;
+  flex: 1 1 720px;
+  max-width: 720px;
   min-width: 0;
   pointer-events: auto;
   z-index: 2;
@@ -304,9 +304,9 @@ a {
 
 .hero-bg-headline {
   font-family: 'Rammetto One', cursive, sans-serif;
-  font-size: clamp(3.2rem, 8.8vw, 9.8rem);
+  font-size: clamp(3.6rem, 9.8vw, 11rem);
   font-weight: 400;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   line-height: 0.95;
   color: #FFFFFF;
   text-transform: uppercase;
@@ -318,9 +318,13 @@ a {
   width: max-content;
 }
 
+.hero-mobile-bg-name {
+  display: none;
+}
+
 .intro-role-styled {
   font-family: 'Rammetto One', 'clash-display', sans-serif;
-  font-size: clamp(0.95rem, 1.6vw, 1.5rem);
+  font-size: clamp(1.1rem, 1.9vw, 1.75rem);
   font-weight: 400;
   color: #F5A623;
   letter-spacing: 0.05em;
@@ -329,6 +333,7 @@ a {
   margin-bottom: 0.6rem;
   line-height: 1.35;
   max-width: 480px;
+  white-space: nowrap;
 }
 
 .intro-resume-btn-cyber {
@@ -369,9 +374,9 @@ a {
 }
 
 .intro-bio {
-  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
   color: rgba(204, 214, 246, 0.85);
-  max-width: 540px;
+  max-width: 100%;
   line-height: 1.8;
   margin-bottom: 2.5rem;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
@@ -427,8 +432,9 @@ a {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  margin-right: min(8vw, 120px);
+  margin-right: 0;
   margin-top: min(6vh, 48px);
+  margin-bottom: 10px;
   align-self: flex-end;
 }
 
@@ -442,47 +448,39 @@ a {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  left: 10px;
+  left: 20px;
   will-change: transform;
 }
 
-/* TV Anchor element precisely aligned to TV screen */
+/* TV Anchor element precisely aligned to TV casing */
 .tv-anchor {
   position: absolute;
-  left: var(--tv-anchor-left, 48%);
-  top: var(--tv-anchor-top, 59%);
-  width: var(--tv-anchor-width, 42%);
-  height: var(--tv-anchor-height, 27%);
+  left: var(--tv-anchor-left, 33.2%);
+  top: var(--tv-anchor-top, 59.0%);
+  width: var(--tv-anchor-width, 52.7%);
+  height: var(--tv-anchor-height, 27.0%);
   z-index: 1;
   pointer-events: none;
-  /* opacity: 1;
-  background: rgba(255, 0, 0, 0.3);
-  border: 2px solid red; */
 }
 
 /* Passive TV Screen Anchor marking the transparent CRT screen opening */
 .tv-screen-anchor {
   position: absolute;
-  left: var(--tv-screen-left, 57.95%);
-  top: var(--tv-screen-top, 63.95%);
-  width: var(--tv-screen-width, 22.11%);
-  height: var(--tv-screen-height, 17.5%);
+  left: var(--tv-screen-left, 45.2%);
+  top: var(--tv-screen-top, 64.3%);
+  width: var(--tv-screen-width, 28.3%);
+  height: var(--tv-screen-height, 16.7%);
   z-index: 1;
   pointer-events: none;
-  /* border: 2px dashed #00ffcc;
-  background: rgba(0, 255, 204, 0.25);
-  box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
-  border-radius: 4px;
-  opacity: 1; */
 }
 
 /* Dedicated TVWorld element — positioned using tvScreenAnchor as geometry reference */
 .tv-world {
   position: absolute;
-  left: var(--tv-screen-left, 57.95%);
-  top: var(--tv-screen-top, 63.95%);
-  width: var(--tv-screen-width, 22.11%);
-  height: var(--tv-screen-height, 17.5%);
+  left: var(--tv-screen-left, 45.2%);
+  top: var(--tv-screen-top, 64.3%);
+  width: var(--tv-screen-width, 28.3%);
+  height: var(--tv-screen-height, 16.7%);
   z-index: 1;
   pointer-events: none;
   overflow: hidden !important;
@@ -2829,21 +2827,49 @@ a {
     overflow-x: hidden;
   }
 
-  /* Navigation HUD */
+  /* Navigation HUD — Exact Figma Spec */
   .main-nav {
-    padding: 0.8rem 1rem;
-    background: rgba(10, 25, 47, 0.8);
-    backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+    padding: 1.25rem 1.25rem 0.5rem 1.25rem !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-bottom: none !important;
+    mix-blend-mode: normal !important;
+  }
+
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .logo {
+    font-family: 'Rammetto One', 'clash-display', sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    color: #FFFFFF !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
   }
 
   .nav-links {
-    gap: 0.8rem;
+    display: flex !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
   }
 
   .nav-link-item {
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.62rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    padding: 0 !important;
+  }
+
+  .nav-link-item.active {
+    color: #FFFFFF !important;
+    text-shadow: none !important;
   }
 
   .scene-counter {
@@ -2851,65 +2877,147 @@ a {
   }
 
   /* Scene Overrides */
-  .frame-container,
-  .frame-container.padded-left {
-    padding: 0 1rem !important;
-    justify-content: center;
-    align-items: center;
+  .frame-container.hero-editorial-frame,
+  .hero-editorial-frame {
+    padding: 85px 1rem 1.5rem !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   /* Intro Section (Home) */
   .intro-split-layout {
-    flex-direction: column-reverse;
-    justify-content: center;
-    gap: 1.5rem;
-    padding-top: 65px;
-    padding-bottom: 1rem;
-    text-align: center;
-    width: 100%;
+    flex-direction: column-reverse !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    padding-top: 15px !important;
+    padding-bottom: 0 !important;
+    text-align: center !important;
+    width: 100% !important;
   }
 
   .intro-text-content {
-    max-width: 100%;
-    align-items: center;
-    display: flex;
-    flex-direction: column;
+    max-width: 100% !important;
+    width: 100% !important;
+    align-items: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: 0 !important;
   }
 
-  .intro-name {
-    font-size: 2.4rem;
-    margin-bottom: 0.2rem;
+  .hero-bg-headline {
+    display: none !important;
   }
 
-  .intro-role {
-    font-size: 0.75rem;
-    margin-bottom: 0.8rem;
-    letter-spacing: 0.12em;
-  }
-
-  .intro-bio {
-    font-size: 0.8rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-    max-width: 300px;
-    opacity: 0.9;
-  }
-
+  /* Hero Image on Plain Page (No container boundary) */
   .hero-image-intro-wrapper {
-    width: 100%;
-    max-width: 340px;
-    margin-right: 0;
-    margin-top: 0;
-    align-self: center;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.8rem 0 0 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
   .hero-image-container-3d {
-    width: min(340px, 85vw);
-    height: auto;
-    aspect-ratio: 2440 / 3160;
-    left: 0;
-    margin: 0 auto;
-    max-width: 340px;
+    position: relative !important;
+    width: min(340px, 90vw) !important;
+    height: auto !important;
+    aspect-ratio: 2440 / 3160 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    left: -15px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+
+  /* Backdrop Name for Mobile (Positioned on plain page behind subject) */
+  .hero-mobile-bg-name {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    position: absolute !important;
+    top: 10% !important;
+    left: calc(50% + 15px) !important;
+    transform: translateX(-50%) !important;
+    width: 120% !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    text-align: center !important;
+    line-height: 0.82 !important;
+  }
+
+  .hero-mobile-fg-name {
+    z-index: 3 !important;
+  }
+
+  .hero-bg-name-line {
+    font-family: 'Rammetto One', cursive, sans-serif !important;
+    font-size: clamp(3.8rem, 20vw, 5.5rem) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.01em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    display: block !important;
+  }
+
+  .hero-bg-name-line.name-solid {
+    color: #FFFFFF !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+
+  .hero-bg-name-line.name-outline {
+    color: transparent !important;
+    -webkit-text-stroke: 1.2px #FFFFFF !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+
+  .hero-bg-name-line.name-transparent {
+    color: transparent !important;
+    text-shadow: none !important;
+    -webkit-text-stroke: 0px transparent !important;
+  }
+
+  .hero-composite-img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center bottom !important;
+    z-index: 2 !important;
+  }
+
+  /* Bottom Role / Tagline */
+  .intro-role-styled {
+    font-family: 'Rammetto One', cursive, sans-serif !important;
+    font-size: clamp(0.95rem, 4.3vw, 1.25rem) !important;
+    font-weight: 400 !important;
+    color: #F5A623 !important;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+    max-width: 320px !important;
+    white-space: normal !important;
+    text-align: center !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.3 !important;
+    margin: 0.8rem auto 0 auto !important;
+  }
+
+  .intro-resume-btn-cyber,
+  .intro-bio,
+  .hero-text-scroll-hint {
+    display: none !important;
   }
 
   .hero-image-container {
