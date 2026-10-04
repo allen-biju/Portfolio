@@ -319,6 +319,7 @@ a {
 }
 
 .hero-mobile-bg-name,
+.hero-mobile-outline-name,
 .hero-mobile-bg-layer,
 .hero-mobile-char-layer {
   display: none;
@@ -454,26 +455,30 @@ a {
   will-change: transform;
 }
 
-/* TV Anchor element precisely aligned to TV casing */
+/* TV Anchor element precisely aligned to TV casing (Visible Debug Mode) */
 .tv-anchor {
   position: absolute;
   left: var(--tv-anchor-left, 33.2%);
   top: var(--tv-anchor-top, 59.0%);
   width: var(--tv-anchor-width, 52.7%);
   height: var(--tv-anchor-height, 27.0%);
-  z-index: 1;
+  z-index: 1 !important;
   pointer-events: none;
+  /* outline: 2px solid #00ffff !important;
+  background: rgba(0, 255, 255, 0.2) !important; */
 }
 
-/* Passive TV Screen Anchor marking the transparent CRT screen opening */
+/* Passive TV Screen Anchor marking the transparent CRT screen opening (Visible Debug Mode) */
 .tv-screen-anchor {
   position: absolute;
   left: var(--tv-screen-left, 45.2%);
   top: var(--tv-screen-top, 64.3%);
   width: var(--tv-screen-width, 28.3%);
   height: var(--tv-screen-height, 16.7%);
-  z-index: 1;
+  z-index: 1 !important;
   pointer-events: none;
+  /* outline: 2px solid #ff0055 !important;
+  background: rgba(255, 0, 85, 0.3) !important; */
 }
 
 /* Dedicated TVWorld element — positioned using tvScreenAnchor as geometry reference */
@@ -2411,6 +2416,12 @@ a {
   margin-bottom: 1.5rem;
 }
 
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 /* Sound Toggle HUD Button */
 .sound-toggle-btn {
   background: transparent;
@@ -2421,7 +2432,7 @@ a {
   gap: 0.8rem;
   padding: 0.5rem;
   cursor: none;
-  margin-left: 2rem;
+  margin-left: 0;
   opacity: 0.6;
   transition: opacity 0.3s ease;
 }
@@ -2894,7 +2905,7 @@ a {
     flex-direction: column-reverse !important;
     justify-content: flex-start !important;
     align-items: center !important;
-    gap: 1.5rem !important;
+    gap: 0.4rem !important;
     padding-top: 15px !important;
     padding-bottom: 0 !important;
     text-align: center !important;
@@ -2907,7 +2918,7 @@ a {
     align-items: center !important;
     display: flex !important;
     flex-direction: column !important;
-    margin: 0 !important;
+    margin: -35px 0 0 0 !important;
   }
 
   .hero-bg-headline {
@@ -2926,14 +2937,15 @@ a {
 
   .hero-image-container-3d {
     position: relative !important;
-    width: min(340px, 90vw) !important;
+    width: min(400px, 96vw) !important;
     height: auto !important;
-    aspect-ratio: 2440 / 3160 !important;
+    aspect-ratio: 1160 / 1816 !important;
     border-radius: 0 !important;
     overflow: visible !important;
     box-shadow: none !important;
     background: transparent !important;
-    left: -15px !important;
+    top: -45px !important;
+    left: 0px !important;
     margin: 0 auto !important;
     display: flex !important;
     align-items: flex-end !important;
@@ -2948,36 +2960,48 @@ a {
   .hero-mobile-bg-layer {
     display: block !important;
     position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
+    inset: auto !important;
+    width: 80% !important;
+    height: 95% !important;
+    object-fit: fill !important;
     object-position: center bottom !important;
     z-index: 1 !important;
     pointer-events: none !important;
+    left: 50% !important;
+    bottom: 0 !important;
+    transform: translate(calc(-50% + 20px), 0) !important;
   }
 
-  /* Layer 2: Mobile Name Typography (Sandwiched over BG layer and behind Character layer) */
-  .hero-mobile-bg-name {
+  /* Layer 2: Mobile Name Typography (Solid behind character, Outline above character) */
+  .hero-mobile-bg-name,
+  .hero-mobile-outline-name {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
     position: absolute !important;
-    top: 10% !important;
+    top: 20% !important;
     left: calc(50% + 15px) !important;
     transform: translateX(-50%) !important;
     width: 120% !important;
-    z-index: 2 !important;
     pointer-events: none !important;
     user-select: none !important;
     text-align: center !important;
-    line-height: 0.82 !important;
+    line-height: 0.92 !important;
+    gap: 6px !important;
+  }
+
+  .hero-mobile-bg-name {
+    z-index: 2 !important;
+  }
+
+  .hero-mobile-outline-name {
+    z-index: 4 !important;
   }
 
   .hero-bg-name-line {
     font-family: 'Rammetto One', cursive, sans-serif !important;
-    font-size: clamp(3.8rem, 20vw, 5.5rem) !important;
+    font-size: 90px !important;
     font-weight: 400 !important;
     letter-spacing: -0.01em !important;
     text-transform: uppercase !important;
@@ -2996,6 +3020,7 @@ a {
     -webkit-text-stroke: 1.2px #FFFFFF !important;
     text-shadow: none !important;
     filter: none !important;
+    z-index: 5 !important;
   }
 
   /* Layer 3: Mobile Character + Vintage TV on top */
@@ -3009,7 +3034,14 @@ a {
     object-position: center bottom !important;
     z-index: 3 !important;
     pointer-events: auto !important;
-    transform: translate(-32px, 38px) !important;
+    transform: translate(-20px, 50px) !important;
+    /* opacity: 0 !important; */
+    /* TEMP: hidden for debug */
+  }
+
+  /* TV World Display behind Character Layer */
+  .tv-world {
+    z-index: 2 !important;
   }
 
   /* Bottom Role / Tagline */
@@ -3024,7 +3056,7 @@ a {
     text-align: center !important;
     letter-spacing: 0.04em !important;
     line-height: 1.3 !important;
-    margin: 0.8rem auto 0 auto !important;
+    margin: 0 auto !important;
   }
 
   .intro-resume-btn-cyber,
@@ -3264,6 +3296,21 @@ a {
   .footer-right,
   .footer-left .system-tag {
     display: none;
+  }
+
+  .sound-toggle-btn {
+    position: fixed !important;
+    bottom: 1rem !important;
+    left: 1rem !important;
+    margin: 0 !important;
+    z-index: 150 !important;
+    pointer-events: auto !important;
+    background: rgba(10, 25, 47, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(100, 255, 218, 0.3) !important;
+    border-radius: 6px !important;
+    padding: 0.4rem 0.6rem !important;
   }
 
   /* Skill Detail Overlay on Mobile */
