@@ -10,6 +10,8 @@ import TVWorld from './components/TVWorld';
 import CosmicGalaxy3D from './components/CosmicGalaxy3D';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
 import heroImg from './assets/hero.png';
+import heroBgImg from './assets/hero-bg.png';
+import heroCharImg from './assets/hero-character.png';
 import emailjs from '@emailjs/browser';
 import { useCameraDolly } from './animations/useCameraDolly';
 
@@ -153,6 +155,7 @@ function App() {
   const introTextRef = useRef(null);
   const heroImageContainerRef = useRef(null);
   const heroImgRef = useRef(null);
+  const heroCharImgRef = useRef(null);
   const tvAnchorRef = useRef(null);
   const tvScreenAnchorRef = useRef(null);
   const tvWorldRef = useRef(null);
@@ -168,7 +171,7 @@ function App() {
   // and positions tv-anchor, tv-screen-anchor, and TVWorld to accurately track the TV in all viewports.
   const updateAnchorGeometry = () => {
     const container = heroImageContainerRef.current;
-    const img = heroImgRef.current;
+    const img = (typeof window !== 'undefined' && window.innerWidth <= 768 ? (heroCharImgRef.current || heroImgRef.current) : heroImgRef.current) || heroImgRef.current;
     const tvAnchor = tvAnchorRef.current;
     const tvScreenAnchor = tvScreenAnchorRef.current;
     const tvWorld = tvWorldRef.current || document.getElementById('tvWorld');
@@ -786,16 +789,18 @@ function App() {
                   onMouseEnter={handleCursorHover('OPERATOR_ID')}
                   onMouseLeave={handleCursorLeave}
                 >
-                  {/* Dedicated Mobile Background Text behind image (Solid) */}
-                  <div className="hero-mobile-bg-name" style={{ zIndex: 1 }} aria-hidden="true">
+                  {/* Layer 1 (Mobile only): Background Image Layer */}
+                  <img
+                    src={heroBgImg}
+                    alt="Hero Studio Background"
+                    className="hero-mobile-bg-layer"
+                    aria-hidden="true"
+                  />
+
+                  {/* Layer 2 (Mobile only): Name Typography physically sandwiched between BG & Character */}
+                  <div className="hero-mobile-bg-name" aria-hidden="true">
                     <span className="hero-bg-name-line name-solid">ALLEN</span>
                     <span className="hero-bg-name-line name-solid">BIJU.</span>
-                  </div>
-
-                  {/* Dedicated Mobile Foreground Text in front of image (Outline) */}
-                  <div className="hero-mobile-bg-name hero-mobile-fg-name" style={{ zIndex: 3 }} aria-hidden="true">
-                    <span className="hero-bg-name-line name-transparent">ALLEN</span>
-                    <span className="hero-bg-name-line name-outline">BIJU.</span>
                   </div>
 
                   {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
@@ -807,7 +812,15 @@ function App() {
                   {/* Passive TV Screen Anchor marking the transparent CRT screen opening */}
                   <div ref={tvScreenAnchorRef} className="tv-screen-anchor" id="tvScreenAnchor" />
 
-                  {/* Pre-aligned Single Merged Hero Image */}
+                  {/* Layer 3 (Mobile only): Character + TV Layer on top */}
+                  <img
+                    src={heroCharImg}
+                    ref={heroCharImgRef}
+                    alt="Allen Biju Sitting on Vintage TV"
+                    className="hero-mobile-char-layer"
+                  />
+
+                  {/* Desktop Only: Pre-aligned Single Merged Hero Image */}
                   <img
                     src={heroImg}
                     ref={heroImgRef}
