@@ -318,7 +318,10 @@ a {
   width: max-content;
 }
 
-.hero-mobile-bg-name {
+.hero-mobile-bg-name,
+.hero-mobile-outline-name,
+.hero-mobile-bg-layer,
+.hero-mobile-char-layer {
   display: none;
 }
 
@@ -452,26 +455,30 @@ a {
   will-change: transform;
 }
 
-/* TV Anchor element precisely aligned to TV casing */
+/* TV Anchor element precisely aligned to TV casing (Visible Debug Mode) */
 .tv-anchor {
   position: absolute;
   left: var(--tv-anchor-left, 33.2%);
   top: var(--tv-anchor-top, 59.0%);
   width: var(--tv-anchor-width, 52.7%);
   height: var(--tv-anchor-height, 27.0%);
-  z-index: 1;
+  z-index: 1 !important;
   pointer-events: none;
+  /* outline: 2px solid #00ffff !important;
+  background: rgba(0, 255, 255, 0.2) !important; */
 }
 
-/* Passive TV Screen Anchor marking the transparent CRT screen opening */
+/* Passive TV Screen Anchor marking the transparent CRT screen opening (Visible Debug Mode) */
 .tv-screen-anchor {
   position: absolute;
   left: var(--tv-screen-left, 45.2%);
   top: var(--tv-screen-top, 64.3%);
   width: var(--tv-screen-width, 28.3%);
   height: var(--tv-screen-height, 16.7%);
-  z-index: 1;
+  z-index: 1 !important;
   pointer-events: none;
+  /* outline: 2px solid #ff0055 !important;
+  background: rgba(255, 0, 85, 0.3) !important; */
 }
 
 /* Dedicated TVWorld element — positioned using tvScreenAnchor as geometry reference */
@@ -2409,6 +2416,12 @@ a {
   margin-bottom: 1.5rem;
 }
 
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 /* Sound Toggle HUD Button */
 .sound-toggle-btn {
   background: transparent;
@@ -2419,7 +2432,7 @@ a {
   gap: 0.8rem;
   padding: 0.5rem;
   cursor: none;
-  margin-left: 2rem;
+  margin-left: 0;
   opacity: 0.6;
   transition: opacity 0.3s ease;
 }
@@ -2827,21 +2840,49 @@ a {
     overflow-x: hidden;
   }
 
-  /* Navigation HUD */
+  /* Navigation HUD — Exact Figma Spec */
   .main-nav {
-    padding: 0.8rem 1rem;
-    background: rgba(10, 25, 47, 0.8);
-    backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+    padding: 1.25rem 1.25rem 0.5rem 1.25rem !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-bottom: none !important;
+    mix-blend-mode: normal !important;
+  }
+
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .logo {
+    font-family: 'Rammetto One', 'clash-display', sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    color: #FFFFFF !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
   }
 
   .nav-links {
-    gap: 0.8rem;
+    display: flex !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
   }
 
   .nav-link-item {
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.62rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    padding: 0 !important;
+  }
+
+  .nav-link-item.active {
+    color: #FFFFFF !important;
+    text-shadow: none !important;
   }
 
   .scene-counter {
@@ -2849,109 +2890,179 @@ a {
   }
 
   /* Scene Overrides */
-  .frame-container,
-  .frame-container.padded-left {
-    padding: 0 1rem !important;
-    justify-content: center;
-    align-items: center;
+  .frame-container.hero-editorial-frame,
+  .hero-editorial-frame {
+    padding: 85px 1rem 1.5rem !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   /* Intro Section (Home) */
   .intro-split-layout {
-    flex-direction: column-reverse;
-    justify-content: center;
-    gap: 1.5rem;
-    padding-top: 65px;
-    padding-bottom: 1rem;
-    text-align: center;
-    width: 100%;
+    flex-direction: column-reverse !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding-top: 15px !important;
+    padding-bottom: 0 !important;
+    text-align: center !important;
+    width: 100% !important;
   }
 
   .intro-text-content {
-    max-width: 100%;
-    align-items: center;
-    display: flex;
-    flex-direction: column;
+    max-width: 100% !important;
+    width: 100% !important;
+    align-items: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: -35px 0 0 0 !important;
   }
 
   .hero-bg-headline {
     display: none !important;
   }
 
-  /* Backdrop Name for Mobile (Positioned in background behind the subject cutout & TV) */
-  .hero-mobile-bg-name {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    position: absolute;
-    top: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 140%;
-    z-index: 0;
-    pointer-events: none;
-    user-select: none;
-    text-align: center;
-    line-height: 0.86;
-  }
-
-  .hero-bg-name-line {
-    font-family: 'Rammetto One', cursive, sans-serif;
-    font-size: clamp(3.2rem, 16vw, 5.2rem);
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    color: #FFFFFF;
-    text-transform: uppercase;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.5));
-    white-space: nowrap;
-    display: block;
-  }
-
-  .intro-role-styled {
-    font-size: clamp(0.95rem, 3.8vw, 1.3rem);
-    max-width: 90%;
-    white-space: normal;
-    text-align: center;
-    margin-top: 0.4rem;
-    margin-bottom: 0.8rem;
-  }
-
-  .intro-name {
-    font-size: 2.4rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .intro-role {
-    font-size: 0.75rem;
-    margin-bottom: 0.8rem;
-    letter-spacing: 0.12em;
-  }
-
-  .intro-bio {
-    font-size: 0.8rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-    max-width: 300px;
-    opacity: 0.9;
-  }
-
+  /* Hero Image on Plain Page (No container boundary) */
   .hero-image-intro-wrapper {
-    width: 100%;
-    max-width: 340px;
-    margin-right: 0;
-    margin-top: 0;
-    align-self: center;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.8rem 0 0 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
   .hero-image-container-3d {
-    width: min(340px, 85vw);
-    height: auto;
-    aspect-ratio: 2440 / 3160;
-    left: 0;
-    margin: 0 auto;
-    max-width: 340px;
+    position: relative !important;
+    width: min(400px, 96vw) !important;
+    height: auto !important;
+    aspect-ratio: 1160 / 1816 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    top: -45px !important;
+    left: 0px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+
+  .hero-composite-img {
+    display: none !important;
+  }
+
+  /* Layer 1: Mobile Background Layer */
+  .hero-mobile-bg-layer {
+    display: block !important;
+    position: absolute !important;
+    inset: auto !important;
+    width: 80% !important;
+    height: 95% !important;
+    object-fit: fill !important;
+    object-position: center bottom !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+    left: 50% !important;
+    bottom: 0 !important;
+    transform: translate(calc(-50% + 20px), 0) !important;
+  }
+
+  /* Layer 2: Mobile Name Typography (Solid behind character, Outline above character) */
+  .hero-mobile-bg-name,
+  .hero-mobile-outline-name {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    position: absolute !important;
+    top: 20% !important;
+    left: calc(50% + 15px) !important;
+    transform: translateX(-50%) !important;
+    width: 120% !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    text-align: center !important;
+    line-height: 0.92 !important;
+    gap: 6px !important;
+  }
+
+  .hero-mobile-bg-name {
+    z-index: 2 !important;
+  }
+
+  .hero-mobile-outline-name {
+    z-index: 4 !important;
+  }
+
+  .hero-bg-name-line {
+    font-family: 'Rammetto One', cursive, sans-serif !important;
+    font-size: 90px !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.01em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    display: block !important;
+  }
+
+  .hero-bg-name-line.name-solid {
+    color: #FFFFFF !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+
+  .hero-bg-name-line.name-outline {
+    color: transparent !important;
+    -webkit-text-stroke: 1.2px #FFFFFF !important;
+    text-shadow: none !important;
+    filter: none !important;
+    z-index: 5 !important;
+  }
+
+  /* Layer 3: Mobile Character + Vintage TV on top */
+  .hero-mobile-char-layer {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center bottom !important;
+    z-index: 3 !important;
+    pointer-events: auto !important;
+    transform: translate(-20px, 50px) !important;
+    /* opacity: 0 !important; */
+    /* TEMP: hidden for debug */
+  }
+
+  /* TV World Display behind Character Layer */
+  .tv-world {
+    z-index: 2 !important;
+  }
+
+  /* Bottom Role / Tagline */
+  .intro-role-styled {
+    font-family: 'Rammetto One', cursive, sans-serif !important;
+    font-size: clamp(0.95rem, 4.3vw, 1.25rem) !important;
+    font-weight: 400 !important;
+    color: #F5A623 !important;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+    max-width: 320px !important;
+    white-space: normal !important;
+    text-align: center !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.3 !important;
+    margin: 0 auto !important;
+  }
+
+  .intro-resume-btn-cyber,
+  .intro-bio,
+  .hero-text-scroll-hint {
+    display: none !important;
   }
 
   .hero-image-container {
@@ -3185,6 +3296,21 @@ a {
   .footer-right,
   .footer-left .system-tag {
     display: none;
+  }
+
+  .sound-toggle-btn {
+    position: fixed !important;
+    bottom: 1rem !important;
+    left: 1rem !important;
+    margin: 0 !important;
+    z-index: 150 !important;
+    pointer-events: auto !important;
+    background: rgba(10, 25, 47, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(100, 255, 218, 0.3) !important;
+    border-radius: 6px !important;
+    padding: 0.4rem 0.6rem !important;
   }
 
   /* Skill Detail Overlay on Mobile */
