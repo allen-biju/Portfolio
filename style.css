@@ -318,7 +318,9 @@ a {
   width: max-content;
 }
 
-.hero-mobile-bg-name {
+.hero-mobile-bg-name,
+.hero-mobile-bg-layer,
+.hero-mobile-char-layer {
   display: none;
 }
 
@@ -2938,7 +2940,24 @@ a {
     justify-content: center !important;
   }
 
-  /* Backdrop Name for Mobile (Positioned on plain page behind subject) */
+  .hero-composite-img {
+    display: none !important;
+  }
+
+  /* Layer 1: Mobile Background Layer */
+  .hero-mobile-bg-layer {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center bottom !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
+  /* Layer 2: Mobile Name Typography (Sandwiched over BG layer and behind Character layer) */
   .hero-mobile-bg-name {
     display: flex !important;
     flex-direction: column !important;
@@ -2949,15 +2968,11 @@ a {
     left: calc(50% + 15px) !important;
     transform: translateX(-50%) !important;
     width: 120% !important;
-    z-index: 1 !important;
+    z-index: 2 !important;
     pointer-events: none !important;
     user-select: none !important;
     text-align: center !important;
     line-height: 0.82 !important;
-  }
-
-  .hero-mobile-fg-name {
-    z-index: 3 !important;
   }
 
   .hero-bg-name-line {
@@ -2983,20 +2998,18 @@ a {
     filter: none !important;
   }
 
-  .hero-bg-name-line.name-transparent {
-    color: transparent !important;
-    text-shadow: none !important;
-    -webkit-text-stroke: 0px transparent !important;
-  }
-
-  .hero-composite-img {
+  /* Layer 3: Mobile Character + Vintage TV on top */
+  .hero-mobile-char-layer {
+    display: block !important;
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
     object-position: center bottom !important;
-    z-index: 2 !important;
+    z-index: 3 !important;
+    pointer-events: auto !important;
+    transform: translate(-32px, 38px) !important;
   }
 
   /* Bottom Role / Tagline */
