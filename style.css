@@ -2892,8 +2892,8 @@ a {
   /* Scene Overrides */
   .frame-container.hero-editorial-frame,
   .hero-editorial-frame {
-    padding: 70px 1rem 1rem !important;
-    justify-content: center !important;
+    padding: 80px 1rem 2.5rem !important;
+    justify-content: flex-end !important;
     align-items: center !important;
     min-height: 100vh !important;
     display: flex !important;
@@ -2903,13 +2903,15 @@ a {
   /* Intro Section (Home) */
   .intro-split-layout {
     flex-direction: column-reverse !important;
-    justify-content: center !important;
+    justify-content: flex-end !important;
     align-items: center !important;
     gap: 0.2rem !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     text-align: center !important;
     width: 100% !important;
+    margin-top: auto !important;
+    margin-bottom: 0.5rem !important;
   }
 
   .intro-text-content {
@@ -2918,7 +2920,7 @@ a {
     align-items: center !important;
     display: flex !important;
     flex-direction: column !important;
-    margin: -18px 0 0 0 !important;
+    margin: 32px 0 0 0 !important;
   }
 
   .hero-bg-headline {
@@ -2944,7 +2946,7 @@ a {
     overflow: visible !important;
     box-shadow: none !important;
     background: transparent !important;
-    top: 5px !important;
+    top: 75px !important;
     left: 0px !important;
     margin: 0 auto !important;
     display: flex !important;
