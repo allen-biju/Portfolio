@@ -2920,7 +2920,9 @@ a {
     align-items: center !important;
     display: flex !important;
     flex-direction: column !important;
-    margin: 32px 0 0 0 !important;
+    margin: 50px 0 0 0 !important;
+    position: relative !important;
+    top: 30px !important;
   }
 
   .hero-bg-headline {
