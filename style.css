@@ -2944,6 +2944,7 @@ a {
     width: min(420px, 94vw) !important;
     height: auto !important;
     aspect-ratio: 1160 / 1816 !important;
+    max-height: none !important;
     border-radius: 0 !important;
     overflow: visible !important;
     box-shadow: none !important;
