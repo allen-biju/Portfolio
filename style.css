@@ -2870,7 +2870,7 @@ a {
 
   .nav-links {
     display: flex !important;
-    gap: 0.85rem !important;
+    gap: 0.45rem !important;
     align-items: center !important;
   }
 
@@ -2880,7 +2880,7 @@ a {
     font-weight: 600 !important;
     letter-spacing: 0.08em !important;
     color: rgba(255, 255, 255, 0.85) !important;
-    padding: 0.25rem 0.35rem !important;
+    padding: 0.2rem 0.15rem !important;
   }
 
   .nav-link-item.active {
