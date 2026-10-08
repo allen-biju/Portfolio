@@ -2425,7 +2425,7 @@ a {
 /* Sound Toggle HUD Button - Fixed Bottom-Left Above Footer */
 .sound-toggle-btn {
   position: fixed !important;
-  bottom: 80px !important;
+  bottom: 50px !important;
   left: 30px !important;
   z-index: 999 !important;
   pointer-events: auto !important;
@@ -3319,7 +3319,7 @@ a {
   }
 
   .sound-toggle-btn {
-    bottom: 5rem !important;
+    bottom: 3.8rem !important;
     left: 1.25rem !important;
     padding: 0.45rem 0.75rem !important;
   }
