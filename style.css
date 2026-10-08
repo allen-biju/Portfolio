@@ -2420,25 +2420,38 @@ a {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  margin-left: 70px;
 }
 
-/* Sound Toggle HUD Button */
+/* Sound Toggle HUD Button - Fixed Bottom-Left Corner */
 .sound-toggle-btn {
-  background: transparent;
-  border: none;
+  position: fixed;
+  bottom: 18px;
+  left: 24px;
+  z-index: 150;
+  pointer-events: auto;
+  background: rgba(10, 25, 47, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(100, 255, 218, 0.3);
+  border-radius: 8px;
   color: var(--color-accent);
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.5rem 0.85rem;
   cursor: none;
-  margin-left: 0;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
+  margin: 0;
+  opacity: 0.85;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(100, 255, 218, 0.05);
 }
 
 .sound-toggle-btn:hover {
   opacity: 1;
+  border-color: rgba(100, 255, 218, 0.7);
+  box-shadow: 0 4px 24px rgba(100, 255, 218, 0.25), inset 0 0 15px rgba(100, 255, 218, 0.1);
+  transform: translateY(-2px);
 }
 
 .sound-icon-wrapper {
@@ -2457,11 +2470,11 @@ a {
 
 .sound-status-label {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   letter-spacing: 0.15em;
   font-weight: 600;
   border-left: 1px solid rgba(100, 255, 218, 0.3);
-  padding-left: 0.8rem;
+  padding-left: 0.75rem;
 }
 
 /* Intro Section Resume Button */
