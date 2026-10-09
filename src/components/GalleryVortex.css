@@ -27,6 +27,8 @@
   will-change: transform, opacity;
   backface-visibility: hidden;
   pointer-events: auto;
+  /* Allow vertical scroll to pass through on touch devices */
+  touch-action: pan-y;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
   cursor: pointer;
@@ -245,5 +247,13 @@
   .vortex-img.img-wide {
     width: 300px;
     height: 145px;
+  }
+
+  /* ─── Mobile: disable pointer capture so touch-scroll is never blocked ── */
+  /* Hover interactions don't apply on touch; all vortex cards passthrough.   */
+  .galaxy-vortex-volume,
+  .vortex-img {
+    pointer-events: none !important;
+    touch-action: pan-y !important;
   }
 }
