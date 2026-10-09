@@ -10,6 +10,8 @@ import TVWorld from './components/TVWorld';
 import CosmicGalaxy3D from './components/CosmicGalaxy3D';
 import { playHover, playClick, preloadSounds, playUILong, playShard, getIsMuted, toggleMute } from './hooks/useSounds';
 import heroImg from './assets/hero.png';
+import heroBgImg from './assets/hero-bg.png';
+import heroCharImg from './assets/hero-character.png';
 import emailjs from '@emailjs/browser';
 import { useCameraDolly } from './animations/useCameraDolly';
 
@@ -153,6 +155,7 @@ function App() {
   const introTextRef = useRef(null);
   const heroImageContainerRef = useRef(null);
   const heroImgRef = useRef(null);
+  const heroCharImgRef = useRef(null);
   const tvAnchorRef = useRef(null);
   const tvScreenAnchorRef = useRef(null);
   const tvWorldRef = useRef(null);
@@ -168,7 +171,8 @@ function App() {
   // and positions tv-anchor, tv-screen-anchor, and TVWorld to accurately track the TV in all viewports.
   const updateAnchorGeometry = () => {
     const container = heroImageContainerRef.current;
-    const img = heroImgRef.current;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const img = (isMobile ? (heroCharImgRef.current || heroImgRef.current) : heroImgRef.current) || heroImgRef.current;
     const tvAnchor = tvAnchorRef.current;
     const tvScreenAnchor = tvScreenAnchorRef.current;
     const tvWorld = tvWorldRef.current || document.getElementById('tvWorld');
@@ -181,14 +185,14 @@ function App() {
 
     if (cW === 0 || cH === 0) return;
 
-    const natW = img.naturalWidth || 2440;
-    const natH = img.naturalHeight || 3160;
-    const natAspect = natW / natH; // 0.7721519
+    const natW = img.naturalWidth || (isMobile ? 1188 : 2440);
+    const natH = img.naturalHeight || (isMobile ? 1816 : 3160);
+    const natAspect = natW / natH; // Desktop: 0.77215, Mobile: 0.65418
     const cAspect = cW / cH;
 
     const imgStyle = window.getComputedStyle(img);
     const objFit = imgStyle.objectFit || 'contain';
-    const objPos = (imgStyle.objectPosition || 'bottom right').toLowerCase().trim();
+    const objPos = (imgStyle.objectPosition || (isMobile ? 'center bottom' : 'bottom right')).toLowerCase().trim();
 
     let rW = cW;
     let rH = cH;
@@ -205,9 +209,9 @@ function App() {
       }
     }
 
-    // Parse object-position accurately (supporting "50% 100%", "center bottom", "bottom right", etc.)
-    let posX = 1; // default right
-    let posY = 1; // default bottom
+    // Parse object-position accurately
+    let posX = isMobile ? 0.5 : 1;
+    let posY = 1;
 
     const parts = objPos.split(/\s+/);
     if (parts.length === 1) {
@@ -240,31 +244,66 @@ function App() {
     const rL = (cW - rW) * posX;
     const rT = (cH - rH) * posY;
 
-    // Physical CRT screen opening inside hero.png (2440 x 3160):
-    // x:[1103, 1783], y:[2031, 2558]
-    const TV_SCREEN_NORM = {
-      left: 1103 / 2440,
-      top: 2031 / 3160,
-      width: 690 / 2440,
-      height: 527 / 3160,
-    };
+    // Detect if the image has a CSS transform offset (e.g. translate(-32px, 38px))
+    let offsetX = 0;
+    let offsetY = 0;
+    const transformStr = imgStyle.transform;
+    if (transformStr && transformStr !== 'none') {
+      try {
+        if (typeof DOMMatrixReadOnly !== 'undefined') {
+          const matrix = new DOMMatrixReadOnly(transformStr);
+          offsetX = matrix.m41 || 0;
+          offsetY = matrix.m42 || 0;
+        }
+      } catch (e) {
+        const match = transformStr.match(/matrix\(([^)]+)\)/);
+        if (match) {
+          const values = match[1].split(',').map(v => parseFloat(v.trim()));
+          if (values.length >= 6) {
+            offsetX = values[4] || 0;
+            offsetY = values[5] || 0;
+          }
+        }
+      }
+    }
 
-    // Physical TV casing / camera dolly anchor inside hero.png:
-    // x:[810, 2096], y:[1864, 2717]
-    const TV_CASING_NORM = {
-      left: 810 / 2440,
-      top: 1864 / 3160,
-      width: 1286 / 2440,
-      height: 853 / 3160,
-    };
+    // Physical CRT screen opening coordinates:
+    const TV_SCREEN_NORM = isMobile
+      ? {
+        left: 530 / 1188,
+        top: 1130 / 1816,
+        width: 400 / 1188,
+        height: 330 / 1816,
+      }
+      : {
+        left: 1103 / 2440,
+        top: 2031 / 3160,
+        width: 690 / 2440,
+        height: 527 / 3160,
+      };
 
-    const screenLeft = rL + rW * TV_SCREEN_NORM.left;
-    const screenTop = rT + rH * TV_SCREEN_NORM.top;
+    // Physical TV casing / camera dolly anchor:
+    const TV_CASING_NORM = isMobile
+      ? {
+        left: 335 / 1188,
+        top: 1080 / 1816,
+        width: 800 / 1188,
+        height: 450 / 1816,
+      }
+      : {
+        left: 810 / 2440,
+        top: 1864 / 3160,
+        width: 1286 / 2440,
+        height: 853 / 3160,
+      };
+
+    const screenLeft = rL + rW * TV_SCREEN_NORM.left + offsetX;
+    const screenTop = rT + rH * TV_SCREEN_NORM.top + offsetY;
     const screenWidth = rW * TV_SCREEN_NORM.width;
     const screenHeight = rH * TV_SCREEN_NORM.height;
 
-    const anchorLeft = rL + rW * TV_CASING_NORM.left;
-    const anchorTop = rT + rH * TV_CASING_NORM.top;
+    const anchorLeft = rL + rW * TV_CASING_NORM.left + offsetX;
+    const anchorTop = rT + rH * TV_CASING_NORM.top + offsetY;
     const anchorWidth = rW * TV_CASING_NORM.width;
     const anchorHeight = rH * TV_CASING_NORM.height;
 
@@ -763,6 +802,7 @@ function App() {
                     the gap between complex engineering and creative storytelling.
                   </p>
 
+                  {/* Desktop Only: Horizontal Scroll Indicator */}
                   <div
                     ref={scrollHintRef}
                     className="scroll-hint hero-text-scroll-hint"
@@ -786,16 +826,18 @@ function App() {
                   onMouseEnter={handleCursorHover('OPERATOR_ID')}
                   onMouseLeave={handleCursorLeave}
                 >
-                  {/* Dedicated Mobile Background Text behind image (Solid) */}
-                  <div className="hero-mobile-bg-name" style={{ zIndex: 1 }} aria-hidden="true">
+                  {/* Layer 1 (Mobile only): Background Image Layer */}
+                  <img
+                    src={heroBgImg}
+                    alt="Hero Studio Background"
+                    className="hero-mobile-bg-layer"
+                    aria-hidden="true"
+                  />
+
+                  {/* Layer 2 (Mobile only): Name Typography physically sandwiched between BG & Character */}
+                  <div className="hero-mobile-bg-name" aria-hidden="true">
                     <span className="hero-bg-name-line name-solid">ALLEN</span>
                     <span className="hero-bg-name-line name-solid">BIJU.</span>
-                  </div>
-
-                  {/* Dedicated Mobile Foreground Text in front of image (Outline) */}
-                  <div className="hero-mobile-bg-name hero-mobile-fg-name" style={{ zIndex: 3 }} aria-hidden="true">
-                    <span className="hero-bg-name-line name-transparent">ALLEN</span>
-                    <span className="hero-bg-name-line name-outline">BIJU.</span>
                   </div>
 
                   {/* Dedicated TVWorld element positioned behind transparent CRT screen opening */}
@@ -807,7 +849,21 @@ function App() {
                   {/* Passive TV Screen Anchor marking the transparent CRT screen opening */}
                   <div ref={tvScreenAnchorRef} className="tv-screen-anchor" id="tvScreenAnchor" />
 
-                  {/* Pre-aligned Single Merged Hero Image */}
+                  {/* Layer 3 (Mobile only): Character + TV Layer on top */}
+                  <img
+                    src={heroCharImg}
+                    ref={heroCharImgRef}
+                    alt="Allen Biju Sitting on Vintage TV"
+                    className="hero-mobile-char-layer"
+                  />
+
+                  {/* Layer 4 (Mobile only): Outline Name Typography layered on top of Character (BIJU only) */}
+                  <div className="hero-mobile-outline-name" aria-hidden="true">
+                    <span className="hero-bg-name-line name-outline" style={{ visibility: 'hidden' }}>ALLEN</span>
+                    <span className="hero-bg-name-line name-outline">BIJU.</span>
+                  </div>
+
+                  {/* Desktop Only: Pre-aligned Single Merged Hero Image */}
                   <img
                     src={heroImg}
                     ref={heroImgRef}
@@ -1382,6 +1438,37 @@ function App() {
           playClick={playClick}
         />
 
+        {/* Fixed HUD Audio Control (Bottom-Left Corner Above Footer) */}
+        <motion.button
+          className="sound-toggle-btn"
+          onClick={handleToggleMute}
+          onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
+          onMouseLeave={handleCursorLeave}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          aria-label={muted ? 'Unmute Audio System' : 'Mute Audio System'}
+        >
+          <div className="sound-icon-wrapper">
+            {muted ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                <path d="M19.07 4.93C20.9461 6.80654 21.9989 9.3512 21.9989 12C21.9989 14.6488 20.9461 17.1935 19.07 19.07" />
+                <path d="M15.54 8.46C16.4774 9.39764 17.0031 10.6692 17.0031 12C17.0031 13.3308 16.4774 14.6024 15.54 15.54" />
+              </svg>
+            )}
+          </div>
+          <span className="sound-status-label">{muted ? 'OFF' : 'ON'}</span>
+        </motion.button>
+
         {/* Global Social Footer */}
         <motion.footer
           ref={globalFooterRef}
@@ -1396,32 +1483,6 @@ function App() {
           <div className="footer-content" ref={footerContentRef}>
             <div className="footer-left">
               <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
-
-              <motion.button
-                className="sound-toggle-btn"
-                onClick={handleToggleMute}
-                onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
-                onMouseLeave={handleCursorLeave}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <div className="sound-icon-wrapper">
-                  {muted ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                      <line x1="23" y1="9" x2="17" y2="15" />
-                      <line x1="17" y1="9" x2="23" y2="15" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                      <path d="M19.07 4.93C20.9461 6.80654 21.9989 9.3512 21.9989 12C21.9989 14.6488 20.9461 17.1935 19.07 19.07" />
-                      <path d="M15.54 8.46C16.4774 9.39764 17.0031 10.6692 17.0031 12C17.0031 13.3308 16.4774 14.6024 15.54 15.54" />
-                    </svg>
-                  )}
-                </div>
-                <span className="sound-status-label">{muted ? 'OFF' : 'ON'}</span>
-              </motion.button>
             </div>
             <div className="footer-center">
               <div className="social-links-hud">
