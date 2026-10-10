@@ -392,7 +392,7 @@ function App() {
     footerContentRef,
     galaxyViewportRef,
     onUpdateAnchors: updateAnchorGeometry,
-    enabled: introComplete,
+    enabled: introComplete && !isTouch,
   });
 
   const [selectedSkill, setSelectedSkill] = useState(null);
