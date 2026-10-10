@@ -2852,6 +2852,12 @@ a {
     overflow-x: hidden;
   }
 
+  /* Hide the 3D galaxy viewport on mobile — the camera dolly is disabled
+     on touch devices, so this element is invisible/unused and heavy. */
+  .cosmic-galaxy-3d-viewport {
+    display: none !important;
+  }
+
   /* Navigation HUD — Mobile Glassmorphism & Enhanced Sizing */
   .main-nav {
     padding: max(0.9rem, env(safe-area-inset-top)) 1.25rem 0.9rem 1.25rem !important;
