@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -169,7 +169,7 @@ function App() {
   // Dynamically measures the actual rendered hero image rectangle (derived from
   // container geometry, image natural aspect ratio, and computed object-fit/position)
   // and positions tv-anchor, tv-screen-anchor, and TVWorld to accurately track the TV in all viewports.
-  const updateAnchorGeometry = () => {
+  const updateAnchorGeometry = useCallback(() => {
     const container = heroImageContainerRef.current;
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
     const img = (isMobile ? (heroCharImgRef.current || heroImgRef.current) : heroImgRef.current) || heroImgRef.current;
@@ -339,7 +339,7 @@ function App() {
       tvWorld.style.width = `${screenWidth}px`;
       tvWorld.style.height = `${screenHeight}px`;
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Initial measurement
@@ -420,10 +420,13 @@ function App() {
     setMuted(newState);
     playClick(); // Play click sound before it totally mutes or if unmuting
   };
-  const [cursorText, setCursorText] = useState("");
   const cursorDot = useRef(null);
   const cursorOutline = useRef(null);
   const cursorTextRef = useRef(null);
+  const activeSceneRef = useRef(activeScene);
+  useEffect(() => {
+    activeSceneRef.current = activeScene;
+  }, [activeScene]);
 
   // Transmission Form States
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -690,11 +693,24 @@ function App() {
 
   const pageTransition = { type: "spring", stiffness: 60, damping: 20, duration: 1.2 };
 
-  const handleCursorHover = (text) => () => {
-    setCursorText(text);
-    if (activeScene !== 0) playHover();
-  };
-  const handleCursorLeave = () => setCursorText("");
+  const handleCursorHover = useCallback((text) => () => {
+    if (cursorTextRef.current) {
+      cursorTextRef.current.textContent = text;
+      cursorTextRef.current.style.opacity = '1';
+    }
+    if (cursorDot.current) cursorDot.current.classList.add('hidden');
+    if (cursorOutline.current) cursorOutline.current.classList.add('expanded');
+    if (activeSceneRef.current !== 0) playHover();
+  }, []);
+
+  const handleCursorLeave = useCallback(() => {
+    if (cursorTextRef.current) {
+      cursorTextRef.current.textContent = '';
+      cursorTextRef.current.style.opacity = '0';
+    }
+    if (cursorDot.current) cursorDot.current.classList.remove('hidden');
+    if (cursorOutline.current) cursorOutline.current.classList.remove('expanded');
+  }, []);
 
   const NAV_LINKS = [
     { name: 'ABOUT', id: 'scene-0', scene: 0 },
@@ -717,11 +733,9 @@ function App() {
   return (
     <div className="main-content-wrapper">
       {/* Context-Aware Custom Cursor */}
-      <div className={`cursor-dot ${cursorText ? 'hidden' : ''}`} ref={cursorDot}></div>
-      <div className={`cursor-outline ${cursorText ? 'expanded' : ''}`} ref={cursorOutline}></div>
-      <div className="cursor-text" ref={cursorTextRef} style={{ opacity: cursorText ? 1 : 0 }}>
-        {cursorText}
-      </div>
+      <div className="cursor-dot" ref={cursorDot}></div>
+      <div className="cursor-outline" ref={cursorOutline}></div>
+      <div className="cursor-text" ref={cursorTextRef} style={{ opacity: 0 }}></div>
 
       {/* Portraits and Handshake Handled below in intro-split-layout */}
       {/* Cinematic Intro Overlay */}
