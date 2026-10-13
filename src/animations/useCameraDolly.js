@@ -61,7 +61,7 @@ function computeDollyTarget(container, anchor, text) {
   const scaleX = vw / anchorOffsetWidth;
   const scaleY = vh / anchorOffsetHeight;
   const fitScale = Math.max(scaleX, scaleY);
-  const pushThroughScale = fitScale * 2.4;
+  const pushThroughScale = fitScale * 1.35;
 
   const targetX = (vw / 2) - anchorCenterX;
   const targetY = (vh / 2) - anchorCenterY;
@@ -109,6 +109,7 @@ export function useCameraDolly({
   scrollHintRef,
   footerRef,
   footerContentRef,
+  soundBtnRef,
   galaxyViewportRef,
   onUpdateAnchors,
   enabled = true,
@@ -130,6 +131,7 @@ export function useCameraDolly({
     const scrollHint = scrollHintRef?.current;
     const footer = footerRef?.current;
     const footerContent = footerContentRef?.current;
+    const soundBtn = soundBtnRef?.current;
     const galaxyViewport = galaxyViewportRef?.current;
 
     if (!scene || !text || !imageContainer || !anchor) return;
@@ -231,28 +233,12 @@ export function useCameraDolly({
             if (crtTextPlate) gsap.set(crtTextPlate, { scale: 0.88 });
           }
         }
-        // Zone 2: Push-through / Deep Space (progress >= 0.26)
-        // Smoothly fade out CRT activation before camera plunges through screen into deep space
-        else if (progress >= 0.26) {
-          if (progress >= 0.28) {
-            crtActivation.style.opacity = '0';
-            crtActivation.style.visibility = 'hidden';
-          } else {
-            const fade = Math.max(0, 1 - (progress - 0.26) / 0.02);
-            crtActivation.style.opacity = fade.toFixed(3);
-            crtActivation.style.visibility = fade <= 0.01 ? 'hidden' : 'visible';
-          }
-        }
+        // Zone 2: Push-through / Deep Space (progress >= 0.26) — GSAP scrub timeline natively handles fade
         // Zone 3: Active CRT viewing zone (activates automatically when user reaches ~0.05)
-        else if (progress >= 0.05) {
+        else if (progress >= 0.05 && progress < 0.26) {
           if (!hasCrtActivated) {
             hasCrtActivated = true;
             crtPowerOnTl.play(0);
-          } else {
-            if (crtPowerOnTl.progress() > 0.05) {
-              crtActivation.style.opacity = '1';
-              crtActivation.style.visibility = 'visible';
-            }
           }
           // Fast-forward opening animation if user scrolls quickly past 0.10
           if (progress >= 0.10 && crtPowerOnTl.progress() < 1) {
@@ -543,6 +529,29 @@ export function useCameraDolly({
         );
       }
 
+      /* ─── SOUND TOGGLE HUD BUTTON — OUTWARD FLY-OFF & RE-ENTRY ─ */
+      if (soundBtn) {
+        gsap.set(soundBtn, { force3D: true, transformOrigin: 'left bottom' });
+
+        // Phase 1 (0 to 0.22): Flies outward down-and-left off the screen in sync with nav & footer
+        tl.fromTo(
+          soundBtn,
+          { x: 0, y: 0, scale: 1, opacity: 0.9 },
+          { x: -550, y: 350, scale: 2.2, opacity: 0, ease: 'power2.inOut', duration: 0.22 },
+          0
+        );
+
+        tl.to(soundBtn, { autoAlpha: 0, duration: 0.04 }, 0.22);
+
+        // Phase 2 (0.88 to 0.94): Glides back in when transitioning from Gallery Vortex into Skills
+        tl.fromTo(
+          soundBtn,
+          { x: -550, y: 350, scale: 2.2, autoAlpha: 0 },
+          { x: 0, y: 0, scale: 1, autoAlpha: 1, opacity: 0.9, ease: 'power2.out', duration: 0.06 },
+          0.88
+        );
+      }
+
       /* ─── TV IMAGE — PHASE 1: align 4 sides with desktop ────── */
       tl.fromTo(
         imageContainer,
@@ -564,25 +573,25 @@ export function useCameraDolly({
           autoAlpha: 1,
           transformOrigin: () => dollyTarget ? `${dollyTarget.originX} ${dollyTarget.originY}` : '50% 50%',
           ease: 'power2.inOut',
-          duration: 0.28,
+          duration: 0.27,
         },
         0
       );
 
       /* ─── TV IMAGE — PHASE 2: push through into TV screen ────── */
       tl.to(imageContainer, {
-        scale: () => dollyTarget ? dollyTarget.pushThroughScale : 2.4,
+        scale: () => dollyTarget ? dollyTarget.pushThroughScale : 1.35,
         autoAlpha: 1,
         ease: 'power1.in',
-        duration: 0.09,
-      }, 0.28);
+        duration: 0.02,
+      }, 0.27);
 
       /* ─── TV IMAGE — PHASE 3: handoff fade to Deep Void ───────── */
       tl.to(imageContainer, {
         autoAlpha: 0,
         ease: 'power1.out',
-        duration: 0.03,
-      }, 0.37);
+        duration: 0.02,
+      }, 0.28);
 
       /* ─── HERO IMAGE SHADOW ──────────────────────────────────────── */
       // NOTE: Removed dynamic drop-shadow filter tween.
@@ -733,6 +742,7 @@ export function useCameraDolly({
       }
 
       clearTimeout(refreshTimer);
+      if (soundBtn) gsap.set(soundBtn, { clearProps: 'transform,opacity,visibility' });
       ctx.revert();
     };
   }, [enabled]);

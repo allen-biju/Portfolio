@@ -163,6 +163,7 @@ function App() {
   const scrollHintRef = useRef(null);
   const globalFooterRef = useRef(null);
   const footerContentRef = useRef(null);
+  const soundBtnRef = useRef(null);
   const galaxyViewportRef = useRef(null);
 
   // Dynamic Anchor Geometry Tracking:
@@ -390,6 +391,7 @@ function App() {
     scrollHintRef,
     footerRef: globalFooterRef,
     footerContentRef,
+    soundBtnRef,
     galaxyViewportRef,
     onUpdateAnchors: updateAnchorGeometry,
     enabled: introComplete,
@@ -1454,6 +1456,7 @@ function App() {
 
         {/* Fixed HUD Audio Control (Bottom-Left Corner Above Footer) */}
         <motion.button
+          ref={soundBtnRef}
           className="sound-toggle-btn"
           onClick={handleToggleMute}
           onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
