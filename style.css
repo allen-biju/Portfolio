@@ -1179,7 +1179,15 @@ a {
    on reverse scroll.
 ────────────────────────────────────────────────────────────────────────────── */
 .crt-animations-paused,
-.crt-animations-paused * {
+.crt-animations-paused .crt-test-signal,
+.crt-animations-paused .crt-test-slices-wrapper,
+.crt-animations-paused .crt-test-chroma--red,
+.crt-animations-paused .crt-test-chroma--cyan,
+.crt-animations-paused .crt-test-glitch-interference,
+.crt-animations-paused .crt-test-phosphor-smear,
+.crt-animations-paused .crt-test-text-wrapper,
+.crt-animations-paused .crt-test-text-plate,
+.crt-animations-paused .crt-text-line {
   animation-play-state: paused !important;
 }
 
@@ -1447,7 +1455,15 @@ a {
 
 /* ─── Performance Optimization: Pause Animations When Offscreen ─────────── */
 .crt-animations-paused,
-.crt-animations-paused * {
+.crt-animations-paused .crt-test-signal,
+.crt-animations-paused .crt-test-slices-wrapper,
+.crt-animations-paused .crt-test-chroma--red,
+.crt-animations-paused .crt-test-chroma--cyan,
+.crt-animations-paused .crt-test-glitch-interference,
+.crt-animations-paused .crt-test-phosphor-smear,
+.crt-animations-paused .crt-test-text-wrapper,
+.crt-animations-paused .crt-test-text-plate,
+.crt-animations-paused .crt-text-line {
   animation-play-state: paused !important;
 }
 
@@ -2442,6 +2458,7 @@ a {
   cursor: none !important;
   margin: 0 !important;
   opacity: 0.9 !important;
+  will-change: transform, opacity;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 12px rgba(100, 255, 218, 0.1), inset 0 0 10px rgba(100, 255, 218, 0.05) !important;
 }
