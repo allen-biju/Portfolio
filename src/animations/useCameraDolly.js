@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { setupVortexBurstTimeline } from '../components/GalleryVortex';
@@ -113,6 +113,11 @@ export function useCameraDolly({
   onUpdateAnchors,
   enabled = true,
 }) {
+  const onUpdateAnchorsRef = useRef(onUpdateAnchors);
+  useEffect(() => {
+    onUpdateAnchorsRef.current = onUpdateAnchors;
+  });
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -136,8 +141,8 @@ export function useCameraDolly({
 
       /* ─── SETUP ─────────────────────────────────────────────── */
       const applyTarget = () => {
-        if (typeof onUpdateAnchors === 'function') {
-          onUpdateAnchors();
+        if (typeof onUpdateAnchorsRef.current === 'function') {
+          onUpdateAnchorsRef.current();
         }
         dollyTarget = computeDollyTarget(imageContainer, anchor, text);
         if (dollyTarget) {
@@ -730,5 +735,5 @@ export function useCameraDolly({
       clearTimeout(refreshTimer);
       ctx.revert();
     };
-  }, [sceneRef, textRef, imageContainerRef, imageRef, anchorRef, navRef, scrollHintRef, footerRef, footerContentRef, galaxyViewportRef, onUpdateAnchors, enabled]);
+  }, [enabled]);
 }
