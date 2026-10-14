@@ -109,7 +109,6 @@ export function useCameraDolly({
   scrollHintRef,
   footerRef,
   footerContentRef,
-  soundBtnRef,
   galaxyViewportRef,
   onUpdateAnchors,
   enabled = true,
@@ -131,7 +130,6 @@ export function useCameraDolly({
     const scrollHint = scrollHintRef?.current;
     const footer = footerRef?.current;
     const footerContent = footerContentRef?.current;
-    const soundBtn = soundBtnRef?.current;
     const galaxyViewport = galaxyViewportRef?.current;
 
     if (!scene || !text || !imageContainer || !anchor) return;
@@ -529,29 +527,6 @@ export function useCameraDolly({
         );
       }
 
-      /* ─── SOUND TOGGLE HUD BUTTON — OUTWARD FLY-OFF & RE-ENTRY ─ */
-      if (soundBtn) {
-        gsap.set(soundBtn, { force3D: true, transformOrigin: 'left bottom' });
-
-        // Phase 1 (0 to 0.22): Flies outward down-and-left off the screen in sync with nav & footer
-        tl.fromTo(
-          soundBtn,
-          { x: 0, y: 0, scale: 1, opacity: 0.9 },
-          { x: -550, y: 350, scale: 2.2, opacity: 0, ease: 'power2.inOut', duration: 0.22 },
-          0
-        );
-
-        tl.to(soundBtn, { autoAlpha: 0, duration: 0.04 }, 0.22);
-
-        // Phase 2 (0.88 to 0.94): Glides back in when transitioning from Gallery Vortex into Skills
-        tl.fromTo(
-          soundBtn,
-          { x: -550, y: 350, scale: 2.2, autoAlpha: 0 },
-          { x: 0, y: 0, scale: 1, autoAlpha: 1, opacity: 0.9, ease: 'power2.out', duration: 0.06 },
-          0.88
-        );
-      }
-
       /* ─── TV IMAGE — PHASE 1: align 4 sides with desktop ────── */
       tl.fromTo(
         imageContainer,
@@ -742,7 +717,6 @@ export function useCameraDolly({
       }
 
       clearTimeout(refreshTimer);
-      if (soundBtn) gsap.set(soundBtn, { clearProps: 'transform,opacity,visibility' });
       ctx.revert();
     };
   }, [enabled]);
