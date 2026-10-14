@@ -109,6 +109,7 @@ export function useCameraDolly({
   scrollHintRef,
   footerRef,
   footerContentRef,
+  soundBtnRef,
   galaxyViewportRef,
   onUpdateAnchors,
   enabled = true,
@@ -130,6 +131,7 @@ export function useCameraDolly({
     const scrollHint = scrollHintRef?.current;
     const footer = footerRef?.current;
     const footerContent = footerContentRef?.current;
+    const soundBtn = soundBtnRef?.current;
     const galaxyViewport = galaxyViewportRef?.current;
 
     if (!scene || !text || !imageContainer || !anchor) return;

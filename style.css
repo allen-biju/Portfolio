@@ -3339,8 +3339,12 @@ a {
   }
 
   .footer-right,
-  .footer-left .system-tag {
+  .footer-left {
     display: none;
+  }
+
+  .footer-left .sound-toggle-wrapper {
+    display: block;
   }
 
   .sound-toggle-wrapper {
