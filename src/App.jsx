@@ -163,6 +163,7 @@ function App() {
   const scrollHintRef = useRef(null);
   const globalFooterRef = useRef(null);
   const footerContentRef = useRef(null);
+  const soundBtnRef = useRef(null);
   const galaxyViewportRef = useRef(null);
 
   // Dynamic Anchor Geometry Tracking:
@@ -390,6 +391,7 @@ function App() {
     scrollHintRef,
     footerRef: globalFooterRef,
     footerContentRef,
+    soundBtnRef,
     galaxyViewportRef,
     onUpdateAnchors: updateAnchorGeometry,
     enabled: introComplete,
@@ -1465,7 +1467,7 @@ function App() {
         >
           <div className="footer-content" ref={footerContentRef}>
             <div className="footer-left">
-              <div className="sound-toggle-wrapper">
+              <div ref={soundBtnRef} className="sound-toggle-wrapper">
                 <motion.button
                   className="sound-toggle-btn"
                   onClick={handleToggleMute}
