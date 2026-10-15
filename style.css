@@ -1179,7 +1179,15 @@ a {
    on reverse scroll.
 ────────────────────────────────────────────────────────────────────────────── */
 .crt-animations-paused,
-.crt-animations-paused * {
+.crt-animations-paused .crt-test-signal,
+.crt-animations-paused .crt-test-slices-wrapper,
+.crt-animations-paused .crt-test-chroma--red,
+.crt-animations-paused .crt-test-chroma--cyan,
+.crt-animations-paused .crt-test-glitch-interference,
+.crt-animations-paused .crt-test-phosphor-smear,
+.crt-animations-paused .crt-test-text-wrapper,
+.crt-animations-paused .crt-test-text-plate,
+.crt-animations-paused .crt-text-line {
   animation-play-state: paused !important;
 }
 
@@ -1447,7 +1455,15 @@ a {
 
 /* ─── Performance Optimization: Pause Animations When Offscreen ─────────── */
 .crt-animations-paused,
-.crt-animations-paused * {
+.crt-animations-paused .crt-test-signal,
+.crt-animations-paused .crt-test-slices-wrapper,
+.crt-animations-paused .crt-test-chroma--red,
+.crt-animations-paused .crt-test-chroma--cyan,
+.crt-animations-paused .crt-test-glitch-interference,
+.crt-animations-paused .crt-test-phosphor-smear,
+.crt-animations-paused .crt-test-text-wrapper,
+.crt-animations-paused .crt-test-text-plate,
+.crt-animations-paused .crt-text-line {
   animation-play-state: paused !important;
 }
 
@@ -2417,17 +2433,28 @@ a {
 }
 
 .footer-left {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1.5rem;
 }
 
-/* Sound Toggle HUD Button - Fixed Bottom-Left Above Footer */
-.sound-toggle-btn {
-  position: fixed !important;
-  bottom: 50px !important;
-  left: 30px !important;
+/* Sound Toggle HUD Wrapper & Button - Positioned in footer-left */
+.sound-toggle-wrapper {
+  position: absolute !important;
+  bottom: 38px !important;
+  left: 0 !important;
   z-index: 999 !important;
+  pointer-events: auto !important;
+  display: block;
+  white-space: nowrap;
+}
+
+.sound-toggle-btn {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 1 !important;
   pointer-events: auto !important;
   background: rgba(10, 25, 47, 0.82) !important;
   backdrop-filter: blur(12px) !important;
@@ -2441,16 +2468,15 @@ a {
   padding: 0.55rem 0.95rem !important;
   cursor: none !important;
   margin: 0 !important;
-  opacity: 0.9 !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  opacity: 0.95;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 12px rgba(100, 255, 218, 0.1), inset 0 0 10px rgba(100, 255, 218, 0.05) !important;
 }
 
 .sound-toggle-btn:hover {
-  opacity: 1 !important;
+  opacity: 1;
   border-color: rgba(100, 255, 218, 0.8) !important;
   box-shadow: 0 6px 28px rgba(100, 255, 218, 0.3), inset 0 0 15px rgba(100, 255, 218, 0.15) !important;
-  transform: translateY(-2px) !important;
 }
 
 .sound-icon-wrapper {
@@ -2848,7 +2874,6 @@ a {
 
   /* Global Sticky Fixes */
   .scene-sticky-container {
-    overflow-y: auto;
     overflow-x: hidden;
   }
 
@@ -3314,13 +3339,22 @@ a {
   }
 
   .footer-right,
-  .footer-left .system-tag {
+  .footer-left {
     display: none;
   }
 
-  .sound-toggle-btn {
+  .footer-left .sound-toggle-wrapper {
+    display: block;
+  }
+
+  .sound-toggle-wrapper {
+    position: fixed !important;
     bottom: 3.8rem !important;
     left: 1.25rem !important;
+    z-index: 999 !important;
+  }
+
+  .sound-toggle-btn {
     padding: 0.45rem 0.75rem !important;
   }
 

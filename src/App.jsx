@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useAnimationFrame, useSpring } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -163,13 +163,14 @@ function App() {
   const scrollHintRef = useRef(null);
   const globalFooterRef = useRef(null);
   const footerContentRef = useRef(null);
+  const soundBtnRef = useRef(null);
   const galaxyViewportRef = useRef(null);
 
   // Dynamic Anchor Geometry Tracking:
   // Dynamically measures the actual rendered hero image rectangle (derived from
   // container geometry, image natural aspect ratio, and computed object-fit/position)
   // and positions tv-anchor, tv-screen-anchor, and TVWorld to accurately track the TV in all viewports.
-  const updateAnchorGeometry = () => {
+  const updateAnchorGeometry = useCallback(() => {
     const container = heroImageContainerRef.current;
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
     const img = (isMobile ? (heroCharImgRef.current || heroImgRef.current) : heroImgRef.current) || heroImgRef.current;
@@ -339,7 +340,7 @@ function App() {
       tvWorld.style.width = `${screenWidth}px`;
       tvWorld.style.height = `${screenHeight}px`;
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Initial measurement
@@ -390,6 +391,7 @@ function App() {
     scrollHintRef,
     footerRef: globalFooterRef,
     footerContentRef,
+    soundBtnRef,
     galaxyViewportRef,
     onUpdateAnchors: updateAnchorGeometry,
     enabled: introComplete,
@@ -420,10 +422,13 @@ function App() {
     setMuted(newState);
     playClick(); // Play click sound before it totally mutes or if unmuting
   };
-  const [cursorText, setCursorText] = useState("");
   const cursorDot = useRef(null);
   const cursorOutline = useRef(null);
   const cursorTextRef = useRef(null);
+  const activeSceneRef = useRef(activeScene);
+  useEffect(() => {
+    activeSceneRef.current = activeScene;
+  }, [activeScene]);
 
   // Transmission Form States
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -690,11 +695,24 @@ function App() {
 
   const pageTransition = { type: "spring", stiffness: 60, damping: 20, duration: 1.2 };
 
-  const handleCursorHover = (text) => () => {
-    setCursorText(text);
-    if (activeScene !== 0) playHover();
-  };
-  const handleCursorLeave = () => setCursorText("");
+  const handleCursorHover = useCallback((text) => () => {
+    if (cursorTextRef.current) {
+      cursorTextRef.current.textContent = text;
+      cursorTextRef.current.style.opacity = '1';
+    }
+    if (cursorDot.current) cursorDot.current.classList.add('hidden');
+    if (cursorOutline.current) cursorOutline.current.classList.add('expanded');
+    if (activeSceneRef.current !== 0) playHover();
+  }, []);
+
+  const handleCursorLeave = useCallback(() => {
+    if (cursorTextRef.current) {
+      cursorTextRef.current.textContent = '';
+      cursorTextRef.current.style.opacity = '0';
+    }
+    if (cursorDot.current) cursorDot.current.classList.remove('hidden');
+    if (cursorOutline.current) cursorOutline.current.classList.remove('expanded');
+  }, []);
 
   const NAV_LINKS = [
     { name: 'ABOUT', id: 'scene-0', scene: 0 },
@@ -717,11 +735,9 @@ function App() {
   return (
     <div className="main-content-wrapper">
       {/* Context-Aware Custom Cursor */}
-      <div className={`cursor-dot ${cursorText ? 'hidden' : ''}`} ref={cursorDot}></div>
-      <div className={`cursor-outline ${cursorText ? 'expanded' : ''}`} ref={cursorOutline}></div>
-      <div className="cursor-text" ref={cursorTextRef} style={{ opacity: cursorText ? 1 : 0 }}>
-        {cursorText}
-      </div>
+      <div className="cursor-dot" ref={cursorDot}></div>
+      <div className="cursor-outline" ref={cursorOutline}></div>
+      <div className="cursor-text" ref={cursorTextRef} style={{ opacity: 0 }}></div>
 
       {/* Portraits and Handshake Handled below in intro-split-layout */}
       {/* Cinematic Intro Overlay */}
@@ -1438,37 +1454,6 @@ function App() {
           playClick={playClick}
         />
 
-        {/* Fixed HUD Audio Control (Bottom-Left Corner Above Footer) */}
-        <motion.button
-          className="sound-toggle-btn"
-          onClick={handleToggleMute}
-          onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
-          onMouseLeave={handleCursorLeave}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
-          aria-label={muted ? 'Unmute Audio System' : 'Mute Audio System'}
-        >
-          <div className="sound-icon-wrapper">
-            {muted ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <path d="M19.07 4.93C20.9461 6.80654 21.9989 9.3512 21.9989 12C21.9989 14.6488 20.9461 17.1935 19.07 19.07" />
-                <path d="M15.54 8.46C16.4774 9.39764 17.0031 10.6692 17.0031 12C17.0031 13.3308 16.4774 14.6024 15.54 15.54" />
-              </svg>
-            )}
-          </div>
-          <span className="sound-status-label">{muted ? 'OFF' : 'ON'}</span>
-        </motion.button>
-
         {/* Global Social Footer */}
         <motion.footer
           ref={globalFooterRef}
@@ -1482,6 +1467,38 @@ function App() {
         >
           <div className="footer-content" ref={footerContentRef}>
             <div className="footer-left">
+              <div ref={soundBtnRef} className="sound-toggle-wrapper">
+                <motion.button
+                  className="sound-toggle-btn"
+                  onClick={handleToggleMute}
+                  onMouseEnter={handleCursorHover(muted ? 'RESTORE_AUDIO' : 'MUTE_SYSTEM')}
+                  onMouseLeave={handleCursorLeave}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
+                  aria-label={muted ? 'Unmute Audio System' : 'Mute Audio System'}
+                >
+                  <div className="sound-icon-wrapper">
+                    {muted ? (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                        <line x1="23" y1="9" x2="17" y2="15" />
+                        <line x1="17" y1="9" x2="23" y2="15" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                        <path d="M19.07 4.93C20.9461 6.80654 21.9989 9.3512 21.9989 12C21.9989 14.6488 20.9461 17.1935 19.07 19.07" />
+                        <path d="M15.54 8.46C16.4774 9.39764 17.0031 10.6692 17.0031 12C17.0031 13.3308 16.4774 14.6024 15.54 15.54" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="sound-status-label">{muted ? 'OFF' : 'ON'}</span>
+                </motion.button>
+              </div>
+
               <span className="system-tag">LOC_NODE: EARTH.JS // 2024</span>
             </div>
             <div className="footer-center">
