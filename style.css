@@ -2804,10 +2804,23 @@ a {
 
 @media (max-width: 1200px) {
 
+  /* ── Navigation ── */
+  .main-nav {
+    padding: 1.25rem 3vw;
+  }
+
+  .nav-links {
+    gap: 1.5rem;
+  }
+
+  .scene-counter {
+    display: none;
+  }
+
+  /* ── Hero / Intro (Landscape Tablets & Narrow Desktops: 992px - 1200px) ── */
   .frame-container.hero-editorial-frame,
   .hero-editorial-frame {
-    flex-direction: column;
-    padding: 100px 5vw 40px !important;
+    padding: 100px 4vw 40px !important;
     min-height: 100vh;
     align-items: center;
     justify-content: center;
@@ -2821,47 +2834,231 @@ a {
   }
 
   .hero-bg-headline {
-    font-size: clamp(3rem, 10vw, 6rem);
+    font-size: clamp(2.6rem, 5.2vw, 4.4rem);
     white-space: normal;
     width: 100%;
+    margin-bottom: 0.8rem;
+    line-height: 1;
   }
 
   .intro-split-layout {
-    flex-direction: column-reverse;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
-    gap: 2.5rem;
+    justify-content: space-between;
+    gap: 2rem;
     margin-top: 0;
     width: 100%;
-    max-width: 100%;
+    max-width: 1150px;
   }
 
   .intro-text-content {
-    max-width: 680px;
+    flex: 1 1 54%;
+    max-width: 580px;
     width: 100%;
     text-align: left;
   }
 
+  .intro-role-styled {
+    font-size: clamp(0.95rem, 1.7vw, 1.35rem);
+    white-space: normal;
+    max-width: 500px;
+    margin-bottom: 0.6rem;
+  }
+
+  .intro-bio {
+    font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+    max-width: 520px;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-resume-btn-cyber {
+    margin-bottom: 0.8rem;
+  }
+
   .hero-image-intro-wrapper {
+    flex: 1 1 44%;
     width: 100%;
-    max-width: 480px;
+    max-width: 440px;
     margin-right: 0;
     margin-top: 0;
     align-self: center;
+    display: flex;
+    justify-content: center;
   }
 
   .hero-image-container-3d {
-    width: min(480px, 80vw);
+    width: min(440px, 40vw);
     height: auto;
     aspect-ratio: 2440 / 3160;
     left: 0;
-    max-width: 480px;
+    max-width: 440px;
     margin: 0 auto;
     will-change: transform;
   }
 
   .hero-composite-img {
     object-position: center bottom;
+  }
+
+  /* ── Skills / Arsenal ── */
+  .skills-wrapper {
+    max-width: 900px;
+  }
+
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .bento-card {
+    padding: 1.1rem 1.25rem;
+  }
+
+  .bento-card h3 {
+    font-size: 1.15rem;
+  }
+
+  /* ── Selected Works / Gallery ── */
+  .gallery-wrapper {
+    padding: 60px 0;
+  }
+
+  .gallery-track {
+    gap: 36px;
+    padding-left: 6vw;
+    padding-right: 30vw;
+  }
+
+  .gallery-card {
+    width: clamp(300px, 35vw, 380px);
+    height: clamp(400px, 55vh, 480px);
+  }
+
+  .project-name-display {
+    font-size: clamp(1.5rem, 2.8vw, 2rem);
+  }
+
+  .project-desc-display {
+    font-size: 0.88rem;
+  }
+
+  /* ── Contact / Terminal ── */
+  .terminal-wrapper {
+    width: 95%;
+    padding: 30px;
+  }
+
+  .terminal-content {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+  }
+
+  .section-heading-modern {
+    font-size: 2.2rem;
+    margin-bottom: 1.4rem;
+  }
+
+  /* ── Digital Resume Modal (Tablet) ── */
+  .resume-container {
+    padding: 2.2rem;
+    max-width: 92vw;
+  }
+
+  .resume-content-grid {
+    grid-template-columns: 1fr 1.3fr;
+    gap: 2rem;
+  }
+
+  /* ── Global Footer ── */
+  .global-footer {
+    padding: 10px 3vw 18px;
+  }
+
+  .social-links-hud {
+    gap: 24px;
+  }
+
+  .social-hover-link {
+    font-size: 0.68rem;
+  }
+
+  .footer-right {
+    display: none;
+  }
+}
+
+/* ── Portrait Tablets (769px to 991px) ── */
+@media (max-width: 991px) and (min-width: 769px) {
+  .frame-container.hero-editorial-frame,
+  .hero-editorial-frame {
+    padding: 95px 5vw 40px !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  .intro-split-layout {
+    flex-direction: column-reverse;
+    align-items: center;
+    text-align: center;
+    gap: 1.8rem;
+    max-width: 640px;
+  }
+
+  .intro-text-content {
+    max-width: 100%;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-bg-headline {
+    font-size: clamp(2.4rem, 6.5vw, 3.8rem);
+    margin: 0 auto 0.8rem;
+    text-align: center;
+  }
+
+  .intro-role-styled {
+    margin: 0 auto 0.8rem;
+    text-align: center;
+    max-width: 480px;
+  }
+
+  .intro-bio {
+    margin: 0 auto 1.5rem;
+    text-align: center;
+    max-width: 520px;
+    font-size: 0.95rem;
+  }
+
+  .intro-resume-btn-cyber {
+    margin: 0 auto 1rem;
+  }
+
+  .hero-text-scroll-hint {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .hero-image-intro-wrapper {
+    max-width: 380px;
+  }
+
+  .hero-image-container-3d {
+    width: min(380px, 60vw);
+    max-width: 380px;
+  }
+
+  .terminal-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .resume-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
 
@@ -2960,9 +3157,9 @@ a {
     align-items: center !important;
     display: flex !important;
     flex-direction: column !important;
-    margin: 50px 0 0 0 !important;
+    margin: 20px 0 0 0 !important;
     position: relative !important;
-    top: 30px !important;
+    top: 15px !important;
   }
 
   .hero-bg-headline {
@@ -3101,11 +3298,27 @@ a {
     text-align: center !important;
     letter-spacing: 0.04em !important;
     line-height: 1.3 !important;
-    margin: 0 auto !important;
+    margin: 0 auto 0.5rem !important;
   }
 
-  .intro-resume-btn-cyber,
-  .intro-bio,
+  .intro-bio {
+    display: block !important;
+    font-size: clamp(0.8rem, 3.2vw, 0.92rem) !important;
+    max-width: min(340px, 88vw) !important;
+    text-align: center !important;
+    color: rgba(204, 214, 246, 0.85) !important;
+    line-height: 1.55 !important;
+    margin: 0.3rem auto 0.7rem !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .intro-resume-btn-cyber {
+    display: inline-flex !important;
+    margin: 0.2rem auto 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    transform: scale(0.92);
+  }
+
   .hero-text-scroll-hint {
     display: none !important;
   }
